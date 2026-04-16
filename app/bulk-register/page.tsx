@@ -335,7 +335,7 @@ export default function BulkRegister() {
           .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
           .menu-overlay.open { opacity: 1; pointer-events: auto; }
 
-          /* サイドメニュー */
+          /* 🗄️ サイドメニュー（ここに全項目を完全網羅！） */
           .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
           .side-menu.open { left: 0; }
           .menu-title { font-size: 13px; font-weight: 900; color: var(--text-sub); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--card-border); letter-spacing: 1px; }
@@ -453,15 +453,20 @@ export default function BulkRegister() {
         {/* 🌌 メニュー展開時の背景オーバーレイ */}
         <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
 
-        {/* 🗄️ サイドメニュー */}
+        {/* 🗄️ サイドメニュー（全項目を完全網羅！） */}
         <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
           <div className="menu-title">🧭 TOOL MENU</div>
-          <a href="/bulk-register" className="side-link current-page">📦 一括登録（自己クロ）</a>
+          <a href="/kpi-detail" className="side-link">📊 獲得進捗・KPI</a>
+          <a href="/bulk-register" className="side-link current-page">📦 データ一括登録</a>
           <a href="/net-toss" className="side-link">🌐 ネットトス連携</a>
-          <a href="/self-close" className="side-link">🌲 自己クロ連携</a>
-          <a href="/sms-kraken" className="side-link">📱 SMS (Kraken)</a>
-          <a href="/email-template" className="side-link">✨ メールテンプレート</a>
-          <div className="side-link" style={{ opacity: 0.5, cursor: "not-allowed", background: "transparent", border: "1px dashed var(--card-border)", color: "var(--text-sub)" }}>
+          <a href="/self-close" className="side-link">🤝 自己クロ連携</a>
+          <a href="/sms-kraken" className="side-link">📱 SMS (Kraken)送信</a>
+          <a href="/email-template" className="side-link">✉️ メールテンプレート</a>
+          <a href="/procedure-wizard" className="side-link">🗺️ Kraken 手順辞書</a>
+          <a href="/simulator" className="side-link">🆚 料金シミュレーター</a>
+          <a href="/trouble-nav" className="side-link">⚡ トラブル解決ナビ</a>
+          
+          <div className="side-link" style={{ opacity: 0.5, cursor: "not-allowed", background: "transparent", border: "1px dashed var(--card-border)", color: "var(--text-sub)", marginTop: "10px" }}>
             🔒 新ツール（開発中...）
           </div>
         </div>
@@ -470,8 +475,8 @@ export default function BulkRegister() {
         <div className="glass-nav-wrapper fade-up-element" style={{ "--delay": "0s" } as any}>
           <div className="glass-nav">
             <div className="nav-left">
-              <a href="/" className="glass-nav-link">← 司令室</a>
-              <div className="glass-nav-active">📦 一括登録</div>
+              <a href="/" className="glass-nav-link">← 司令室に戻る</a>
+              <div className="glass-nav-active">📦 データ一括登録</div>
             </div>
             
             {/* ☀️/🌙 テーマ切り替えボタン */}
