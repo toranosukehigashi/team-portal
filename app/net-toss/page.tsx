@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// ✨ 背景の光の粒（静寂なカームデザイン）
+// ✨ 背景の光の粒（新しいテーマカラーに合わせたカームデザイン）
 const PixieDust = () => {
   const [stars, setStars] = useState<{ id: number; left: string; top: string; delay: string; size: string }[]>([]);
   useEffect(() => {
@@ -200,39 +200,39 @@ export default function NetToss() {
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
 
-          /* 🎨 HOME画面と完全一致するテーマ変数 */
+          /* 🎨 新しい洗練されたカラーパレット */
           .theme-light {
-            --bg-gradient: linear-gradient(180deg, #7dd3fc 0%, #e0f2fe 100%);
-            --text-main: #1e293b;
-            --text-sub: #475569;
-            --card-bg: rgba(255, 255, 255, 0.7);
+            --bg-gradient: linear-gradient(180deg, #d1fae5 0%, #f1f5f9 100%); /* ミント〜パール */
+            --text-main: #334155;
+            --text-sub: #64748b;
+            --card-bg: rgba(255, 255, 255, 0.8);
             --card-border: rgba(255, 255, 255, 1);
-            --card-hover-border: #38bdf8;
+            --card-hover-border: #10b981; /* エメラルドグリーン */
             --card-hover-bg: rgba(255, 255, 255, 0.95);
-            --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            --title-color: #0369a1;
-            --accent-color: #0284c7;
-            --input-bg: rgba(255, 255, 255, 0.8);
-            --input-border: rgba(203, 213, 225, 0.8);
-            --svg-color: rgba(2, 132, 199, 0.2);
-            --star-color: #f59e0b;
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.04);
+            --title-color: #047857; /* 深い緑 */
+            --accent-color: #0f766e; /* ティール */
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --input-border: rgba(148, 163, 184, 0.4);
+            --svg-color: rgba(16, 185, 129, 0.15);
+            --star-color: #94a3b8; /* シルバーの星屑 */
           }
           
           .theme-dark {
-            --bg-gradient: radial-gradient(ellipse at bottom, #1e1b4b 0%, #020617 100%);
+            --bg-gradient: radial-gradient(ellipse at bottom, #064e3b 0%, #020617 100%); /* 深緑〜ミッドナイト */
             --text-main: #f8fafc;
-            --text-sub: #cbd5e1;
-            --card-bg: rgba(15, 23, 42, 0.7);
-            --card-border: rgba(255, 255, 255, 0.15);
-            --card-hover-border: #38bdf8;
-            --card-hover-bg: rgba(30, 41, 59, 0.9);
-            --card-shadow: 0 20px 50px rgba(0,0,0,0.8);
-            --title-color: #fde047;
-            --accent-color: #38bdf8;
-            --input-bg: rgba(0, 0, 0, 0.4);
-            --input-border: rgba(255, 255, 255, 0.2);
-            --svg-color: rgba(255, 255, 255, 0.4);
-            --star-color: #fef08a;
+            --text-sub: #94a3b8;
+            --card-bg: rgba(15, 23, 42, 0.6);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --card-hover-border: #2dd4bf; /* 発光するシアン */
+            --card-hover-bg: rgba(30, 41, 59, 0.8);
+            --card-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            --title-color: #34d399; /* 鮮やかなミント */
+            --accent-color: #2dd4bf; /* シアン */
+            --input-bg: rgba(0, 0, 0, 0.3);
+            --input-border: rgba(255, 255, 255, 0.15);
+            --svg-color: rgba(45, 212, 191, 0.2);
+            --star-color: #fde047; /* ゴールドの星屑 */
           }
 
           .app-wrapper { 
@@ -251,11 +251,11 @@ export default function NetToss() {
           @keyframes twinkle { 0% { opacity: 0.1; transform: scale(0.5) translateY(0); } 50% { opacity: 1; transform: scale(1.2) translateY(-20px); } 100% { opacity: 0.1; transform: scale(0.5) translateY(0); } }
 
           /* 🌟 SVGアニメーション背景 */
-          .magic-svg-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.7; }
-          .magic-path { fill: none; stroke: var(--svg-color); stroke-width: 3; stroke-dasharray: 3000; stroke-dashoffset: 3000; animation: drawMagic 10s ease-in-out infinite alternate; transition: stroke 0.5s; }
+          .magic-svg-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.8; }
+          .magic-path { fill: none; stroke: var(--svg-color); stroke-width: 3; stroke-dasharray: 3000; stroke-dashoffset: 3000; animation: drawMagic 12s ease-in-out infinite alternate; transition: stroke 0.5s; }
           @keyframes drawMagic { 0% { stroke-dashoffset: 3000; } 100% { stroke-dashoffset: 0; } }
 
-          /* 🍔 ハンバーガーボタン */
+          /* ハンバーガーボタン */
           .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 1001; background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; box-shadow: var(--card-shadow); transition: 0.3s; }
           .hamburger-btn:hover { background: var(--card-hover-bg); transform: scale(1.05); }
           .hamburger-line { width: 22px; height: 3px; background: var(--text-sub); border-radius: 3px; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
@@ -263,18 +263,18 @@ export default function NetToss() {
           .hamburger-btn.open .line2 { opacity: 0; transform: translateX(-10px); }
           .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: var(--accent-color); }
 
-          /* 🌌 オーバーレイ */
+          /* メニューオーバーレイ */
           .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
           .menu-overlay.open { opacity: 1; pointer-events: auto; }
 
-          /* 🗄️ サイドメニュー */
+          /* サイドメニュー */
           .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
           .side-menu.open { left: 0; }
-          .menu-title { font-size: 13px; font-weight: 900; color: var(--text-sub); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--card-border); letter-spacing: 1px; }
+          .menu-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--card-border); letter-spacing: 1px; }
 
           .side-link { text-decoration: none; padding: 14px 20px; border-radius: 14px; background: var(--input-bg); color: var(--text-main); font-weight: 800; font-size: 14px; border: 1px solid var(--card-border); transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
           .side-link:hover { border-color: var(--card-hover-border); transform: translateX(8px); }
-          .side-link.current-page { background: linear-gradient(135deg, #0284c7, #38bdf8); color: #fff; border: none; box-shadow: 0 6px 15px rgba(2, 132, 199, 0.3); pointer-events: none; }
+          .side-link.current-page { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); pointer-events: none; }
 
           /* 🎈 ナビゲーション（中央配置） */
           .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 30px; }
@@ -327,15 +327,16 @@ export default function NetToss() {
           .input-group label { font-size: 12px; font-weight: 800; color: var(--text-sub); margin-bottom: 6px; border-left: 3px solid var(--accent-color); padding-left: 8px; }
           
           .input-control { width: 100%; padding: 12px 14px; border: 1px solid var(--input-border); border-radius: 10px; font-size: 13px; background: var(--input-bg); color: var(--text-main); transition: 0.3s; font-weight: 700; outline: none; }
-          .input-control:focus { border-color: var(--card-hover-border); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); background: var(--card-hover-bg); }
+          .input-control:focus { border-color: var(--card-hover-border); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); background: var(--card-hover-bg); }
           .input-control option { background: #0f172a; color: #fff; }
           .theme-light .input-control option { background: #fff; color: #1e293b; }
 
           .paste-area { width: 100%; height: 100px; padding: 14px; border: 2px dashed var(--card-hover-border); border-radius: 12px; background: var(--input-bg); color: var(--text-main); margin-bottom: 16px; outline: none; transition: 0.3s; font-family: monospace; resize: vertical; }
-          .paste-area:focus { background: var(--card-hover-bg); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
+          .paste-area:focus { background: var(--card-hover-bg); box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
           
-          .btn-primary { width: 100%; padding: 12px; background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #fff; border: none; border-radius: 10px; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: 14px; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(2, 132, 199, 0.3); }
-          .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(2, 132, 199, 0.5); }
+          /* 新しいボタンのグラデーション */
+          .btn-primary { width: 100%; padding: 12px; background: linear-gradient(135deg, #10b981, #047857); color: #fff; border: none; border-radius: 10px; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: 14px; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3); }
+          .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(16, 185, 129, 0.5); }
 
           .preview-area { width: 100%; height: 200px; padding: 16px; background: var(--input-bg); color: var(--text-main); border-radius: 12px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; border: 2px solid var(--accent-color); outline: none; resize: vertical; box-shadow: inset 0 4px 10px rgba(0,0,0,0.05); }
           
@@ -345,8 +346,8 @@ export default function NetToss() {
           
           .footer-bar { position: fixed; bottom: 0; left: 0; width: 100%; padding: 16px 40px; background: var(--card-bg); backdrop-filter: blur(12px); border-top: 1px solid var(--card-border); display: flex; gap: 16px; z-index: 100; justify-content: center; }
           .btn-footer { max-width: 300px; width: 100%; padding: 16px; border-radius: 30px; font-weight: 900; font-size: 15px; border: none; cursor: pointer; transition: 0.3s; letter-spacing: 1px; }
-          .btn-copy { background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #fff; box-shadow: 0 5px 15px rgba(2, 132, 199, 0.3); }
-          .btn-copy:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(2, 132, 199, 0.5); }
+          .btn-copy { background: linear-gradient(135deg, #10b981, #047857); color: #fff; box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3); }
+          .btn-copy:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(16, 185, 129, 0.5); }
           .btn-clear { background: var(--input-bg); color: var(--text-sub); border: 2px solid var(--card-border); }
           .btn-clear:hover { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.1); }
 
