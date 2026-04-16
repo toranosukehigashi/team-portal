@@ -172,10 +172,15 @@ export default function BulkRegister() {
   };
 
   // 🥷 隠しマント送信（Iframeを使った別タブなし送信）
+  // 🚀 プロ仕様の fetch 通信（Iframe廃止・no-cors仕様）
   const saveToSheet = async () => {
     if (isSubmitting) return;
     const gasUrl = process.env.NEXT_PUBLIC_GAS_URL;
-    if (!gasUrl) return alert("GASのURLが設定されていません。");
+    
+    // URLが設定されていない（またはVercelの再デプロイ忘れ）場合のアラート
+    if (!gasUrl || gasUrl === "undefined") {
+      return alert("⚠️ GASのURLが設定されていません！Vercelの環境変数を確認し、再デプロイしてください！");
+    }
 
     setIsSubmitting(true);
     showToast("⏳ スプレッドシートへ送信中...", true);
@@ -192,17 +197,21 @@ export default function BulkRegister() {
     const encodedData = encodeURIComponent(JSON.stringify(dataArray));
     const warpUrl = `${gasUrl}?env=${env}&data=${encodedData}`;
 
-    // 🥷 隠し窓（Iframe）にURLを流し込む
-    const hiddenIframe = document.getElementById("hidden_warp_iframe") as HTMLIFrameElement;
-    if (hiddenIframe) {
-      hiddenIframe.src = warpUrl;
-    }
+    try {
+      // ⚡ これが最強の魔法！「結果は返さなくていいから、とにかくデータを受け取れ！」という通信
+      await fetch(warpUrl, {
+        method: "GET",
+        mode: "no-cors", // 👈 これがブラウザのブロックを貫通する鍵です！
+      });
 
-    // 3秒後に「完了したテイ」でトーストを表示
-    setTimeout(() => {
+      // 送信成功（エラーが起きなかった）とみなしてトーストを表示！
       showToast(env === 'test' ? "🧪 テストシートへの保存を完了しました！" : "🎉 成約後シートへの保存を完了しました！！！", true, env === 'prod');
+    } catch (error) {
+      console.error("送信エラー:", error);
+      alert("⚠️ 通信エラーが発生しました。ネットワーク環境を確認してください。");
+    } finally {
       setIsSubmitting(false);
-    }, 3000);
+    }
   };
 
   const copyPlain = async (text: string, successMsg: string) => {
