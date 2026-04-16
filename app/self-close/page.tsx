@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// ✨ 背景の光の粒
+// ✨ 背景の光の粒（静寂なカームデザイン）
 const PixieDust = () => {
   const [stars, setStars] = useState<{ id: number; left: string; top: string; delay: string; size: string }[]>([]);
   useEffect(() => {
@@ -33,6 +33,8 @@ export default function SelfClose() {
   const [toast, setToast] = useState({ show: false, msg: "", isError: false });
   const [emailError, setEmailError] = useState(false);
   const [sameAsMove, setSameAsMove] = useState(false);
+  
+  // 🍔 メニュー開閉状態
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
@@ -285,34 +287,34 @@ export default function SelfClose() {
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
 
-          /* 🔮 完全なパープル仕様のカラーテーマ（手抜きなし！） */
+          /* 🔮 完全なパープル仕様のカラーテーマ */
           .theme-light {
-            --bg-gradient: linear-gradient(135deg, #e9d5ff 0%, #f3e8ff 50%, #f8fafc 100%); /* ラベンダーから白へ */
+            --bg-gradient: linear-gradient(135deg, #e9d5ff 0%, #f3e8ff 50%, #f8fafc 100%);
             --text-main: #1e293b;
             --text-sub: #475569;
             --card-bg: rgba(255, 255, 255, 0.75);
             --card-border: rgba(255, 255, 255, 1);
-            --card-hover-border: #a855f7; /* パープル500 */
+            --card-hover-border: #a855f7;
             --card-hover-bg: rgba(255, 255, 255, 0.95);
             --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            --title-color: #6d28d9; /* バイオレット700 */
-            --accent-color: #7c3aed; /* バイオレット600 */
+            --title-color: #6d28d9;
+            --accent-color: #7c3aed;
             --input-bg: rgba(255, 255, 255, 0.9);
-            --input-border: rgba(196, 181, 253, 0.8); /* パープル調のボーダー */
+            --input-border: rgba(196, 181, 253, 0.8);
             --svg-color: rgba(124, 58, 237, 0.15);
-            --star-color: #c084fc; /* 紫の星屑 */
+            --star-color: #c084fc;
           }
           
           .theme-dark {
-            --bg-gradient: radial-gradient(ellipse at top left, #2e1065 0%, #0f172a 100%); /* 深いプラムからミッドナイト */
+            --bg-gradient: radial-gradient(ellipse at top left, #2e1065 0%, #0f172a 100%);
             --text-main: #f8fafc;
             --text-sub: #cbd5e1;
-            --card-bg: rgba(25, 15, 40, 0.65); /* ほんのり紫がかったグラス */
+            --card-bg: rgba(25, 15, 40, 0.65);
             --card-border: rgba(255, 255, 255, 0.1);
-            --card-hover-border: #c084fc; /* 発光するライトパープル */
+            --card-hover-border: #c084fc;
             --card-hover-bg: rgba(40, 20, 60, 0.85);
             --card-shadow: 0 20px 50px rgba(0,0,0,0.6);
-            --title-color: #d8b4fe; /* 薄紫 */
+            --title-color: #d8b4fe;
             --accent-color: #c084fc;
             --input-bg: rgba(0, 0, 0, 0.4);
             --input-border: rgba(168, 85, 247, 0.3);
@@ -340,7 +342,7 @@ export default function SelfClose() {
           .magic-path { fill: none; stroke: var(--svg-color); stroke-width: 3; stroke-dasharray: 3000; stroke-dashoffset: 3000; animation: drawMagic 12s ease-in-out infinite alternate; transition: stroke 0.5s; }
           @keyframes drawMagic { 0% { stroke-dashoffset: 3000; } 100% { stroke-dashoffset: 0; } }
 
-          /* ハンバーガーボタン */
+          /* 🍔 ハンバーガーボタン */
           .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 1001; background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; box-shadow: var(--card-shadow); transition: 0.3s; }
           .hamburger-btn:hover { background: var(--card-hover-bg); transform: scale(1.05); }
           .hamburger-line { width: 22px; height: 3px; background: var(--text-sub); border-radius: 3px; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
@@ -348,11 +350,11 @@ export default function SelfClose() {
           .hamburger-btn.open .line2 { opacity: 0; transform: translateX(-10px); }
           .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: var(--accent-color); }
 
-          /* メニューオーバーレイ */
+          /* 🌌 メニューオーバーレイ */
           .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
           .menu-overlay.open { opacity: 1; pointer-events: auto; }
 
-          /* サイドメニュー */
+          /* 🗄️ サイドメニュー（全項目網羅！） */
           .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
           .side-menu.open { left: 0; }
           .menu-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--card-border); letter-spacing: 1px; }
@@ -375,33 +377,18 @@ export default function SelfClose() {
           .theme-toggle-btn:hover { border-color: var(--card-hover-border); transform: scale(1.05); }
 
           /* 🌟 レイアウト：左の注意事項 ＋ 右の入力フォーム */
-          .main-layout {
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 30px;
-            max-width: 1200px;
-            margin: 0 auto 50px auto;
-          }
+          .main-layout { display: grid; grid-template-columns: 320px 1fr; gap: 30px; max-width: 1200px; margin: 0 auto 50px auto; }
           @media (max-width: 950px) { .main-layout { grid-template-columns: 1fr; } }
 
-          /* ℹ️ 左側：注意事項パネル */
           .info-sidebar { display: flex; flex-direction: column; gap: 20px; }
-          .info-panel {
-            background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border);
-            border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow);
-          }
+          .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow); }
           .info-title { font-size: 15px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
           .info-list { padding-left: 20px; margin: 0; color: var(--text-main); font-size: 13px; line-height: 1.8; }
           .info-list li { margin-bottom: 8px; }
 
-          /* 📝 右側：メインフォームエリア */
           .form-main-area { display: flex; flex-direction: column; gap: 24px; }
 
-          .glass-panel { 
-            background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); 
-            border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow); 
-            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s; 
-          }
+          .glass-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow); transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s; }
           .glass-panel:hover { border-color: var(--card-hover-border); transform: translateY(-2px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
 
           .form-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px 20px; }
@@ -419,11 +406,10 @@ export default function SelfClose() {
           .paste-area { width: 100%; height: 100px; padding: 14px; border: 2px dashed var(--card-hover-border); border-radius: 12px; background: var(--input-bg); color: var(--text-main); margin-bottom: 16px; outline: none; transition: 0.3s; font-family: monospace; resize: vertical; }
           .paste-area:focus { background: var(--card-hover-bg); box-shadow: 0 0 15px rgba(139, 92, 246, 0.2); }
           
-          /* 新しいパープルのボタングラデーション */
           .btn-primary { width: 100%; padding: 12px; background: linear-gradient(135deg, #a855f7, #7c3aed); color: #fff; border: none; border-radius: 10px; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: 14px; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3); }
           .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(139, 92, 246, 0.5); }
 
-          /* ラジオボタンとチェックボックスエリア */
+          /* ラジオボタンとチェックボックス */
           .radio-group { display: flex; flex-wrap: wrap; gap: 16px; padding: 12px 14px; border-radius: 10px; background: var(--input-bg); border: 1px solid var(--input-border); }
           .radio-group label { margin: 0; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: var(--text-main); border: none; padding: 0; font-weight: 700; }
           .radio-group input[type="radio"], .radio-group input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent-color); cursor: pointer; margin: 0; }
@@ -470,22 +456,26 @@ export default function SelfClose() {
         {/* 🗄️ サイドメニュー */}
         <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
           <div className="menu-title">🧭 TOOL MENU</div>
-          <a href="/bulk-register" className="side-link">📦 一括登録（自己クロ）</a>
+          <a href="/kpi-detail" className="side-link">📊 獲得進捗・KPI</a>
+          <a href="/bulk-register" className="side-link">📦 データ一括登録</a>
           <a href="/net-toss" className="side-link">🌐 ネットトス連携</a>
-          <a href="/self-close" className="side-link current-page">🌲 自己クロ連携</a>
-          <a href="/sms-kraken" className="side-link">📱 SMS (Kraken)</a>
-          <a href="/email-template" className="side-link">✨ メールテンプレート</a>
-          <div className="side-link" style={{ opacity: 0.5, cursor: "not-allowed", background: "transparent", border: "1px dashed var(--card-border)", color: "var(--text-sub)" }}>
+          <a href="/self-close" className="side-link current-page">🤝 自己クロ連携</a>
+          <a href="/sms-kraken" className="side-link">📱 SMS (Kraken)送信</a>
+          <a href="/email-template" className="side-link">✉️ メールテンプレート</a>
+          <a href="/procedure-wizard" className="side-link">🗺️ Kraken 手順辞書</a>
+          <a href="/simulator" className="side-link">🆚 料金シミュレーター</a>
+          <a href="/trouble-nav" className="side-link">⚡ トラブル解決ナビ</a>
+          <div className="side-link" style={{ opacity: 0.5, cursor: "not-allowed", background: "transparent", border: "1px dashed var(--card-border)", color: "var(--text-sub)", marginTop: "10px" }}>
             🔒 新ツール（開発中...）
           </div>
         </div>
 
-        {/* 🎈 ナビゲーション & テーマ切り替え（中央配置） */}
+        {/* 🎈 ナビゲーション & テーマ切り替え */}
         <div className="glass-nav-wrapper fade-up-element" style={{ "--delay": "0s" } as any}>
           <div className="glass-nav">
             <div className="nav-left">
-              <a href="/" className="glass-nav-link">← 司令室</a>
-              <div className="glass-nav-active">🌲 自己クロ連携</div>
+              <a href="/" className="glass-nav-link">← 司令室に戻る</a>
+              <div className="glass-nav-active">🤝 自己クロ連携</div>
             </div>
             <button className="theme-toggle-btn" onClick={toggleTheme}>
               {isDarkMode ? "🎇 NIGHT" : "☀️ DAY"}
@@ -493,10 +483,9 @@ export default function SelfClose() {
           </div>
         </div>
 
-        {/* 🌟 メインレイアウト（左：注意事項 / 右：入力フォーム） */}
+        {/* 🌟 メインレイアウト */}
         <div className="main-layout">
           
-          {/* ℹ️ 左カラム：注意事項・備考パネル */}
           <aside className="info-sidebar">
             <div className="info-panel fade-up-element">
               <h3 className="info-title">📌 入力時の注意事項</h3>
@@ -518,7 +507,6 @@ export default function SelfClose() {
             </div>
           </aside>
 
-          {/* 📝 右カラム：メインフォームエリア */}
           <div className="form-main-area">
             
             <section className="glass-panel fade-up-element">
