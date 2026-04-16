@@ -3,17 +3,41 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
+// ✨ 背景の光の粒（新しいテーマカラーに合わせたカームデザイン）
+const PixieDust = () => {
+  const [stars, setStars] = useState<{ id: number; left: string; top: string; delay: string; size: string }[]>([]);
+  useEffect(() => {
+    const generatedStars = Array.from({ length: 50 }).map((_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}vw`,
+      top: `${Math.random() * 100}vh`,
+      delay: `${Math.random() * 5}s`,
+      size: `${Math.random() * 3 + 1}px`
+    }));
+    setStars(generatedStars);
+  }, []);
+  return (
+    <div className="particles-container">
+      {stars.map(star => (
+        <div key={star.id} className="star" style={{ left: star.left, top: star.top, width: star.size, height: star.size, animationDelay: star.delay }} />
+      ))}
+    </div>
+  );
+};
+
 export default function SelfClose() {
   const router = useRouter();
 
-  // 🌟 状態管理（ロジックは一切変更なし）
+  // 🌟 状態管理
   const [rawText, setRawText] = useState("");
   const [toast, setToast] = useState({ show: false, msg: "", isError: false });
   const [emailError, setEmailError] = useState(false);
   const [sameAsMove, setSameAsMove] = useState(false);
-
-  // 🍔 ハンバーガーメニューの開閉状態を追加
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+
+  // ☀️ テーマ管理
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const [form, setForm] = useState({
     colList: "",
@@ -30,7 +54,6 @@ export default function SelfClose() {
 
   const [preview, setPreview] = useState("");
 
-  // 🌟 生年月日用の年リスト生成
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: currentYear - 1939 }, (_, i) => {
     const y = 1940 + i;
@@ -41,7 +64,15 @@ export default function SelfClose() {
     return { value: `${y}年`, label: `${y} (${wareki})年` };
   });
 
-  // 🌟 プレビュー文字列の自動生成 (リアルタイム反映)
+  useEffect(() => {
+    setIsReady(true);
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("visible"); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
   useEffect(() => {
     const nameFormatted = [form.colSei, form.colMei, form.colSeiKana, form.colMeiKana].filter(v => v !== "").join("　");
     const birthStr = (form.birthYear || form.birthMonth || form.birthDay) ? `${form.birthYear}${form.birthMonth}${form.birthDay}` : "";
@@ -107,27 +138,27 @@ export default function SelfClose() {
     setPreview(text);
   }, [form]);
 
-  // 🌟 トースト通知
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+    showToast(!isDarkMode ? "🌙 ダークモードに切り替えました" : "☀️ ライトモードに切り替えました");
+  };
+
   const showToast = (msg: string, isError = false) => {
     setToast({ show: true, msg, isError });
     setTimeout(() => setToast({ show: false, msg: "", isError: false }), 3000);
   };
 
-  // 🌟 汎用入力ハンドラ
   const handleChange = (e: any) => {
     const { id, value, type, checked, name } = e.target;
     const targetId = id || name;
-    
     setForm(prev => ({ ...prev, [targetId]: type === "checkbox" ? checked : value }));
 
-    // メールバリデーション
     if (targetId === "colEmail") {
       const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       setEmailError(value !== "" && !regex.test(value));
     }
   };
 
-  // 🌟 意思取り方法のタグ追加
   const addPhrase = (phrase: string) => {
     setForm(prev => ({
       ...prev,
@@ -135,7 +166,6 @@ export default function SelfClose() {
     }));
   };
 
-  // 🌟 カナ自動入力補助
   const baseKana = useRef("");
   const handleKanaUpdate = (e: any, targetKanaId: string) => {
     const text = e.data;
@@ -145,7 +175,6 @@ export default function SelfClose() {
     }
   };
 
-  // 🌟 工事日を引越日と同期
   const handleSyncKoji = (e: any) => {
     const checked = e.target.checked;
     setSameAsMove(checked);
@@ -171,7 +200,6 @@ export default function SelfClose() {
     }
   };
 
-  // 🌟 WarpID 自動感知（CallTree連携）
   const lastWarpId = useRef<string | null>(null);
   useEffect(() => {
     const checkWarpData = async () => {
@@ -194,7 +222,6 @@ export default function SelfClose() {
     return () => window.removeEventListener("focus", checkWarpData);
   }, []);
 
-  // ✨ 自動振り分けロジック
   const doParse = (text: string) => {
     if (!text) { showToast("⚠️ データを貼り付けてください", true); return; }
     const lines = text.split(/\r?\n/).map(line => line.replace(/^[^：:]+[：:]\s*/, '').trim());
@@ -249,285 +276,432 @@ export default function SelfClose() {
   };
 
   return (
-    <div className="glass-self-close">
-      <style dangerouslySetInnerHTML={{ __html: `
-        .glass-self-close * { box-sizing: border-box; }
-        .glass-self-close { font-family: 'Inter', 'Noto Sans JP', sans-serif; padding: 20px 40px 100px 40px; min-height: 100vh; background: linear-gradient(135deg, #e0e7ff 0%, #fef9c3 50%, #f8fafc 100%); background-attachment: fixed; color: #1e293b; overflow-x: hidden; }
-        
-        /* 🍔 ハンバーガーボタン */
-        .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 1001; background: rgba(255,255,255,0.6); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.9); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s; }
-        .hamburger-btn:hover { background: #fff; box-shadow: 0 6px 20px rgba(132, 204, 22, 0.2); transform: scale(1.05); }
-        .hamburger-line { width: 22px; height: 3px; background: #475569; border-radius: 3px; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
-        .hamburger-btn.open .line1 { transform: translateY(8px) rotate(45deg); background: #84cc16; }
-        .hamburger-btn.open .line2 { opacity: 0; transform: translateX(-10px); }
-        .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: #84cc16; }
-
-        /* 🌌 オーバーレイ */
-        .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.3); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
-        .menu-overlay.open { opacity: 1; pointer-events: auto; }
-
-        /* 🗄️ サイドメニュー */
-        .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border-right: 1px solid rgba(255, 255, 255, 0.7); z-index: 1000; box-shadow: 20px 0 50px rgba(0,0,0,0.1); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
-        .side-menu.open { left: 0; }
-        .menu-title { font-size: 13px; font-weight: 900; color: #64748b; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed rgba(132, 204, 22, 0.5); letter-spacing: 1px; }
-
-        .side-link { text-decoration: none; padding: 14px 20px; border-radius: 14px; background: rgba(255, 255, 255, 0.6); color: #334155; font-weight: 800; font-size: 14px; border: 1px solid rgba(255,255,255,0.8); transition: all 0.2s; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
-        .side-link:hover { background: #fff; border-color: #bef264; color: #84cc16; transform: translateX(8px); box-shadow: 0 6px 15px rgba(132, 204, 22, 0.15); }
-        .side-link.current-page { background: linear-gradient(135deg, #84cc16, #15803d); color: #fff; border: none; box-shadow: 0 6px 20px rgba(132, 204, 22, 0.3); pointer-events: none; }
-
-        /* 🎈 ナビゲーション（ハンバーガー回避でmargin-left追加） */
-        .glass-nav { position: relative; z-index: 10; display: flex; gap: 12px; padding: 12px; margin-bottom: 24px; margin-left: 60px; background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.7); border-radius: 16px; box-shadow: 0 4px 30px rgba(0,0,0,0.03); }
-        .glass-nav-link { text-decoration: none; padding: 10px 20px; border-radius: 10px; font-weight: 700; background: rgba(255, 255, 255, 0.6); color: #64748b; transition: 0.2s; border: 1px solid transparent; }
-        .glass-nav-link:hover { background: #fff; color: #84cc16; border-color: #bef264; }
-        .glass-nav-active { padding: 10px 20px; border-radius: 10px; font-weight: 800; background: #fff; color: #84cc16; border: 1px solid #bef264; box-shadow: 0 2px 10px rgba(132,204,22,0.1); }
-        
-        /* 🌟 メインパネル */
-        .glass-panel { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.8); border-top: 4px solid #84cc16; border-radius: 20px; padding: 24px; margin-bottom: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.04); }
-        .section-title { font-size: 16px; font-weight: 800; color: #1e293b; margin-bottom: 20px; border-left: 5px solid #84cc16; padding-left: 12px; display: flex; align-items: center; gap: 8px; }
-        .sub-title { font-size: 12px; font-weight: bold; color: #64748b; border-bottom: 1px solid rgba(132, 204, 22, 0.3); margin-top: 20px; margin-bottom: 12px; padding-bottom: 6px; }
-        
-        .form-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0px 24px; }
-        
-        /* 🔥 スマート・フォーカス */
-        .input-group { display: flex; flex-direction: column; margin-bottom: 8px; }
-        .input-group label { font-size: 11px; font-weight: 800; color: #64748b; margin-bottom: 6px; border-left: 3px solid #84cc16; padding-left: 8px; }
-        
-        .input-control { width: 100%; padding: 8px 14px; border: 1px solid rgba(203, 213, 225, 0.6); border-radius: 10px; font-size: 13px; background: rgba(255, 255, 255, 0.8); color: #1e293b; outline: none; transition: 0.2s; }
-        .input-control:focus { border-color: #84cc16; background: #fff; box-shadow: 0 0 0 4px rgba(132, 204, 22, 0.1); transform: translateY(-1px); }
-        .input-control:disabled { background: #f1f5f9; opacity: 0.7; cursor: not-allowed; border-color: #e2e8f0; }
-        .email-error { border-color: #ef4444; background: #fef2f2; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1); }
-        
-        .paste-area { width: 100%; height: 90px; padding: 14px; border: 2px dashed rgba(132, 204, 22, 0.4); border-radius: 15px; background: rgba(255, 255, 255, 0.5); font-size: 13px; margin-bottom: 12px; outline: none; transition: 0.2s; color: #475569; resize: none; }
-        .paste-area:focus { border-color: #84cc16; background: rgba(255, 255, 255, 0.8); box-shadow: 0 8px 20px rgba(132, 204, 22, 0.1); }
-        
-        .btn-parse { width: 100%; padding: 12px; background: #1e293b; color: #bef264; border: none; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; transition: 0.2s; letter-spacing: 1px; }
-        .btn-parse:hover { background: #0f172a; transform: translateY(-1px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-
-        /* 🌟 ラジオボタンエリア */
-        .radio-group { display: flex; flex-wrap: wrap; gap: 16px; padding: 10px 14px; border-radius: 10px; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(203, 213, 225, 0.6); }
-        .radio-group label { margin: 0; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: #1e293b; border: none; padding: 0; text-shadow: none; font-weight: normal; }
-        .radio-group input[type="radio"] { width: 18px; height: 18px; accent-color: #84cc16; cursor: pointer; margin: 0; }
-
-        /* 🌟 クイックタグ */
-        .tag-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; margin-bottom: 10px; }
-        .tag-btn { padding: 6px 14px; background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; color: #64748b; transition: 0.2s; }
-        .tag-btn:hover { border-color: #bef264; color: #84cc16; background: #fefce8; transform: translateY(-1px); }
-
-        /* 🌟 プレビュー */
-        .preview-area { width: 100%; height: 320px; padding: 18px; background: #1e293b; color: #bef264; border-radius: 15px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6; border: none; outline: none; resize: vertical; box-shadow: inset 0 4px 10px rgba(0,0,0,0.2); }
-        
-        /* 🌟 フッター */
-        .footer-bar { position: fixed; bottom: 0; left: 0; width: 100%; padding: 16px 40px; background: rgba(255,255,255,0.7); backdrop-filter: blur(15px); border-top: 1px solid rgba(255,255,255,0.8); display: flex; gap: 16px; z-index: 100; }
-        .btn-footer { flex: 1; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 15px; border: none; cursor: pointer; transition: 0.2s; letter-spacing: 0.5px; color: #fff; }
-        .btn-copy { background: linear-gradient(135deg, #a3e635, #65a30d); box-shadow: 0 4px 15px rgba(132, 204, 22, 0.2); border: 1px solid #bef264; flex: 2; }
-        .btn-copy:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(132, 204, 22, 0.3); }
-        .btn-clear { background: #f1f5f9; color: #64748b; flex: 0.6; }
-        .btn-clear:hover { background: #e2e8f0; color: #1e293b; }
-
-        /* 🌟 トースト通知 */
-        #toast { visibility: hidden; position: fixed; bottom: 100px; right: 40px; background: #1e293b; color: #fff; padding: 16px 24px; border-radius: 12px; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 200; opacity: 0; transition: 0.4s; border: 1px solid #334155; }
-        #toast.show { visibility: visible; opacity: 1; transform: translateY(-10px); }
-        #toast.error { background: #ef4444; color: #fff; border-color: #f87171; box-shadow: 0 10px 30px rgba(239, 68, 68, 0.2); }
-      `}} />
-
-      {/* 🍔 ハンバーガーボタン */}
-      <div className={`hamburger-btn ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
-        <div className="hamburger-line line1"></div>
-        <div className="hamburger-line line2"></div>
-        <div className="hamburger-line line3"></div>
+    <>
+      <div className={`entrance-bg ${isDarkMode ? "theme-dark" : "theme-light"}`}>
+        <PixieDust />
       </div>
 
-      {/* 🌌 メニュー展開時の背景オーバーレイ（クリックで閉じる） */}
-      <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
+      <main className={`app-wrapper ${isReady ? "ready" : ""} ${isDarkMode ? "theme-dark" : "theme-light"}`}>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .app-wrapper * { box-sizing: border-box; }
 
-      {/* 🗄️ 左から現れる透け透けサイドメニュー */}
-      <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
-        <div className="menu-title">🧭 TOOL MENU</div>
-        <a href="/bulk-register" className="side-link">📦 一括登録（自己クロ）</a>
-        <a href="/net-toss" className="side-link">🌐 ネットトス連携</a>
-        <a href="/self-close" className="side-link current-page">🌲 自己クロ連携</a>
-        <a href="/sms-kraken" className="side-link">📱 SMS (Kraken)</a>
-        <a href="/email-template" className="side-link">✨ メールテンプレート</a>
-        
-        <div className="side-link" style={{ opacity: 0.5, cursor: "not-allowed", background: "transparent", border: "1px dashed #cbd5e1" }}>
-          🔒 新ツール（開発中...）
+          /* 🎨 自己クロ専用の洗練されたパープルテーマ */
+          .theme-light {
+            --bg-gradient: linear-gradient(180deg, #7dd3fc 0%, #e0f2fe 100%); /* HOMEと同じ青空 */
+            --text-main: #1e293b;
+            --text-sub: #475569;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --card-border: rgba(255, 255, 255, 1);
+            --card-hover-border: #a78bfa; /* 鮮やかなパープル */
+            --card-hover-bg: rgba(255, 255, 255, 0.95);
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.04);
+            --title-color: #5b21b6; /* 深い紫 */
+            --accent-color: #7c3aed; /* プライマリ紫 */
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --input-border: rgba(148, 163, 184, 0.4);
+            --svg-color: rgba(124, 58, 237, 0.15); /* 紫のSVG */
+            --star-color: #d8b4fe; /* 薄いラベンダーの星屑 */
+          }
+          
+          .theme-dark {
+            --bg-gradient: radial-gradient(ellipse at bottom, #1e1b4b 0%, #020617 100%); /* HOMEと同じ夜空 */
+            --text-main: #f8fafc;
+            --text-sub: #cbd5e1;
+            --card-bg: rgba(15, 23, 42, 0.6);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --card-hover-border: #a855f7; /* 発光する紫 */
+            --card-hover-bg: rgba(30, 41, 59, 0.8);
+            --card-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            --title-color: #c084fc; /* 鮮やかな紫 */
+            --accent-color: #a855f7;
+            --input-bg: rgba(0, 0, 0, 0.3);
+            --input-border: rgba(255, 255, 255, 0.15);
+            --svg-color: rgba(168, 85, 247, 0.25);
+            --star-color: #e9d5ff; /* バイオレットの星屑 */
+          }
+
+          .app-wrapper { 
+            min-height: 100vh; padding: 20px 40px 100px 40px; 
+            font-family: 'Inter', 'Noto Sans JP', sans-serif; 
+            color: var(--text-main); font-size: 13px; 
+            transition: color 0.5s; overflow-x: hidden; position: relative;
+          }
+
+          .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; transition: background 0.8s ease; }
+          .entrance-bg.theme-light { background: var(--bg-gradient); }
+          .entrance-bg.theme-dark { background: var(--bg-gradient); }
+
+          .particles-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
+          .star { position: absolute; border-radius: 50%; background: var(--star-color); box-shadow: 0 0 10px var(--star-color); animation: twinkle 4s infinite ease-in-out; transition: background 0.5s, box-shadow 0.5s; }
+          @keyframes twinkle { 0% { opacity: 0.1; transform: scale(0.5) translateY(0); } 50% { opacity: 1; transform: scale(1.2) translateY(-20px); } 100% { opacity: 0.1; transform: scale(0.5) translateY(0); } }
+
+          /* 🌟 SVGアニメーション背景 */
+          .magic-svg-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.8; }
+          .magic-path { fill: none; stroke: var(--svg-color); stroke-width: 3; stroke-dasharray: 3000; stroke-dashoffset: 3000; animation: drawMagic 12s ease-in-out infinite alternate; transition: stroke 0.5s; }
+          @keyframes drawMagic { 0% { stroke-dashoffset: 3000; } 100% { stroke-dashoffset: 0; } }
+
+          /* ハンバーガーボタン */
+          .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 1001; background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; box-shadow: var(--card-shadow); transition: 0.3s; }
+          .hamburger-btn:hover { background: var(--card-hover-bg); transform: scale(1.05); }
+          .hamburger-line { width: 22px; height: 3px; background: var(--text-sub); border-radius: 3px; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+          .hamburger-btn.open .line1 { transform: translateY(8px) rotate(45deg); background: var(--accent-color); }
+          .hamburger-btn.open .line2 { opacity: 0; transform: translateX(-10px); }
+          .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: var(--accent-color); }
+
+          /* メニューオーバーレイ */
+          .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
+          .menu-overlay.open { opacity: 1; pointer-events: auto; }
+
+          /* サイドメニュー */
+          .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+          .side-menu.open { left: 0; }
+          .menu-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--card-border); letter-spacing: 1px; }
+
+          .side-link { text-decoration: none; padding: 14px 20px; border-radius: 14px; background: var(--input-bg); color: var(--text-main); font-weight: 800; font-size: 14px; border: 1px solid var(--card-border); transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
+          .side-link:hover { border-color: var(--card-hover-border); transform: translateX(8px); }
+          .side-link.current-page { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff; border: none; box-shadow: 0 6px 15px rgba(139, 92, 246, 0.3); pointer-events: none; }
+
+          /* 🎈 ナビゲーション（中央配置） */
+          .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 30px; }
+          .glass-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 50px; box-shadow: var(--card-shadow); max-width: 800px; width: 100%; }
+          
+          .nav-left { display: flex; gap: 12px; align-items: center; }
+          .glass-nav-link { text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 800; background: var(--input-bg); color: var(--text-sub); border: 1px solid var(--card-border); transition: 0.2s; font-size: 14px; }
+          .glass-nav-link:hover { color: var(--accent-color); border-color: var(--card-hover-border); }
+          .glass-nav-active { padding: 10px 20px; border-radius: 30px; font-weight: 900; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); font-size: 14px; }
+
+          /* テーマ切り替えボタン */
+          .theme-toggle-btn { background: var(--input-bg); border: 1px solid var(--card-border); padding: 10px 20px; border-radius: 30px; cursor: pointer; transition: 0.3s; font-size: 14px; color: var(--text-main); font-weight: 800; }
+          .theme-toggle-btn:hover { border-color: var(--card-hover-border); transform: scale(1.05); }
+
+          /* 🌟 レイアウト：左の注意事項 ＋ 右の入力フォーム */
+          .main-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto 50px auto;
+          }
+          @media (max-width: 950px) { .main-layout { grid-template-columns: 1fr; } }
+
+          /* ℹ️ 左側：注意事項パネル */
+          .info-sidebar { display: flex; flex-direction: column; gap: 20px; }
+          .info-panel {
+            background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border);
+            border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow);
+          }
+          .info-title { font-size: 15px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
+          .info-list { padding-left: 20px; margin: 0; color: var(--text-main); font-size: 13px; line-height: 1.8; }
+          .info-list li { margin-bottom: 8px; }
+
+          /* 📝 右側：メインフォームエリア */
+          .form-main-area { display: flex; flex-direction: column; gap: 24px; }
+
+          .glass-panel { 
+            background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); 
+            border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow); 
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s; 
+          }
+          .glass-panel:hover { border-color: var(--card-hover-border); transform: translateY(-2px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+
+          .form-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px 20px; }
+          @media (max-width: 800px) { .form-grid-2 { grid-template-columns: 1fr; } }
+          
+          .input-group { display: flex; flex-direction: column; margin-bottom: 8px; }
+          .input-group label { font-size: 12px; font-weight: 800; color: var(--text-sub); margin-bottom: 6px; border-left: 3px solid var(--accent-color); padding-left: 8px; }
+          
+          .input-control { width: 100%; padding: 12px 14px; border: 1px solid var(--input-border); border-radius: 10px; font-size: 13px; background: var(--input-bg); color: var(--text-main); transition: 0.3s; font-weight: 700; outline: none; }
+          .input-control:focus { border-color: var(--card-hover-border); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2); background: var(--card-hover-bg); }
+          .input-control option { background: #0f172a; color: #fff; }
+          .theme-light .input-control option { background: #fff; color: #1e293b; }
+          .email-error { border-color: #ef4444; background: #fef2f2; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1); }
+
+          .paste-area { width: 100%; height: 100px; padding: 14px; border: 2px dashed var(--card-hover-border); border-radius: 12px; background: var(--input-bg); color: var(--text-main); margin-bottom: 16px; outline: none; transition: 0.3s; font-family: monospace; resize: vertical; }
+          .paste-area:focus { background: var(--card-hover-bg); box-shadow: 0 0 15px rgba(139, 92, 246, 0.2); }
+          
+          /* 新しい紫のボタンのグラデーション */
+          .btn-primary { width: 100%; padding: 12px; background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff; border: none; border-radius: 10px; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: 14px; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3); }
+          .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(139, 92, 246, 0.5); }
+
+          /* ラジオボタンとチェックボックスエリア */
+          .radio-group { display: flex; flex-wrap: wrap; gap: 16px; padding: 12px 14px; border-radius: 10px; background: var(--input-bg); border: 1px solid var(--input-border); }
+          .radio-group label { margin: 0; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: var(--text-main); border: none; padding: 0; font-weight: 700; }
+          .radio-group input[type="radio"] { width: 18px; height: 18px; accent-color: var(--accent-color); cursor: pointer; margin: 0; }
+
+          .preview-area { width: 100%; height: 250px; padding: 16px; background: var(--input-bg); color: var(--text-main); border-radius: 12px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; border: 2px solid var(--accent-color); outline: none; resize: vertical; box-shadow: inset 0 4px 10px rgba(0,0,0,0.05); }
+          
+          .tag-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; margin-bottom: 10px; }
+          .tag-btn { padding: 8px 14px; background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 20px; font-size: 12px; font-weight: 800; cursor: pointer; color: var(--text-main); transition: 0.2s; }
+          .tag-btn:hover { border-color: var(--card-hover-border); color: var(--accent-color); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+          
+          .footer-bar { position: fixed; bottom: 0; left: 0; width: 100%; padding: 16px 40px; background: var(--card-bg); backdrop-filter: blur(12px); border-top: 1px solid var(--card-border); display: flex; gap: 16px; z-index: 100; justify-content: center; }
+          .btn-footer { max-width: 300px; width: 100%; padding: 16px; border-radius: 30px; font-weight: 900; font-size: 15px; border: none; cursor: pointer; transition: 0.3s; letter-spacing: 1px; color: #fff; }
+          .btn-copy { background: linear-gradient(135deg, #8b5cf6, #6d28d9); box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3); }
+          .btn-copy:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(139, 92, 246, 0.5); }
+          .btn-clear { background: var(--input-bg); color: var(--text-sub); border: 2px solid var(--card-border); }
+          .btn-clear:hover { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+
+          #toast { visibility: hidden; position: fixed; bottom: 100px; right: 40px; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); padding: 16px 24px; border-radius: 12px; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 200; opacity: 0; transition: 0.4s; backdrop-filter: blur(10px); }
+          #toast.show { visibility: visible; opacity: 1; transform: translateY(-10px); }
+          #toast.error { background: #fee2e2; color: #e11d48; border-color: #f43f5e; box-shadow: 0 10px 30px rgba(225, 29, 72, 0.2); }
+          .theme-dark #toast.error { background: rgba(225, 29, 72, 0.2); border-color: #fb7185; }
+
+          /* 🪄 スクロール連動 */
+          .fade-up-element { opacity: 0; transform: translateY(40px); transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+          .fade-up-element.visible { opacity: 1; transform: translateY(0); }
+        `}} />
+
+        {/* 🌟 SVG魔法の軌跡 */}
+        <svg className="magic-svg-bg" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path className="magic-path" d="M -10,30 Q 30,80 50,50 T 110,40" />
+          <path className="magic-path" d="M -10,70 Q 40,20 70,60 T 110,80" style={{animationDelay: "4s", opacity: 0.5}} />
+        </svg>
+
+        {/* 🍔 ハンバーガーボタン */}
+        <div className={`hamburger-btn ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+          <div className="hamburger-line line1"></div>
+          <div className="hamburger-line line2"></div>
+          <div className="hamburger-line line3"></div>
         </div>
-      </div>
 
-      <div className="glass-nav">
-        <a href="/" className="glass-nav-link">← 司令室に戻る</a>
-        <div className="glass-nav-active">🌲 自己クロ連携</div>
-      </div>
+        {/* 🌌 メニュー展開時の背景オーバーレイ */}
+        <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
 
-      <div className="glass-panel">
-        <textarea className="paste-area" placeholder="CallTreeのデータを貼り付け、または自動受信を待機..." value={rawText} onChange={(e) => setRawText(e.target.value)} />
-        <button className="btn-parse" onClick={() => doParse(rawText)}>✨ 一発自動入力（パース）を実行</button>
-      </div>
-
-      <div className="form-grid-2">
-        {/* 左カラム：基本情報 */}
-        <div className="glass-panel">
-          <div className="section-title">👤 基本情報</div>
-          <div className="input-group"><label>リスト名</label><input className="input-control" id="colList" value={form.colList} onChange={handleChange} /></div>
-          
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-            <div className="input-group"><label>姓</label><input className="input-control" id="colSei" value={form.colSei} onChange={handleChange} onCompositionStart={() => baseKana.current = form.colSeiKana} onCompositionUpdate={(e: any) => handleKanaUpdate(e, "colSeiKana")} onCompositionEnd={() => baseKana.current = form.colSeiKana} /></div>
-            <div className="input-group"><label>名</label><input className="input-control" id="colMei" value={form.colMei} onChange={handleChange} onCompositionStart={() => baseKana.current = form.colMeiKana} onCompositionUpdate={(e: any) => handleKanaUpdate(e, "colMeiKana")} onCompositionEnd={() => baseKana.current = form.colMeiKana} /></div>
-            <div className="input-group"><label>姓カナ</label><input className="input-control" id="colSeiKana" value={form.colSeiKana} onChange={handleChange} /></div>
-            <div className="input-group"><label>名カナ</label><input className="input-control" id="colMeiKana" value={form.colMeiKana} onChange={handleChange} /></div>
-          </div>
-
-          <div className="input-group">
-            <label>生年月日</label>
-            <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr", gap: "10px" }}>
-              <select className="input-control" id="birthYear" value={form.birthYear} onChange={handleChange}>
-                <option value="">-- 年 --</option>
-                {years.map(y => <option key={y.value} value={y.value}>{y.label}</option>)}
-              </select>
-              <select className="input-control" id="birthMonth" value={form.birthMonth} onChange={handleChange}>
-                <option value="">-月-</option>
-                {Array.from({length: 12}, (_, i) => <option key={i+1} value={`${i+1}月`}>{i+1}月</option>)}
-              </select>
-              <select className="input-control" id="birthDay" value={form.birthDay} onChange={handleChange}>
-                <option value="">-日-</option>
-                {Array.from({length: 31}, (_, i) => <option key={i+1} value={`${i+1}日`}>{i+1}日</option>)}
-              </select>
-            </div>
-          </div>
-
-          <div className="input-group"><label>新居先（自動結合）</label><textarea className="input-control" id="colNewAddress" rows={2} value={form.colNewAddress} onChange={handleChange} style={{resize: 'none'}} /></div>
-          <div className="input-group"><label>現住所</label><textarea className="input-control" id="colCurrentAddress" rows={2} value={form.colCurrentAddress} onChange={handleChange} style={{resize: 'none'}} /></div>
-          <div className="input-group"><label>携帯番号</label><input className="input-control" id="colPhone" value={form.colPhone} onChange={handleChange} /></div>
-          <div className="input-group"><label>Email</label><input className={`input-control ${emailError ? "email-error" : ""}`} type="email" id="colEmail" placeholder="abc@example.com" value={form.colEmail} onChange={handleChange} /></div>
-        </div>
-
-        {/* 右カラム：クロージング詳細 */}
-        <div className="glass-panel">
-          <div className="section-title">⚡ クロージング詳細</div>
-          
-          <div className="sub-title">注意事項・共有事項</div>
-          <div className="input-group">
-            <label>架電番号</label>
-            <select className="input-control" id="colCallNum" value={form.colCallNum} onChange={handleChange}>
-              <option value="">-- 選択 --</option><option value="新生活ポータル：050-5783-4359">新生活ポータル</option><option value="家計の節約：050-1790-8196">家計の節約</option><option value="Wiz：050-1791-1936">Wiz</option>
-            </select>
-          </div>
-          <div className="input-group">
-            <label>オクトパスNG or OK</label>
-            <div className="radio-group">
-              <label><input type="radio" name="octopusStatus" value="OK" checked={form.octopusStatus === "OK"} onChange={handleChange} /> OK</label>
-              <label><input type="radio" name="octopusStatus" value="NG" checked={form.octopusStatus === "NG"} onChange={handleChange} /> NG</label>
-            </div>
-          </div>
-          <div className="input-group">
-            <label>意思取り方法</label>
-            <div className="tag-container">
-              <button className="tag-btn" onClick={() => addPhrase("物件設備で利用でOK！")}>➕ 物件設備</button>
-              <button className="tag-btn" onClick={() => addPhrase("携帯とセットでOK！")}>➕ セット割</button>
-              <button className="tag-btn" onClick={() => addPhrase("半年間無料お試しでOK!")}>➕ 半年間無料</button>
-              <button className="tag-btn" onClick={() => addPhrase("めちゃ得割")}>➕ めちゃ得割</button>
-            </div>
-            <input className="input-control" type="text" id="colIntention" value={form.colIntention} onChange={handleChange} />
-          </div>
-
-          <div className="sub-title">商材・担当者</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-            <div className="input-group">
-              <label>商材名</label>
-              <select className="input-control" id="colProduct" value={form.colProduct} onChange={handleChange}>
-                <option value="">-- 選択 --</option><option value="フレッツ光">フレッツ光</option><option value="ドコモ光">ドコモ光</option><option value="Softbank光">Softbank光</option><option value="auひかり">auひかり</option><option value="NURO光">NURO光</option>
-              </select>
-            </div>
-            <div className="input-group">
-              <label>プラン名</label>
-              <select className="input-control" id="colPlan" value={form.colPlan} onChange={handleChange}>
-                <option value="">-- 選択 --</option><option value="MS">MS</option><option value="FM">FM</option><option value="10G">10G</option><option value="P1">P1</option><option value="P2">P2</option>
-              </select>
-            </div>
-          </div>
-          <div className="input-group">
-            <label>名義人性別</label>
-            <div className="radio-group">
-              <label><input type="radio" name="gender" value="男" checked={form.gender === "男"} onChange={handleChange} /> 男</label>
-              <label><input type="radio" name="gender" value="女" checked={form.gender === "女"} onChange={handleChange} /> 女</label>
-            </div>
-          </div>
-
-          <div className="sub-title">工事・設備情報</div>
-          <div className="input-group"><label>引越日</label><input className="input-control" id="colMoveDate" value={form.colMoveDate} onChange={handleChange} /></div>
-          <div className="input-group">
-            <label>書類発送先</label>
-            <div className="radio-group">
-              <label><input type="radio" name="docSend" value="新住所" checked={form.docSend === "新住所"} onChange={handleChange} /> 新住所</label>
-              <label><input type="radio" name="docSend" value="現住所" checked={form.docSend === "現住所"} onChange={handleChange} /> 現住所</label>
-            </div>
-          </div>
-          <div className="input-group">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-              <label style={{margin: 0}}>工事希望日</label>
-              <label style={{ fontSize: "11px", color: "#65a30d", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", margin: 0 }}>
-                <input type="checkbox" id="sameAsMove" checked={sameAsMove} onChange={handleSyncKoji} style={{accentColor: '#84cc16', width: '15px', height: '15px'}} /> 引越日と同じにする
-              </label>
-            </div>
-            <input className="input-control" type="date" id="colKoji" value={form.colKoji} onChange={handleChange} />
-          </div>
-          <div className="input-group">
-            <label>工事費</label>
-            <div className="radio-group">
-              <label><input type="radio" name="kojiFee" value="一括" checked={form.kojiFee === "一括"} onChange={handleChange} /> 一括</label>
-              <label><input type="radio" name="kojiFee" value="分割" checked={form.kojiFee === "分割"} onChange={handleChange} /> 分割</label>
-            </div>
-          </div>
-          
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginTop: "8px" }}>
-            <div className="input-group">
-              <label>住宅タイプ</label>
-              <select className="input-control" id="colHouseType" value={form.colHouseType} onChange={handleChange}>
-                <option value="">-- 選択 --</option><option value="戸建（持家）">戸建（持家）</option><option value="戸建（賃貸）">戸建（賃貸）</option><option value="集合住宅（持家）">集合住宅（持家）</option><option value="集合住宅（賃貸）">集合住宅（賃貸）</option>
-              </select>
-            </div>
-            <div className="input-group">
-              <label>キャリア</label>
-              <select className="input-control" id="colCarrier" value={form.colCarrier} onChange={handleChange}>
-                <option value="">-- 選択 --</option><option value="docomo">docomo</option><option value="au">au</option><option value="SoftBank">SoftBank</option><option value="楽天">楽天</option><option value="格安SIM">格安SIM</option>
-              </select>
-            </div>
-          </div>
-          
-          <div className="input-group">
-            <label>新築・既設</label>
-            <div className="radio-group">
-              <label><input type="radio" name="newOld" value="新築" checked={form.newOld === "新築"} onChange={handleChange} /> 新築</label>
-              <label><input type="radio" name="newOld" value="既設" checked={form.newOld === "既設"} onChange={handleChange} /> 既設</label>
-            </div>
-          </div>
-
-          <div className="input-group">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-              <label style={{ margin: 0 }}>CB（金額のみ入力）</label>
-              <label style={{ fontSize: "11px", cursor: "pointer", color: "#65a30d", margin: 0, display: "flex", alignItems: "center", gap: "6px" }}>
-                <input type="checkbox" id="cbHalfYearFree" checked={form.cbHalfYearFree} onChange={handleChange} style={{accentColor: '#84cc16', width: '15px', height: '15px'}} /> 半年間無料分
-              </label>
-            </div>
-            <input className="input-control" type="number" id="colCB" placeholder="例：10000" disabled={form.cbHalfYearFree} value={form.colCB} onChange={handleChange} />
+        {/* 🗄️ サイドメニュー */}
+        <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
+          <div className="menu-title">🧭 TOOL MENU</div>
+          <a href="/bulk-register" className="side-link">📦 一括登録（自己クロ）</a>
+          <a href="/net-toss" className="side-link">🌐 ネットトス連携</a>
+          <a href="/self-close" className="side-link current-page">🌲 自己クロ連携</a>
+          <a href="/sms-kraken" className="side-link">📱 SMS (Kraken)</a>
+          <a href="/email-template" className="side-link">✨ メールテンプレート</a>
+          <div className="side-link" style={{ opacity: 0.5, cursor: "not-allowed", background: "transparent", border: "1px dashed var(--card-border)", color: "var(--text-sub)" }}>
+            🔒 新ツール（開発中...）
           </div>
         </div>
-      </div>
 
-      {/* 👀 プレビューエリア（落ち着いたダークグレー） */}
-      <div className="glass-panel" style={{ background: "rgba(30, 41, 59, 0.95)", border: "none" }}>
-        <div className="section-title" style={{ color: "#bef264", borderLeftColor: "#bef264" }}>{`> SYSTEM.PREVIEW // コピー内容`}</div>
-        <textarea className="preview-area" value={preview} readOnly />
-      </div>
+        {/* 🎈 ナビゲーション & テーマ切り替え（中央配置） */}
+        <div className="glass-nav-wrapper fade-up-element" style={{ "--delay": "0s" } as any}>
+          <div className="glass-nav">
+            <div className="nav-left">
+              <a href="/" className="glass-nav-link">← 司令室</a>
+              <div className="glass-nav-active">🌲 自己クロ連携</div>
+            </div>
+            <button className="theme-toggle-btn" onClick={toggleTheme}>
+              {isDarkMode ? "🎇 NIGHT" : "☀️ DAY"}
+            </button>
+          </div>
+        </div>
 
-      {/* 🛠️ フッター操作（ダークグラス） */}
-      <div className="footer-bar">
-        <button className="btn-footer btn-clear" onClick={clearAll}>🗑️ リセット</button>
-        <button className="btn-footer btn-copy" onClick={copyTemplate}>📋 この内容でFMTをコピー</button>
-      </div>
+        {/* 🌟 メインレイアウト（左：注意事項 / 右：入力フォーム） */}
+        <div className="main-layout">
+          
+          {/* ℹ️ 左カラム：注意事項・備考パネル */}
+          <aside className="info-sidebar">
+            <div className="info-panel fade-up-element">
+              <h3 className="info-title">📌 入力時の注意事項</h3>
+              <ul className="info-list">
+                <li>Warpのデータを貼り付けると、自己クロ用のフォーマットに自動でデータが割り当てられます。</li>
+                <li>WarpID付きのテキストをコピーした状態でこの画面を開くと、<b>自動でペースト・解析</b>が行われます。</li>
+                <li>お客様名（漢字）を入力すると、自動でカナが推測入力されます。（要確認）</li>
+                <li>工事希望日は、チェックを入れると「引越日」と自動で同期されます。</li>
+              </ul>
+            </div>
+            
+            <div className="info-panel fade-up-element" style={{ transitionDelay: "0.1s" }}>
+              <h3 className="info-title">🛠️ 運用ステータス</h3>
+              <ul className="info-list">
+                <li>自動パース機能：正常（稼働中）</li>
+                <li>CallTree連携：有効</li>
+                <li>日付同期システム：有効</li>
+              </ul>
+            </div>
+          </aside>
 
-      {/* 🍞 通知 */}
-      <div id="toast" className={`${toast.show ? "show" : ""} ${toast.isError ? "error" : ""}`}>{toast.msg}</div>
-    </div>
+          {/* 📝 右カラム：メインフォームエリア */}
+          <div className="form-main-area">
+            
+            <section className="glass-panel fade-up-element">
+              <div style={{ fontWeight: 900, marginBottom: "12px", color: "var(--title-color)", fontSize: "15px" }}>1. データの貼り付けと解析</div>
+              <textarea 
+                className="paste-area" 
+                placeholder="CallTreeのデータをここに貼り付け、または自動受信を待機..." 
+                value={rawText} 
+                onChange={(e) => setRawText(e.target.value)} 
+              />
+              <button className="btn-primary" onClick={() => doParse(rawText)}>✨ 一発自動入力（パース）を実行</button>
+            </section>
+
+            {/* 👤 基本情報セクション */}
+            <section className="glass-panel fade-up-element" style={{ transitionDelay: "0.1s" }}>
+              <div style={{ fontWeight: 900, fontSize: "15px", color: "var(--title-color)", marginBottom: "20px", borderBottom: "2px dashed var(--card-border)", paddingBottom: "15px" }}>2. 👤 基本情報</div>
+              
+              <div className="form-grid-2">
+                <div className="input-group" style={{ gridColumn: "span 2" }}>
+                  <label>リスト名</label>
+                  <input className="input-control" id="colList" value={form.colList} onChange={handleChange} />
+                </div>
+                
+                <div className="input-group"><label>姓</label><input className="input-control" id="colSei" value={form.colSei} onChange={handleChange} onCompositionStart={() => baseKana.current = form.colSeiKana} onCompositionUpdate={(e: any) => handleKanaUpdate(e, "colSeiKana")} onCompositionEnd={() => baseKana.current = form.colSeiKana} /></div>
+                <div className="input-group"><label>名</label><input className="input-control" id="colMei" value={form.colMei} onChange={handleChange} onCompositionStart={() => baseKana.current = form.colMeiKana} onCompositionUpdate={(e: any) => handleKanaUpdate(e, "colMeiKana")} onCompositionEnd={() => baseKana.current = form.colMeiKana} /></div>
+                <div className="input-group"><label>姓カナ</label><input className="input-control" id="colSeiKana" value={form.colSeiKana} onChange={handleChange} /></div>
+                <div className="input-group"><label>名カナ</label><input className="input-control" id="colMeiKana" value={form.colMeiKana} onChange={handleChange} /></div>
+
+                <div className="input-group" style={{ gridColumn: "span 2" }}>
+                  <label>生年月日</label>
+                  <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr", gap: "15px" }}>
+                    <select className="input-control" id="birthYear" value={form.birthYear} onChange={handleChange}>
+                      <option value="">-- 年 --</option>
+                      {years.map(y => <option key={y.value} value={y.value}>{y.label}</option>)}
+                    </select>
+                    <select className="input-control" id="birthMonth" value={form.birthMonth} onChange={handleChange}>
+                      <option value="">-月-</option>
+                      {Array.from({length: 12}, (_, i) => <option key={i+1} value={`${i+1}月`}>{i+1}月</option>)}
+                    </select>
+                    <select className="input-control" id="birthDay" value={form.birthDay} onChange={handleChange}>
+                      <option value="">-日-</option>
+                      {Array.from({length: 31}, (_, i) => <option key={i+1} value={`${i+1}日`}>{i+1}日</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="input-group" style={{ gridColumn: "span 2" }}><label>新居先（自動結合）</label><textarea className="input-control" id="colNewAddress" rows={2} value={form.colNewAddress} onChange={handleChange} style={{resize: 'vertical'}} /></div>
+                <div className="input-group" style={{ gridColumn: "span 2" }}><label>現住所</label><textarea className="input-control" id="colCurrentAddress" rows={2} value={form.colCurrentAddress} onChange={handleChange} style={{resize: 'vertical'}} /></div>
+                
+                <div className="input-group"><label>携帯番号</label><input className="input-control" id="colPhone" value={form.colPhone} onChange={handleChange} /></div>
+                <div className="input-group"><label>Email</label><input className={`input-control ${emailError ? "email-error" : ""}`} type="email" id="colEmail" placeholder="abc@example.com" value={form.colEmail} onChange={handleChange} /></div>
+              </div>
+            </section>
+
+            {/* ⚡ クロージング詳細セクション */}
+            <section className="glass-panel fade-up-element" style={{ transitionDelay: "0.2s" }}>
+              <div style={{ fontWeight: 900, fontSize: "15px", color: "var(--title-color)", marginBottom: "20px", borderBottom: "2px dashed var(--card-border)", paddingBottom: "15px" }}>3. ⚡ クロージング詳細</div>
+              
+              <div style={{ fontSize: "12px", fontWeight: "bold", color: "var(--text-sub)", borderBottom: "1px solid var(--svg-color)", marginTop: "10px", marginBottom: "12px", paddingBottom: "6px" }}>注意事項・共有事項</div>
+              <div className="form-grid-2">
+                <div className="input-group">
+                  <label>架電番号</label>
+                  <select className="input-control" id="colCallNum" value={form.colCallNum} onChange={handleChange}>
+                    <option value="">-- 選択 --</option><option value="新生活ポータル：050-5783-4359">新生活ポータル</option><option value="家計の節約：050-1790-8196">家計の節約</option><option value="Wiz：050-1791-1936">Wiz</option>
+                  </select>
+                </div>
+                <div className="input-group">
+                  <label>オクトパスNG or OK</label>
+                  <div className="radio-group">
+                    <label><input type="radio" name="octopusStatus" value="OK" checked={form.octopusStatus === "OK"} onChange={handleChange} /> OK</label>
+                    <label><input type="radio" name="octopusStatus" value="NG" checked={form.octopusStatus === "NG"} onChange={handleChange} /> NG</label>
+                  </div>
+                </div>
+                <div className="input-group" style={{ gridColumn: "span 2" }}>
+                  <label>意思取り方法</label>
+                  <div className="tag-container">
+                    <button className="tag-btn" onClick={() => addPhrase("物件設備で利用でOK！")}>➕ 物件設備</button>
+                    <button className="tag-btn" onClick={() => addPhrase("携帯とセットでOK！")}>➕ セット割</button>
+                    <button className="tag-btn" onClick={() => addPhrase("半年間無料お試しでOK!")}>➕ 半年間無料</button>
+                    <button className="tag-btn" onClick={() => addPhrase("めちゃ得割")}>➕ めちゃ得割</button>
+                  </div>
+                  <input className="input-control" type="text" id="colIntention" value={form.colIntention} onChange={handleChange} />
+                </div>
+              </div>
+
+              <div style={{ fontSize: "12px", fontWeight: "bold", color: "var(--text-sub)", borderBottom: "1px solid var(--svg-color)", marginTop: "20px", marginBottom: "12px", paddingBottom: "6px" }}>商材・担当者</div>
+              <div className="form-grid-2">
+                <div className="input-group">
+                  <label>商材名</label>
+                  <select className="input-control" id="colProduct" value={form.colProduct} onChange={handleChange}>
+                    <option value="">-- 選択 --</option><option value="フレッツ光">フレッツ光</option><option value="ドコモ光">ドコモ光</option><option value="Softbank光">Softbank光</option><option value="auひかり">auひかり</option><option value="NURO光">NURO光</option>
+                  </select>
+                </div>
+                <div className="input-group">
+                  <label>プラン名</label>
+                  <select className="input-control" id="colPlan" value={form.colPlan} onChange={handleChange}>
+                    <option value="">-- 選択 --</option><option value="MS">MS</option><option value="FM">FM</option><option value="10G">10G</option><option value="P1">P1</option><option value="P2">P2</option>
+                  </select>
+                </div>
+                <div className="input-group" style={{ gridColumn: "span 2" }}>
+                  <label>名義人性別</label>
+                  <div className="radio-group">
+                    <label><input type="radio" name="gender" value="男" checked={form.gender === "男"} onChange={handleChange} /> 男</label>
+                    <label><input type="radio" name="gender" value="女" checked={form.gender === "女"} onChange={handleChange} /> 女</label>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ fontSize: "12px", fontWeight: "bold", color: "var(--text-sub)", borderBottom: "1px solid var(--svg-color)", marginTop: "20px", marginBottom: "12px", paddingBottom: "6px" }}>工事・設備情報</div>
+              <div className="form-grid-2">
+                <div className="input-group"><label>引越日</label><input className="input-control" id="colMoveDate" value={form.colMoveDate} onChange={handleChange} /></div>
+                <div className="input-group">
+                  <label>書類発送先</label>
+                  <div className="radio-group">
+                    <label><input type="radio" name="docSend" value="新住所" checked={form.docSend === "新住所"} onChange={handleChange} /> 新住所</label>
+                    <label><input type="radio" name="docSend" value="現住所" checked={form.docSend === "現住所"} onChange={handleChange} /> 現住所</label>
+                  </div>
+                </div>
+                <div className="input-group">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                    <label style={{margin: 0}}>工事希望日</label>
+                    <label style={{ fontSize: "11px", color: "var(--accent-color)", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", margin: 0, fontWeight: 800 }}>
+                      <input type="checkbox" id="sameAsMove" checked={sameAsMove} onChange={handleSyncKoji} style={{accentColor: 'var(--accent-color)', width: '15px', height: '15px'}} /> 引越日と同期
+                    </label>
+                  </div>
+                  <input className="input-control" type="date" id="colKoji" value={form.colKoji} onChange={handleChange} />
+                </div>
+                <div className="input-group">
+                  <label>工事費</label>
+                  <div className="radio-group">
+                    <label><input type="radio" name="kojiFee" value="一括" checked={form.kojiFee === "一括"} onChange={handleChange} /> 一括</label>
+                    <label><input type="radio" name="kojiFee" value="分割" checked={form.kojiFee === "分割"} onChange={handleChange} /> 分割</label>
+                  </div>
+                </div>
+                <div className="input-group">
+                  <label>住宅タイプ</label>
+                  <select className="input-control" id="colHouseType" value={form.colHouseType} onChange={handleChange}>
+                    <option value="">-- 選択 --</option><option value="戸建（持家）">戸建（持家）</option><option value="戸建（賃貸）">戸建（賃貸）</option><option value="集合住宅（持家）">集合住宅（持家）</option><option value="集合住宅（賃貸）">集合住宅（賃貸）</option>
+                  </select>
+                </div>
+                <div className="input-group">
+                  <label>キャリア</label>
+                  <select className="input-control" id="colCarrier" value={form.colCarrier} onChange={handleChange}>
+                    <option value="">-- 選択 --</option><option value="docomo">docomo</option><option value="au">au</option><option value="SoftBank">SoftBank</option><option value="楽天">楽天</option><option value="格安SIM">格安SIM</option>
+                  </select>
+                </div>
+                <div className="input-group">
+                  <label>新築・既設</label>
+                  <div className="radio-group">
+                    <label><input type="radio" name="newOld" value="新築" checked={form.newOld === "新築"} onChange={handleChange} /> 新築</label>
+                    <label><input type="radio" name="newOld" value="既設" checked={form.newOld === "既設"} onChange={handleChange} /> 既設</label>
+                  </div>
+                </div>
+                <div className="input-group">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                    <label style={{ margin: 0 }}>CB（金額のみ入力）</label>
+                    <label style={{ fontSize: "11px", cursor: "pointer", color: "var(--accent-color)", margin: 0, display: "flex", alignItems: "center", gap: "6px", fontWeight: 800 }}>
+                      <input type="checkbox" id="cbHalfYearFree" checked={form.cbHalfYearFree} onChange={handleChange} style={{accentColor: 'var(--accent-color)', width: '15px', height: '15px'}} /> 半年間無料分
+                    </label>
+                  </div>
+                  <input className="input-control" type="number" id="colCB" placeholder="例：10000" disabled={form.cbHalfYearFree} value={form.colCB} onChange={handleChange} />
+                </div>
+              </div>
+            </section>
+
+            {/* 👀 プレビューエリア */}
+            <section className="glass-panel fade-up-element" style={{ transitionDelay: "0.3s" }}>
+              <div style={{ fontWeight: 900, fontSize: "15px", color: "var(--accent-color)", marginBottom: "15px" }}>{`> SYSTEM.PREVIEW // コピー内容`}</div>
+              <textarea className="preview-area" value={preview} readOnly />
+            </section>
+
+          </div>
+        </div>
+
+        {/* 🛠️ フッター操作 */}
+        <div className="footer-bar">
+          <button className="btn-footer btn-clear" onClick={clearAll}>🗑️ リセット</button>
+          <button className="btn-footer btn-copy" onClick={copyTemplate}>📋 この内容でFMTをコピー</button>
+        </div>
+
+        {/* 🍞 通知 */}
+        <div id="toast" className={`${toast.show ? "show" : ""} ${toast.isError ? "error" : ""}`}>{toast.msg}</div>
+      </main>
+    </>
   );
 }
