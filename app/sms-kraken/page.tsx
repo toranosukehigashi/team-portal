@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 // ✨ 背景の光の粒
@@ -100,6 +100,7 @@ export default function SmsKraken() {
 
   return (
     <>
+      {/* 🚀 修正：HOMEと同じ背景グラデーションを適用 */}
       <div className={`entrance-bg ${isDarkMode ? "theme-dark" : "theme-light"}`}>
         <PixieDust />
       </div>
@@ -108,39 +109,43 @@ export default function SmsKraken() {
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
 
-          /* 🎨 SMS Kraken専用：Rose/Coral テーマ */
+          /* 🎨 ベースはHOMEと同じ青空/夜空。アクセントのみRoseに！ */
           .theme-light {
             --bg-gradient: linear-gradient(180deg, #7dd3fc 0%, #e0f2fe 100%); /* HOMEと同じ青空 */
             --text-main: #1e293b;
             --text-sub: #475569;
-            --card-bg: rgba(255, 255, 255, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.7);
             --card-border: rgba(255, 255, 255, 1);
-            --card-hover-border: #f43f5e; /* ローズレッド */
+            --card-hover-border: #f43f5e; /* ローズレッド（アクセント） */
             --card-hover-bg: rgba(255, 255, 255, 0.95);
-            --card-shadow: 0 10px 30px rgba(0,0,0,0.04);
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
             --title-color: #be123c; /* ダークローズ */
             --accent-color: #e11d48; /* プライマリローズ */
-            --input-bg: rgba(255, 255, 255, 0.9);
-            --input-border: rgba(251, 113, 133, 0.4);
+            --input-bg: rgba(255, 255, 255, 0.8);
+            --input-border: rgba(203, 213, 225, 0.8);
             --svg-color: rgba(225, 29, 72, 0.15); /* 赤いSVG */
-            --star-color: #fda4af; /* ピンクの星屑 */
+            --star-color: #f59e0b; /* HOMEと同じゴールドの星屑 */
+            --error-bg: #fff1f2;
+            --error-border: #e11d48;
           }
           
           .theme-dark {
             --bg-gradient: radial-gradient(ellipse at bottom, #1e1b4b 0%, #020617 100%); /* HOMEと同じ夜空 */
             --text-main: #f8fafc;
             --text-sub: #cbd5e1;
-            --card-bg: rgba(15, 23, 42, 0.6);
-            --card-border: rgba(255, 255, 255, 0.1);
-            --card-hover-border: #fb7185; /* 発光するローズ */
-            --card-hover-bg: rgba(30, 41, 59, 0.8);
-            --card-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            --card-bg: rgba(15, 23, 42, 0.7);
+            --card-border: rgba(255, 255, 255, 0.15);
+            --card-hover-border: #fb7185; /* 発光するローズ（アクセント） */
+            --card-hover-bg: rgba(30, 41, 59, 0.9);
+            --card-shadow: 0 20px 50px rgba(0,0,0,0.8);
             --title-color: #fda4af; /* 薄いローズ */
             --accent-color: #fb7185;
-            --input-bg: rgba(0, 0, 0, 0.3);
-            --input-border: rgba(255, 255, 255, 0.15);
+            --input-bg: rgba(0, 0, 0, 0.4);
+            --input-border: rgba(255, 255, 255, 0.2);
             --svg-color: rgba(251, 113, 133, 0.2);
-            --star-color: #fecdd3; /* ペールピンクの星屑 */
+            --star-color: #fef08a; /* HOMEと同じイエローの星屑 */
+            --error-bg: rgba(225, 29, 72, 0.2);
+            --error-border: #fb7185;
           }
 
           .app-wrapper { 
@@ -231,12 +236,12 @@ export default function SmsKraken() {
           .input-group label { font-size: 13px; font-weight: 800; color: var(--text-sub); margin-bottom: 8px; border-left: 3px solid var(--accent-color); padding-left: 8px; }
           
           .input-control { width: 100%; padding: 12px 14px; border: 1px solid var(--input-border); border-radius: 10px; font-size: 14px; background: var(--input-bg); color: var(--text-main); transition: 0.3s; font-weight: 700; outline: none; }
-          .input-control:focus { border-color: var(--card-hover-border); box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.2); background: var(--card-hover-bg); }
+          .input-control:focus { border-color: var(--card-hover-border); box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.2); background: var(--card-hover-bg); }
           .input-control:disabled { background: var(--input-border); opacity: 0.5; cursor: not-allowed; }
           .input-control option { background: #0f172a; color: #fff; }
           .theme-light .input-control option { background: #fff; color: #1e293b; }
 
-          /* ラジオボタンとチェックボックスエリア */
+          /* ラジオボタンエリア */
           .radio-group { display: flex; flex-wrap: wrap; gap: 24px; padding: 16px 20px; border-radius: 10px; background: var(--input-bg); border: 1px solid var(--input-border); }
           .radio-group label { margin: 0; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--text-main); border: none; padding: 0; font-weight: 800; }
           .radio-group input[type="radio"] { width: 18px; height: 18px; accent-color: var(--accent-color); cursor: pointer; margin: 0; }
