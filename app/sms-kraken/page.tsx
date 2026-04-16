@@ -34,6 +34,8 @@ export default function SmsKraken() {
   const [phone, setPhone] = useState("");
   const [preview, setPreview] = useState("");
   const [toast, setToast] = useState({ show: false, msg: "", type: "success" });
+  
+  // 🍔 メニューとローディング状態
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
@@ -110,31 +112,31 @@ export default function SmsKraken() {
 
           /* 🌺 SMS Kraken専用：Rose/Coral テーマ（完全版） */
           .theme-light {
-            --bg-gradient: linear-gradient(135deg, #ffe4e6 0%, #fecdd3 50%, #fff1f2 100%); /* ピーチ〜ローズの背景 */
-            --text-main: #4c0519; /* 深いローズ */
+            --bg-gradient: linear-gradient(135deg, #ffe4e6 0%, #fecdd3 50%, #fff1f2 100%);
+            --text-main: #4c0519;
             --text-sub: #881337;
             --card-bg: rgba(255, 255, 255, 0.7);
             --card-border: rgba(255, 255, 255, 1);
-            --card-hover-border: #f43f5e; /* ローズレッド */
+            --card-hover-border: #f43f5e;
             --card-hover-bg: rgba(255, 255, 255, 0.95);
-            --card-shadow: 0 10px 30px rgba(225, 29, 72, 0.05); /* 影も少し赤みを帯びさせる */
+            --card-shadow: 0 10px 30px rgba(225, 29, 72, 0.05);
             --title-color: #be123c; 
             --accent-color: #e11d48; 
             --input-bg: rgba(255, 255, 255, 0.9);
             --input-border: rgba(251, 113, 133, 0.4);
-            --svg-color: rgba(225, 29, 72, 0.15); /* 赤いSVG */
-            --star-color: #fca5a5; /* ピンクの星屑 */
+            --svg-color: rgba(225, 29, 72, 0.15);
+            --star-color: #fca5a5;
             --error-bg: #fff1f2;
             --error-border: #e11d48;
           }
           
           .theme-dark {
-            --bg-gradient: radial-gradient(ellipse at top right, #4c0519 0%, #0a0205 100%); /* ディープバーガンディ〜漆黒 */
+            --bg-gradient: radial-gradient(ellipse at top right, #4c0519 0%, #0a0205 100%);
             --text-main: #fff1f2;
             --text-sub: #fecdd3;
-            --card-bg: rgba(30, 5, 15, 0.65); /* 暗いローズグラス */
+            --card-bg: rgba(30, 5, 15, 0.65);
             --card-border: rgba(255, 255, 255, 0.1);
-            --card-hover-border: #fb7185; /* 発光するローズ */
+            --card-hover-border: #fb7185;
             --card-hover-bg: rgba(60, 10, 25, 0.85);
             --card-shadow: 0 20px 50px rgba(0,0,0,0.8);
             --title-color: #fda4af; 
@@ -142,7 +144,7 @@ export default function SmsKraken() {
             --input-bg: rgba(0, 0, 0, 0.4);
             --input-border: rgba(244, 63, 94, 0.3);
             --svg-color: rgba(251, 113, 133, 0.15);
-            --star-color: #ffe4e6; /* ペールピンクの星屑 */
+            --star-color: #ffe4e6;
             --error-bg: rgba(225, 29, 72, 0.2);
             --error-border: #fb7185;
           }
@@ -167,7 +169,7 @@ export default function SmsKraken() {
           .magic-path { fill: none; stroke: var(--svg-color); stroke-width: 3; stroke-dasharray: 3000; stroke-dashoffset: 3000; animation: drawMagic 12s ease-in-out infinite alternate; transition: stroke 0.5s; }
           @keyframes drawMagic { 0% { stroke-dashoffset: 3000; } 100% { stroke-dashoffset: 0; } }
 
-          /* ハンバーガーボタン */
+          /* 🍔 ハンバーガーボタン */
           .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 1001; background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; box-shadow: var(--card-shadow); transition: 0.3s; }
           .hamburger-btn:hover { background: var(--card-hover-bg); transform: scale(1.05); }
           .hamburger-line { width: 22px; height: 3px; background: var(--text-sub); border-radius: 3px; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
@@ -175,11 +177,11 @@ export default function SmsKraken() {
           .hamburger-btn.open .line2 { opacity: 0; transform: translateX(-10px); }
           .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: var(--accent-color); }
 
-          /* メニューオーバーレイ */
+          /* 🌌 メニューオーバーレイ */
           .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
           .menu-overlay.open { opacity: 1; pointer-events: auto; }
 
-          /* サイドメニュー */
+          /* 🗄️ サイドメニュー（全ツール網羅！） */
           .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
           .side-menu.open { left: 0; }
           .menu-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--card-border); letter-spacing: 1px; }
@@ -202,21 +204,12 @@ export default function SmsKraken() {
           .theme-toggle-btn:hover { border-color: var(--card-hover-border); transform: scale(1.05); }
 
           /* 🌟 レイアウト：左の注意事項 ＋ 右の入力フォーム */
-          .main-layout {
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 30px;
-            max-width: 1200px;
-            margin: 0 auto 50px auto;
-          }
+          .main-layout { display: grid; grid-template-columns: 320px 1fr; gap: 30px; max-width: 1000px; margin: 0 auto 50px auto; }
           @media (max-width: 950px) { .main-layout { grid-template-columns: 1fr; } }
 
           /* ℹ️ 左側：注意事項パネル */
           .info-sidebar { display: flex; flex-direction: column; gap: 20px; }
-          .info-panel {
-            background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border);
-            border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow);
-          }
+          .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow); }
           .info-title { font-size: 15px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
           .info-list { padding-left: 20px; margin: 0; color: var(--text-main); font-size: 13px; line-height: 1.8; }
           .info-list li { margin-bottom: 8px; }
@@ -224,11 +217,7 @@ export default function SmsKraken() {
           /* 📝 右側：メインフォームエリア */
           .form-main-area { display: flex; flex-direction: column; gap: 24px; }
 
-          .glass-panel { 
-            background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); 
-            border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow); 
-            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s; 
-          }
+          .glass-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 30px; box-shadow: var(--card-shadow); transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s; }
           .glass-panel:hover { border-color: var(--card-hover-border); transform: translateY(-2px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
           
           .input-group { display: flex; flex-direction: column; margin-bottom: 24px; }
@@ -253,7 +242,6 @@ export default function SmsKraken() {
           .btn-copy-phone { background: linear-gradient(135deg, #f43f5e, #be123c); box-shadow: 0 5px 15px rgba(225, 29, 72, 0.3); }
           .btn-copy-phone:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(225, 29, 72, 0.5); }
           
-          /* 本文コピーは少しオレンジ（Coral）寄りに変更して視認性を高める */
           .btn-copy-text { background: linear-gradient(135deg, #f97316, #c2410c); box-shadow: 0 5px 15px rgba(249, 115, 22, 0.3); }
           .btn-copy-text:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(249, 115, 22, 0.5); }
           
@@ -287,15 +275,19 @@ export default function SmsKraken() {
         {/* 🌌 メニュー展開時の背景オーバーレイ */}
         <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
 
-        {/* 🗄️ サイドメニュー */}
+        {/* 🗄️ サイドメニュー（全項目網羅！） */}
         <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
           <div className="menu-title">🧭 TOOL MENU</div>
-          <a href="/bulk-register" className="side-link">📦 一括登録（自己クロ）</a>
+          <a href="/kpi-detail" className="side-link">📊 獲得進捗・KPI</a>
+          <a href="/bulk-register" className="side-link">📦 データ一括登録</a>
           <a href="/net-toss" className="side-link">🌐 ネットトス連携</a>
-          <a href="/self-close" className="side-link">🌲 自己クロ連携</a>
-          <a href="/sms-kraken" className="side-link current-page">📱 SMS (Kraken)</a>
-          <a href="/email-template" className="side-link">✨ メールテンプレート</a>
-          <div className="side-link" style={{ opacity: 0.5, cursor: "not-allowed", background: "transparent", border: "1px dashed var(--card-border)", color: "var(--text-sub)" }}>
+          <a href="/self-close" className="side-link">🤝 自己クロ連携</a>
+          <a href="/sms-kraken" className="side-link current-page">📱 SMS (Kraken)送信</a>
+          <a href="/email-template" className="side-link">✉️ メールテンプレート</a>
+          <a href="/procedure-wizard" className="side-link">🗺️ Kraken 手順辞書</a>
+          <a href="/simulator" className="side-link">🆚 料金シミュレーター</a>
+          <a href="/trouble-nav" className="side-link">⚡ トラブル解決ナビ</a>
+          <div className="side-link" style={{ opacity: 0.5, cursor: "not-allowed", background: "transparent", border: "1px dashed var(--card-border)", color: "var(--text-sub)", marginTop: "10px" }}>
             🔒 新ツール（開発中...）
           </div>
         </div>
@@ -304,8 +296,8 @@ export default function SmsKraken() {
         <div className="glass-nav-wrapper fade-up-element" style={{ "--delay": "0s" } as any}>
           <div className="glass-nav">
             <div className="nav-left">
-              <a href="/" className="glass-nav-link">← 司令室</a>
-              <div className="glass-nav-active">📱 SMS (Kraken)</div>
+              <a href="/" className="glass-nav-link">← 司令室に戻る</a>
+              <div className="glass-nav-active">📱 SMS (Kraken)送信</div>
             </div>
             <button className="theme-toggle-btn" onClick={toggleTheme}>
               {isDarkMode ? "🎇 NIGHT" : "☀️ DAY"}
@@ -369,7 +361,7 @@ export default function SmsKraken() {
                 </select>
               </div>
 
-              <div className="input-group">
+              <div className="input-group" style={{ marginBottom: "10px" }}>
                 <label>📞 顧客電話番号（ハイフンあり・なし どちらでもOK）</label>
                 <input 
                   className="input-control" 
@@ -391,7 +383,7 @@ export default function SmsKraken() {
           </div>
         </div>
 
-        {/* 🛠️ フッター操作（ボタンをここに移動） */}
+        {/* 🛠️ フッター操作 */}
         <div className="footer-bar">
           <button className="btn-footer btn-clear" onClick={clearAll}>🗑️ リセット</button>
           <button className="btn-footer btn-copy-phone" onClick={copyPhone}>📱 宛先(+81)コピー</button>
