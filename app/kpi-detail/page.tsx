@@ -3,122 +3,58 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// 🌟 高度技術①：ジェネレーティブUI (青空に舞う風船)
-const CarnivalBalloons = () => {
-  const [balloons, setBalloons] = useState<{ id: number; left: string; delay: string; duration: string; color: string; scale: number }[]>([]);
-  
+// ✨ 背景の光の粒（エメラルドグリーンのデータパーティクル）
+const FlowParticles = () => {
+  const [particles, setParticles] = useState<{ id: number; left: string; top: string; delay: string; size: string; opacity: number }[]>([]);
   useEffect(() => {
-    const colors = ['#ef4444', '#3b82f6', '#fde047', '#22c55e', '#a855f7'];
-    const newBalloons = Array.from({ length: 30 }).map((_, i) => ({
+    const generatedParticles = Array.from({ length: 40 }).map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}vw`,
+      top: `${Math.random() * 100}vh`,
       delay: `${Math.random() * 5}s`,
-      duration: `${Math.random() * 10 + 10}s`, // ゆっくり昇る
-      color: colors[Math.floor(Math.random() * colors.length)],
-      scale: Math.random() * 0.8 + 0.4
+      size: `${Math.random() * 3 + 1}px`,
+      opacity: Math.random() * 0.5 + 0.3
     }));
-    setBalloons(newBalloons);
+    setParticles(generatedParticles);
   }, []);
-
   return (
-    <div className="balloons-container">
-      {balloons.map(b => (
-        <div 
-          key={b.id} className="floating-balloon" 
-          style={{ 
-            left: b.left, animationDelay: b.delay, animationDuration: b.duration, 
-            backgroundColor: b.color, transform: `scale(${b.scale})`
-          }} 
-        />
+    <div className="particles-container">
+      {particles.map(p => (
+        <div key={p.id} className="particle" style={{ left: p.left, top: p.top, width: p.size, height: p.size, animationDelay: p.delay, opacity: p.opacity }} />
       ))}
     </div>
-  );
-};
-
-// ✨ 高度技術④：SVGアニメーション背景 (おもちゃの要素を追加)
-const ToyArmyPart = () => {
-  const [toyArmy, setToyArmy] = useState<{ id: number; left: string; top: string; delay: string; duration: string; scale: number }[]>([]);
-  
-  useEffect(() => {
-    // 画面のあちこちに小さなグリーンアーミーメンを配置
-    const newToyArmy = Array.from({ length: 15 }).map((_, i) => ({
-      id: i,
-      left: `${Math.random() * 95}vw`,
-      top: `${Math.random() * 95}vh`,
-      delay: `${Math.random() * 5}s`,
-      duration: `${Math.random() * 10 + 20}s`, // ゆっくり回転
-      scale: Math.random() * 0.2 + 0.1
-    }));
-    setToyArmy(newToyArmy);
-  }, []);
-
-  return (
-    <div className="toy-army-container">
-      {/* 背景のターゲットと、兵隊たちのシルエット */}
-      <svg className="svg-target-bg" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="3" strokeDasharray="4 6" />
-        <circle cx="50" cy="50" r="30" fill="none" stroke="rgba(239,68,68,0.5)" strokeWidth="6" />
-        <circle cx="50" cy="50" r="15" fill="none" stroke="rgba(253,224,71,0.5)" strokeWidth="8" />
-      </svg>
-      {toyArmy.map(toy => (
-        <div key={toy.id} className="floating-toy-army" style={{ left: toy.left, top: toy.top, animationDelay: toy.delay, animationDuration: toy.duration, transform: `scale(${toy.scale}) rotate(${Math.random() * 360}deg)` }}>
-          🔫 {/* グリーンアーミーメンのアイコン（薄く） */}
-        </div>
-      ))}
-    </div>
-  );
-};
-
-// 🌟 高度技術⑩＆④：おもちゃ箱風 3Dパララックスパネル
-const TiltWrapper = ({ children, title, icon, borderColor }: { children: React.ReactNode, title: string, icon: string, borderColor: string }) => {
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!wrapperRef.current) return;
-    const rect = wrapperRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left - rect.width / 2) / 25; // 傾きを少しマイルドに
-    const y = -(e.clientY - rect.top - rect.height / 2) / 25;
-    setTilt({ x: y, y: x });
-  };
-
-  return (
-    <section 
-      ref={wrapperRef} className="tilt-wrapper fade-up-element" 
-      onMouseMove={handleMouseMove} onMouseLeave={() => setTilt({ x: 0, y: 0 })}
-    >
-      <div className="tilt-card" style={{ transform: `perspective(1500px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`, borderColor: borderColor }}>
-        <h2 className="panel-title" style={{ color: borderColor }}>
-          <span className="title-icon">{icon}</span> {title}
-        </h2>
-        <div className="panel-content-3d">
-          {children}
-        </div>
-      </div>
-    </section>
   );
 };
 
 export default function KpiDetail() {
   const router = useRouter();
-  const [isReady, setIsReady] = useState(false);
 
-  // 📊 データ群（項目を大幅追加！）
+  // 🌟 メニューとテーマ状態
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [toast, setToast] = useState({ show: false, msg: "" });
+
+  // 📊 データ群（モックデータ）
   const ranking = [
-    { rank: 1, name: "佐藤", count: 8, trend: "up" },
-    { rank: 2, name: "山田", count: 7, trend: "stable" },
-    { rank: 3, name: "鈴木", count: 5, trend: "up" },
-    { rank: 4, name: "高橋", count: 4, trend: "down" },
+    { rank: 1, name: "佐藤 一郎", count: 12, trend: "up", diff: "+3" },
+    { rank: 2, name: "山田 太郎", count: 9, trend: "stable", diff: "±0" },
+    { rank: 3, name: "鈴木 花子", count: 8, trend: "up", diff: "+1" },
+    { rank: 4, name: "高橋 次郎", count: 6, trend: "down", diff: "-2" },
+    { rank: 5, name: "田中 健太", count: 4, trend: "stable", diff: "±0" },
   ];
 
   const myDailyGoal = { current: 5, target: 8, progress: Math.floor((5/8)*100) };
   const myMonthlyGoal = { current: 85, target: 150, progress: Math.floor((85/150)*100) };
   
   const listStats = [
-    { name: "Aエリア 新規", count: 3, target: 5, color: "#f97316" }, // ウッディ色
-    { name: "既存乗り換え", count: 2, target: 3, color: "#a855f7" }, // バズ色
-    { name: "紹介キャンペーン", count: 0, target: 2, color: "#10b981" }, // レックス色
+    { name: "Aエリア 新規開拓", count: 45, target: 50, color: "#10b981" }, // エメラルド
+    { name: "既存乗り換え（他社）", count: 28, target: 60, color: "#3b82f6" }, // ブルー
+    { name: "紹介キャンペーン", count: 12, target: 40, color: "#8b5cf6" }, // パープル
   ];
+
+  const weeklyData = [12, 19, 15, 22, 28, 24, 30]; // 過去7日間の推移モック
+  const maxWeekly = Math.max(...weeklyData);
 
   useEffect(() => {
     setIsReady(true);
@@ -129,229 +65,332 @@ export default function KpiDetail() {
     return () => observer.disconnect();
   }, []);
 
-  const getTrendBadge = (trend: string) => {
-    if (trend === "up") return <span className="trend-badge trend-up">🔥 UP</span>;
-    if (trend === "stable") return <span className="trend-badge trend-stable">⭐ KEEP</span>;
-    return <span className="trend-badge trend-down">💧 DOWN</span>;
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+    showToast(!isDarkMode ? "🌙 ダークモードに切り替えました" : "☀️ ライトモードに切り替えました");
+  };
+
+  const showToast = (msg: string) => {
+    setToast({ show: true, msg });
+    setTimeout(() => setToast({ show: false, msg: "" }), 3000);
+  };
+
+  const getTrendBadge = (trend: string, diff: string) => {
+    if (trend === "up") return <span className="trend-badge trend-up">↗ {diff}</span>;
+    if (trend === "stable") return <span className="trend-badge trend-stable">→ {diff}</span>;
+    return <span className="trend-badge trend-down">↘ {diff}</span>;
   };
 
   return (
-    <div className={`detail-wrapper ${isReady ? "ready" : ""}`}>
-      <style dangerouslySetInnerHTML={{ __html: `
-        .detail-wrapper * { box-sizing: border-box; }
-        
-        /* 🌤️ 1. 背景切れの修正：背景を画面に固定 (デイライト・カーニバル) */
-        .detail-wrapper {
-          min-height: 100vh;
-          /* 背景専用の固定要素を作成し、そこにグラデーションをかける */
-          position: relative; z-index: 1;
-        }
+    <>
+      <div className={`entrance-bg ${isDarkMode ? "theme-dark" : "theme-light"}`}>
+        <FlowParticles />
+      </div>
 
-        /* 🌟 背景専用の固定レイヤー */
-        .app-background {
-          position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -3;
-          background: linear-gradient(180deg, #38bdf8 0%, #1e3a8a 100%);
-        }
+      <main className={`app-wrapper ${isReady ? "ready" : ""} ${isDarkMode ? "theme-dark" : "theme-light"}`}>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .app-wrapper * { box-sizing: border-box; }
 
-        /* 🎪 背景のカーニバルストライプ（固定） */
-        .circus-bg {
-          position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; pointer-events: none; opacity: 0.1;
-          background: repeating-linear-gradient(45deg, #fff, #fff 40px, transparent 40px, transparent 80px);
-        }
+          /* 🎨 新しい洗練されたカラーパレット：エメラルド・グリーン＆オーシャン・ブルー */
+          .theme-light {
+            --bg-gradient: linear-gradient(135deg, #ecfdf5 0%, #e0f2fe 50%, #f1f5f9 100%); /* エメラルド〜ブルー */
+            --text-main: #1e293b;
+            --text-sub: #475569;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(255, 255, 255, 1);
+            --card-hover-border: #10b981; /* Emerald 500 */
+            --card-hover-bg: rgba(255, 255, 255, 0.95);
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.04);
+            --title-color: #047857; /* Emerald 700 */
+            --accent-color: #059669; /* Emerald 600 */
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --input-border: rgba(110, 231, 183, 0.5); /* Emerald 300 */
+            --svg-color: rgba(16, 185, 129, 0.15);
+            --particle-color: #6ee7b7; /* Emerald 300 */
+          }
+          
+          .theme-dark {
+            --bg-gradient: radial-gradient(ellipse at top left, #064e3b 0%, #0f172a 100%); /* ディープグリーン〜ミッドナイト */
+            --text-main: #f8fafc;
+            --text-sub: #cbd5e1;
+            --card-bg: rgba(15, 23, 42, 0.65); 
+            --card-border: rgba(255, 255, 255, 0.1);
+            --card-hover-border: #34d399; /* Emerald 400 */
+            --card-hover-bg: rgba(30, 41, 59, 0.85);
+            --card-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            --title-color: #6ee7b7; 
+            --accent-color: #34d399;
+            --input-bg: rgba(0, 0, 0, 0.4);
+            --input-border: rgba(16, 185, 129, 0.3);
+            --svg-color: rgba(52, 211, 153, 0.15);
+            --particle-color: #a7f3d0;
+          }
 
-        /* 🎈 風船アニメーション（固定） */
-        .balloons-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; overflow: hidden; }
-        .floating-balloon { position: absolute; bottom: -50px; width: 30px; height: 40px; border-radius: 50%; opacity: 0.8; animation: floatUp linear infinite; box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2); }
-        @keyframes floatUp { 0% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-60vh) rotate(5deg); } 100% { transform: translateY(-120vh) rotate(-5deg); } }
+          .app-wrapper { 
+            min-height: 100vh; padding: 20px 40px 100px 40px; 
+            font-family: 'Inter', 'Noto Sans JP', sans-serif; 
+            color: var(--text-main); font-size: 13px; 
+            transition: color 0.5s; overflow-x: hidden; position: relative;
+          }
 
-        /* ✨ おもちゃの要素を追加：グリーンアーミーメンとターゲット（固定） */
-        .toy-army-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; pointer-events: none; overflow: hidden; }
-        .svg-target-bg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90vh; height: 90vh; opacity: 0.05; animation: spinTarget 40s linear infinite; filter: drop-shadow(0 0 20px rgba(255,255,255,0.5)); }
-        @keyframes spinTarget { to { transform: translate(-50%, -50%) rotate(360deg); } }
-        .floating-toy-army { position: absolute; font-size: 24px; opacity: 0.05; animation: spinToy Army infinite alternate ease-in-out; }
-        @keyframes spinToyArmy { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+          .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; transition: background 0.8s ease; }
+          .entrance-bg.theme-light { background: var(--bg-gradient); }
+          .entrance-bg.theme-dark { background: var(--bg-gradient); }
 
-        /* 🤠背景シルエット：ウッディとバズ（固定、超薄く） */
-        .andy-toys-watermark { position: fixed; bottom: 10%; right: 10%; font-size: 200px; opacity: 0.01; z-index: -2; }
-        .andy-toys-watermark-2 { position: fixed; top: 10%; left: 10%; font-size: 150px; opacity: 0.01; z-index: -2; }
+          .particles-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
+          .particle { position: absolute; border-radius: 50%; background: var(--particle-color); box-shadow: 0 0 10px var(--particle-color); animation: flowUp 15s linear infinite; transition: background 0.5s, box-shadow 0.5s; }
+          @keyframes flowUp { 0% { transform: translateY(100vh) scale(0.5); } 100% { transform: translateY(-20vh) scale(1.5); } }
 
-        .container { max-width: 1200px; margin: 0 auto; position: relative; z-index: 10; padding: 30px 15px; }
-        
-        /* 🔘 ヘッダーと戻るボタン */
-        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
-        .btn-back { 
-          padding: 10px 20px; background: #fff; border: 4px solid #fde047; border-radius: 30px; 
-          font-weight: 900; color: #1e3a8a; cursor: pointer; transition: 0.2s; 
-          box-shadow: 0 6px 0 #ca8a04, 0 10px 15px rgba(0,0,0,0.2); text-transform: uppercase; font-size: 13px;
-          list-style: none; /* ユーティリティのdetailsの影響を消す */
-        }
-        .btn-back:active { transform: translateY(6px); box-shadow: 0 0 0 #ca8a04, 0 4px 5px rgba(0,0,0,0.2); }
+          /* 🌟 SVGデータフロー背景（波打つグラフ線） */
+          .data-svg-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.8; }
+          .data-path { fill: none; stroke: var(--svg-color); stroke-width: 2; stroke-dasharray: 2000; stroke-dashoffset: 2000; animation: drawDataFlow 20s linear infinite; transition: stroke 0.5s; }
+          @keyframes drawDataFlow { 0% { stroke-dashoffset: 2000; } 100% { stroke-dashoffset: 0; } }
 
-        /* 🔠 ポップな3Dタイトル */
-        .page-title { 
-          font-size: 36px; font-weight: 900; margin: 0; letter-spacing: 2px; color: #fff; 
-          text-shadow: 3px 3px 0 #ef4444, 6px 6px 0 #b91c1c, 0 10px 15px rgba(0,0,0,0.4);
-          transform: rotate(-2deg); animation: floatTitle 3s ease-in-out infinite alternate;
-        }
-        @keyframes floatTitle { to { transform: rotate(1deg) translateY(-5px); } }
+          /* 🍔 ハンバーガーボタン */
+          .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 1001; background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; box-shadow: var(--card-shadow); transition: 0.3s; }
+          .hamburger-btn:hover { background: var(--card-hover-bg); transform: scale(1.05); }
+          .hamburger-line { width: 22px; height: 3px; background: var(--text-sub); border-radius: 3px; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+          .hamburger-btn.open .line1 { transform: translateY(8px) rotate(45deg); background: var(--accent-color); }
+          .hamburger-btn.open .line2 { opacity: 0; transform: translateX(-10px); }
+          .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: var(--accent-color); }
 
-        /* Bento UI グリッド */
-        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
-        @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
+          /* 🌌 メニューオーバーレイ */
+          .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
+          .menu-overlay.open { opacity: 1; pointer-events: auto; }
 
-        /* 3Dパララックス・プラスチックパネル */
-        .tilt-wrapper { perspective: 1500px; }
-        .tilt-card { 
-          background: rgba(255, 255, 255, 0.95); border: 5px solid; border-radius: 24px; padding: 25px; 
-          box-shadow: 0 15px 30px rgba(0,0,0,0.2), inset 0 0 20px rgba(255,255,255,1);
-          transform-style: preserve-3d; transition: transform 0.15s ease-out; 
-        }
-        
-        /* タイトル */
-        .panel-title { 
-          font-size: 20px; font-weight: 900; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; 
-          border-bottom: 3px dashed #e2e8f0; padding-bottom: 12px; transform: translateZ(30px); 
-        }
-        .title-icon { font-size: 24px; }
-        
-        .panel-content-3d { transform: translateZ(20px); transform-style: preserve-3d; }
+          /* 🗄️ サイドメニュー */
+          .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+          .side-menu.open { left: 0; }
+          .menu-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--card-border); letter-spacing: 1px; }
 
-        /* 🎯 円形プログレス (ウッディ色に変更) */
-        .goal-container { text-align: center; }
-        .circular-progress { 
-          width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 15px; position: relative;
-          background: conic-gradient(#f97316 ${myDailyGoal.progress}%, #e2e8f0 0); /* ウッディ色 */
-          display: flex; align-items: center; justify-content: center; 
-          box-shadow: 0 8px 15px rgba(249,115,22,0.3), inset 0 4px 8px rgba(0,0,0,0.1);
-          border: 4px solid #fff;
-        }
-        .circular-progress::before { content: ""; position: absolute; width: 100px; height: 100px; background: #fff; border-radius: 50%; box-shadow: inset 0 4px 8px rgba(0,0,0,0.1); }
-        
-        .progress-text { position: relative; z-index: 1; display: flex; flex-direction: column; transform: translateZ(20px); }
-        .percent { font-size: 36px; font-weight: 900; color: #c2410c; font-variant-numeric: tabular-nums; line-height: 1; }
-        
-        .goal-nums { font-size: 16px; font-weight: 900; color: #64748b; margin-top: 10px; }
-        .goal-current-val { color: #fde047; font-size: 28px; margin: 0 5px; }
+          .side-link { text-decoration: none; padding: 14px 20px; border-radius: 14px; background: var(--input-bg); color: var(--text-main); font-weight: 800; font-size: 14px; border: 1px solid var(--card-border); transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
+          .side-link:hover { border-color: var(--card-hover-border); transform: translateX(8px); color: var(--accent-color); }
+          .side-link.current-page { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); pointer-events: none; }
+          .theme-dark .side-link.current-page { background: linear-gradient(135deg, #34d399, #059669); }
 
-        /* 📅 月間プログレス (バズ色に変更) */
-        .monthly-bar-wrap { width: 100%; height: 24px; background: #e2e8f0; border-radius: 12px; border: 3px solid #cbd5e1; overflow: hidden; position: relative; box-shadow: inset 0 4px 6px rgba(0,0,0,0.1); }
-        .monthly-bar-fill { height: 100%; background: repeating-linear-gradient(45deg, #a855f7, #a855f7 15px, #9333ea 15px, #9333ea 30px); width: ${myMonthlyGoal.progress}%; transition: 1s ease-out; } /* バズ色 */
-        .monthly-text { display: flex; justify-content: space-between; font-weight: 900; font-size: 14px; margin-bottom: 8px; color: #334155; }
+          /* 🎈 ナビゲーション（中央配置） */
+          .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 30px; }
+          .glass-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 50px; box-shadow: var(--card-shadow); max-width: 800px; width: 100%; }
+          
+          .nav-left { display: flex; gap: 12px; align-items: center; }
+          .glass-nav-link { text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 800; background: var(--input-bg); color: var(--text-sub); border: 1px solid var(--card-border); transition: 0.2s; font-size: 14px; }
+          .glass-nav-link:hover { color: var(--accent-color); border-color: var(--card-hover-border); }
+          .glass-nav-active { padding: 10px 20px; border-radius: 30px; font-weight: 900; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); font-size: 14px; }
 
-        /* 📋 リスト別獲得数 */
-        .list-stats-container { display: flex; flex-direction: column; gap: 12px; }
-        .list-item { display: flex; flex-direction: column; gap: 4px; }
-        .list-item-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 800; color: #475569; }
-        .list-bar-bg { width: 100%; height: 12px; background: #f1f5f9; border-radius: 6px; overflow: hidden; border: 1px solid #e2e8f0; }
-        .list-bar-fill { height: 100%; border-radius: 6px; }
+          /* テーマ切り替えボタン */
+          .theme-toggle-btn { background: var(--input-bg); border: 1px solid var(--card-border); padding: 10px 20px; border-radius: 30px; cursor: pointer; transition: 0.3s; font-size: 14px; color: var(--text-main); font-weight: 800; }
+          .theme-toggle-btn:hover { border-color: var(--card-hover-border); transform: scale(1.05); }
 
-        /* 🏆 ランキング（おもちゃのブロック風） */
-        .ranking-list { display: flex; flex-direction: column; gap: 12px; }
-        .rank-card { 
-          display: flex; align-items: center; padding: 12px 18px; border-radius: 16px; 
-          background: #f8fafc; border: 2px solid #e2e8f0; border-bottom: 6px solid #cbd5e1; /* おもちゃのブロック感 */
-          transition: 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: default; transform-style: preserve-3d; 
-          opacity: 0;
-        }
-        .fade-up-element.visible .rank-card {
-          animation: popBounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
-          animation-delay: calc(var(--rank) * 0.1s);
-        }
-        @keyframes popBounce { 0% { opacity: 0; transform: translateX(-30px) scale(0.9); } 100% { opacity: 1; transform: translateX(0) scale(1); } }
-        
-        .rank-card:hover { 
-          transform: translateZ(20px) translateY(-4px) !important; 
-          background: #fff; border-color: #38bdf8; border-bottom-color: #0284c7;
-          box-shadow: 0 10px 20px rgba(56,189,248,0.2); z-index: 10; 
-        }
-        
-        .rank-num { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 18px; font-weight: 900; color: #fff; background: #94a3b8; margin-right: 15px; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.2); }
-        .rank-card.rank-1 { border-color: #fde047; border-bottom-color: #ca8a04; background: #fffbeb; }
-        .rank-card.rank-1 .rank-num { background: #f59e0b; font-size: 20px; }
-        .rank-card.rank-2 .rank-num { background: #cbd5e1; }
-        .rank-card.rank-3 .rank-num { background: #fca5a5; }
-        
-        .rank-name { flex: 1; font-weight: 900; color: #1e293b; font-size: 16px; transform: translateZ(5px); }
-        
-        .trend-badge { font-size: 11px; font-weight: 900; padding: 4px 10px; border-radius: 8px; margin-right: 15px; transform: translateZ(10px); }
-        .trend-up { background: #fee2e2; color: #e11d48; border: 1px solid #fda4af; }
-        .trend-stable { background: #fef9c3; color: #ca8a04; border: 1px solid #fde047; }
-        .trend-down { background: #e0f2fe; color: #0284c7; border: 1px solid #7dd3fc; }
+          /* 🌟 レイアウト：Bento UI（ダッシュボード・グリッド） */
+          .dashboard-layout { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; max-width: 1200px; margin: 0 auto; perspective: 1000px; }
+          @media (max-width: 1000px) { .dashboard-layout { grid-template-columns: repeat(2, 1fr); } }
+          @media (max-width: 700px) { .dashboard-layout { grid-template-columns: 1fr; } }
 
-        .rank-count { font-size: 24px; font-weight: 900; color: #2563eb; transform: translateZ(10px); font-family: 'Fredoka One', 'Inter', sans-serif; }
-        .rank-unit { font-size: 12px; color: #64748b; margin-left: 4px; font-weight: 800; }
-        
-        /* アニメーション用クラス */
-        .fade-up-element { opacity: 0; transform: translateY(40px); transition: all 0.6s ease-out; }
-        .fade-up-element.visible { opacity: 1; transform: translateY(0); }
-      `}} />
+          /* 🗃️ Bento UI（パネル） */
+          .glass-panel { 
+            background: var(--card-bg); backdrop-filter: blur(25px); 
+            border: 1px solid var(--card-border); border-radius: 24px; padding: 30px; 
+            box-shadow: var(--card-shadow); display: flex; flex-direction: column; 
+            transform-style: preserve-3d; transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.2s;
+          }
+          .glass-panel:hover { transform: translateY(-5px); box-shadow: 0 30px 60px rgba(0,0,0,0.1); border-color: var(--card-hover-border); }
+          .theme-dark .glass-panel:hover { box-shadow: 0 30px 60px rgba(0,0,0,0.8); }
+          
+          .glass-panel.span-2 { grid-column: span 2; }
+          @media (max-width: 1000px) { .glass-panel.span-2 { grid-column: span 1; } }
 
-      {/* 🎪 明るいデザイン専用の固定背景要素群（実用性：固定化） */}
-      <div className="app-background"></div>
-      <div className="circus-bg"></div>
-      <CarnivalBalloons />
-      <ToyArmyPart />
-      
-      {/* 🤠 おもちゃのシルエット（超薄く固定） */}
-      <div className="andy-toys-watermark">🤠</div>
-      <div className="andy-toys-watermark-2">レックス🦖</div>
+          .panel-title { font-size: 16px; font-weight: 900; color: var(--title-color); margin: 0 0 20px 0; display: flex; align-items: center; gap: 10px; border-bottom: 2px dashed var(--card-border); padding-bottom: 12px; letter-spacing: 1px; transform: translateZ(10px); }
 
-      <div className="container">
-        <header className="header">
-          <button className="btn-back" onClick={() => router.push("/")}>← ホームに戻る</button>
-          <h1 className="page-title">TOY STORY MANIA!</h1>
-        </header>
+          /* 🎯 円形プログレス (デイリー目標) */
+          .goal-container { text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+          .circular-progress { 
+            width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 15px; position: relative;
+            background: conic-gradient(var(--accent-color) ${myDailyGoal.progress}%, var(--input-border) 0); 
+            display: flex; align-items: center; justify-content: center; 
+            box-shadow: 0 8px 20px rgba(16,185,129,0.2), inset 0 4px 8px rgba(0,0,0,0.05);
+            border: 4px solid var(--card-border); transition: 0.5s;
+          }
+          .theme-dark .circular-progress { box-shadow: 0 8px 20px rgba(52,211,153,0.1), inset 0 4px 8px rgba(0,0,0,0.5); }
+          .circular-progress::before { content: ""; position: absolute; width: 100px; height: 100px; background: var(--card-bg); border-radius: 50%; box-shadow: inset 0 4px 8px rgba(0,0,0,0.05); }
+          .theme-dark .circular-progress::before { box-shadow: inset 0 4px 8px rgba(0,0,0,0.5); }
+          
+          .progress-text { position: relative; z-index: 1; display: flex; flex-direction: column; transform: translateZ(20px); }
+          .percent { font-size: 32px; font-weight: 900; color: var(--accent-color); font-variant-numeric: tabular-nums; line-height: 1; }
+          .goal-nums { font-size: 14px; font-weight: 900; color: var(--text-sub); margin-top: 10px; background: var(--input-bg); padding: 8px 16px; border-radius: 20px; border: 1px solid var(--input-border); }
+          .goal-current-val { color: var(--accent-color); font-size: 20px; margin: 0 4px; }
 
-        <div className="dashboard-grid">
-          {/* 🎯 左上：個人目標 (Daily / ウッディ色) */}
-          <TiltWrapper title="DAILY TARGET" icon="⭐" borderColor="#f97316">
+          /* 🏆 ランキングリスト */
+          .ranking-list { display: flex; flex-direction: column; gap: 12px; }
+          .rank-card { 
+            display: flex; align-items: center; padding: 12px 18px; border-radius: 16px; 
+            background: var(--input-bg); border: 1px solid var(--input-border);
+            transition: 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: default; transform-style: preserve-3d; 
+          }
+          .rank-card:hover { transform: translateZ(10px) translateX(5px); background: var(--card-hover-bg); border-color: var(--card-hover-border); box-shadow: 0 10px 20px rgba(16,185,129,0.1); }
+          .theme-dark .rank-card:hover { box-shadow: 0 10px 20px rgba(52,211,153,0.1); }
+          
+          .rank-num { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 15px; font-weight: 900; color: #fff; background: #94a3b8; margin-right: 15px; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.2); }
+          .rank-card.rank-1 { border-color: #fde047; background: rgba(253,224,71,0.1); }
+          .rank-card.rank-1 .rank-num { background: linear-gradient(135deg, #fbbf24, #d97706); font-size: 18px; box-shadow: 0 4px 10px rgba(245,158,11,0.3); }
+          .rank-card.rank-2 .rank-num { background: linear-gradient(135deg, #cbd5e1, #94a3b8); }
+          .rank-card.rank-3 .rank-num { background: linear-gradient(135deg, #fca5a5, #ef4444); }
+          
+          .rank-name { flex: 1; font-weight: 900; color: var(--text-main); font-size: 15px; }
+          
+          .trend-badge { font-size: 11px; font-weight: 900; padding: 4px 10px; border-radius: 8px; margin-right: 15px; font-family: monospace; letter-spacing: 1px; }
+          .trend-up { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+          .trend-stable { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+          .trend-down { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+
+          .rank-count { font-size: 22px; font-weight: 900; color: var(--accent-color); font-variant-numeric: tabular-nums; }
+          .rank-unit { font-size: 11px; color: var(--text-sub); margin-left: 4px; font-weight: 800; }
+
+          /* 📈 ウィークリーチャート（棒グラフ） */
+          .chart-container { display: flex; align-items: flex-end; justify-content: space-between; height: 180px; padding: 20px 10px 0 10px; gap: 8px; border-bottom: 2px solid var(--input-border); margin-bottom: 10px; }
+          .chart-bar-group { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
+          .chart-bar { width: 100%; max-width: 40px; background: linear-gradient(0deg, var(--accent-color), rgba(16,185,129,0.2)); border-radius: 6px 6px 0 0; transition: height 1s cubic-bezier(0.2, 0.8, 0.2, 1); position: relative; }
+          .chart-bar:hover { background: linear-gradient(0deg, #38bdf8, rgba(56,189,248,0.2)); cursor: pointer; }
+          .chart-val { font-size: 11px; font-weight: 900; color: var(--text-sub); }
+          .chart-label { font-size: 11px; font-weight: 800; color: var(--text-sub); margin-top: 5px; }
+
+          /* 📋 リスト別獲得数 */
+          .list-stats-container { display: flex; flex-direction: column; gap: 16px; margin-top: 10px; }
+          .list-item { display: flex; flex-direction: column; gap: 6px; }
+          .list-item-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 800; color: var(--text-main); }
+          .list-bar-bg { width: 100%; height: 10px; background: var(--input-border); border-radius: 5px; overflow: hidden; }
+          .list-bar-fill { height: 100%; border-radius: 5px; transition: width 1s ease-out; }
+
+          /* 📅 月間プログレス */
+          .monthly-bar-wrap { width: 100%; height: 20px; background: var(--input-border); border-radius: 10px; overflow: hidden; position: relative; margin-top: 20px; }
+          .monthly-bar-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #0ea5e9); width: ${myMonthlyGoal.progress}%; transition: 1s ease-out; }
+          .monthly-text { display: flex; justify-content: space-between; font-weight: 900; font-size: 14px; margin-bottom: 8px; color: var(--text-main); }
+
+          #toast { visibility: hidden; position: fixed; bottom: 40px; right: 40px; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); padding: 16px 24px; border-radius: 12px; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 200; opacity: 0; transition: 0.4s; backdrop-filter: blur(10px); }
+          #toast.show { visibility: visible; opacity: 1; transform: translateY(-10px); }
+
+          /* 🪄 スクロール連動 */
+          .fade-up-element { opacity: 0; transform: translateY(40px); transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+          .fade-up-element.visible { opacity: 1; transform: translateY(0); }
+        `}} />
+
+        {/* 🌟 SVGデータフロー背景（波打つグラフ線） */}
+        <svg className="data-svg-bg" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path className="data-path" d="M -10,60 Q 20,40 50,60 T 110,60" />
+          <path className="data-path" d="M -10,80 Q 30,100 60,70 T 110,90" style={{animationDelay: "2s", opacity: 0.5, strokeWidth: "1"}} />
+        </svg>
+
+        {/* 🍔 ハンバーガーボタン */}
+        <div className={`hamburger-btn ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+          <div className="hamburger-line line1"></div>
+          <div className="hamburger-line line2"></div>
+          <div className="hamburger-line line3"></div>
+        </div>
+
+        {/* 🌌 メニュー展開時の背景オーバーレイ */}
+        <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
+
+        {/* 🗄️ サイドメニュー（全ツール網羅） */}
+        <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
+          <div className="menu-title">🧭 TOOL MENU</div>
+          <a href="/kpi-detail" className="side-link current-page">📊 獲得進捗・KPI</a>
+          <a href="/bulk-register" className="side-link">📦 データ一括登録</a>
+          <a href="/net-toss" className="side-link">🌐 ネットトス連携</a>
+          <a href="/self-close" className="side-link">🤝 自己クロ連携</a>
+          <a href="/sms-kraken" className="side-link">📱 SMS (Kraken)送信</a>
+          <a href="/email-template" className="side-link">✉️ メールテンプレート</a>
+          <a href="/procedure-wizard" className="side-link">🗺️ Kraken 手順辞書</a>
+          <a href="/simulator" className="side-link">🆚 料金シミュレーター</a>
+          <a href="/trouble-nav" className="side-link">⚡ トラブル解決ナビ</a>
+        </div>
+
+        {/* 🎈 ナビゲーション & テーマ切り替え */}
+        <div className="glass-nav-wrapper fade-up-element" style={{ "--delay": "0s" } as any}>
+          <div className="glass-nav">
+            <div className="nav-left">
+              <a href="/" className="glass-nav-link">← 司令室に戻る</a>
+              <div className="glass-nav-active">📊 獲得進捗・KPI</div>
+            </div>
+            <button className="theme-toggle-btn" onClick={toggleTheme}>
+              {isDarkMode ? "🎇 NIGHT" : "☀️ DAY"}
+            </button>
+          </div>
+        </div>
+
+        {/* 🌟 メインレイアウト（Bento UI ダッシュボード） */}
+        <div className="dashboard-layout">
+          
+          {/* 🎯 左上：個人目標 (Daily) */}
+          <div className="glass-panel fade-up-element">
+            <h2 className="panel-title">🎯 DAILY TARGET</h2>
             <div className="goal-container">
               <div className="circular-progress">
                 <div className="progress-text">
-                  <span className="percent">{myDailyGoal.progress}<span style={{fontSize:"18px"}}>%</span></span>
+                  <span className="percent">{myDailyGoal.progress}<span style={{fontSize:"16px", color:"var(--text-sub)"}}>%</span></span>
                 </div>
               </div>
               <div className="goal-nums">
-                現在 <span className="goal-current-val">{myDailyGoal.current}</span> / 目標 {myDailyGoal.target}
+                Current <span className="goal-current-val">{myDailyGoal.current}</span> / Target {myDailyGoal.target}
               </div>
-              <div style={{ background: "#fef3c7", color: "#b45309", padding: "10px", borderRadius: "10px", fontSize: "13px", fontWeight: 800, marginTop: "15px", border: "2px dashed #fcd34d" }}>
-                目標達成まであと <span style={{color:"#ef4444", fontSize:"18px"}}>{myDailyGoal.target - myDailyGoal.current}</span>HIT！🤠
+              <div style={{ fontSize: "12px", fontWeight: 800, marginTop: "12px", color: "var(--text-sub)" }}>
+                目標達成まであと <span style={{color:"var(--accent-color)", fontSize:"16px"}}>{myDailyGoal.target - myDailyGoal.current}</span> 件！
               </div>
             </div>
-          </TiltWrapper>
-
-          {/* 🏆 右側：ランキングボード (Team / バズ色) */}
-          <div style={{ gridRow: "span 2" }}>
-            <TiltWrapper title="TEAM RANKING" icon="🚀" borderColor="#a855f7">
-              <div className="ranking-list">
-                {ranking.map((user, index) => (
-                  <div key={user.rank} className={`rank-card rank-${user.rank}`} style={{ "--rank": index + 1 } as React.CSSProperties}>
-                    <div className="rank-num">{user.rank === 1 ? "👑" : user.rank}</div>
-                    <div className="rank-name">{user.name}</div>
-                    {getTrendBadge(user.trend)}
-                    <div className="rank-count">{user.count}<span className="rank-unit">HIT</span></div>
-                  </div>
-                ))}
-              </div>
-            </TiltWrapper>
           </div>
 
-          {/* 📅 左下(1)：月間目標 (Monthly / レックス色) */}
-          <TiltWrapper title="MONTHLY GOAL" icon="🦖" borderColor="#10b981">
-            <div className="monthly-text">
-              <span style={{ color: "#64748b" }}>今月の進捗</span>
-              <span style={{ color: "#059669", fontSize: "18px" }}>{myMonthlyGoal.current} / {myMonthlyGoal.target} HIT!</span>
+          {/* 📈 中央上〜右上：週間推移チャート (span-2) */}
+          <div className="glass-panel span-2 fade-up-element" style={{ transitionDelay: "0.1s" }}>
+            <h2 className="panel-title">📈 WEEKLY TREND (TEAM)</h2>
+            <div className="chart-container">
+              {weeklyData.map((val, i) => {
+                const heightPercent = Math.max(10, (val / maxWeekly) * 100);
+                const days = ["月", "火", "水", "木", "金", "土", "日"];
+                return (
+                  <div key={i} className="chart-bar-group">
+                    <span className="chart-val">{val}</span>
+                    <div className="chart-bar" style={{ height: `${heightPercent}%` }}></div>
+                    <span className="chart-label">{days[i]}</span>
+                  </div>
+                );
+              })}
             </div>
-            <div className="monthly-bar-wrap">
-              <div className="monthly-bar-fill"></div>
+            <div style={{ textAlign: "right", fontSize: "12px", color: "var(--text-sub)", fontWeight: 800, marginTop: "10px" }}>
+              ※過去7日間のチーム合計獲得数推移
             </div>
-            <div style={{ textAlign: "right", marginTop: "5px", fontSize: "16px", fontWeight: 900, color: "#9333ea" }}>
-              {myMonthlyGoal.progress}%
-            </div>
-          </TiltWrapper>
+          </div>
 
-          {/* 📋 左下(2)：リスト別ステータス (ハム・エイリアン色) */}
-          <TiltWrapper title="LIST STATUS" icon="👽" borderColor="#10b981">
+          {/* 🏆 左下〜中央下：ランキングボード (span-2) */}
+          <div className="glass-panel span-2 fade-up-element" style={{ transitionDelay: "0.2s" }}>
+            <h2 className="panel-title">🏆 TEAM RANKING</h2>
+            <div className="ranking-list">
+              {ranking.map((user, index) => (
+                <div key={user.rank} className={`rank-card rank-${user.rank}`}>
+                  <div className="rank-num">{user.rank === 1 ? "👑" : user.rank}</div>
+                  <div className="rank-name">{user.name}</div>
+                  {getTrendBadge(user.trend, user.diff)}
+                  <div className="rank-count">{user.count}<span className="rank-unit">件</span></div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 📋 右下：月間＆リスト別 (Monthly) */}
+          <div className="glass-panel fade-up-element" style={{ transitionDelay: "0.3s" }}>
+            <h2 className="panel-title">📋 MONTHLY & LIST STATUS</h2>
+            
+            <div style={{ marginBottom: "30px" }}>
+              <div className="monthly-text">
+                <span style={{ color: "var(--text-sub)" }}>今月の進捗（個人）</span>
+                <span style={{ color: "var(--accent-color)" }}>{myMonthlyGoal.current} / {myMonthlyGoal.target}</span>
+              </div>
+              <div className="monthly-bar-wrap">
+                <div className="monthly-bar-fill"></div>
+              </div>
+              <div style={{ textAlign: "right", marginTop: "5px", fontSize: "15px", fontWeight: 900, color: "#3b82f6" }}>
+                {myMonthlyGoal.progress}%
+              </div>
+            </div>
+
+            <div style={{ fontSize: "12px", fontWeight: 900, color: "var(--text-sub)", marginBottom: "10px", borderBottom: "1px dashed var(--card-border)", paddingBottom: "5px" }}>リスト別 獲得内訳</div>
             <div className="list-stats-container">
               {listStats.map((list, i) => (
                 <div key={i} className="list-item">
@@ -365,10 +404,13 @@ export default function KpiDetail() {
                 </div>
               ))}
             </div>
-          </TiltWrapper>
+          </div>
 
         </div>
-      </div>
-    </div>
+
+        {/* 🍞 通知 */}
+        <div id="toast" className={toast.show ? "show" : ""}>{toast.msg}</div>
+      </main>
+    </>
   );
 }
