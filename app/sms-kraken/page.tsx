@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// ✨ 背景の光の粒
+// ✨ 背景の光の粒（ローズテーマに合わせたカームデザイン）
 const PixieDust = () => {
   const [stars, setStars] = useState<{ id: number; left: string; top: string; delay: string; size: string }[]>([]);
   useEffect(() => {
@@ -100,7 +100,6 @@ export default function SmsKraken() {
 
   return (
     <>
-      {/* 🚀 修正：HOMEと同じ背景グラデーションを適用 */}
       <div className={`entrance-bg ${isDarkMode ? "theme-dark" : "theme-light"}`}>
         <PixieDust />
       </div>
@@ -109,41 +108,41 @@ export default function SmsKraken() {
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
 
-          /* 🎨 ベースはHOMEと同じ青空/夜空。アクセントのみRoseに！ */
+          /* 🌺 SMS Kraken専用：Rose/Coral テーマ（完全版） */
           .theme-light {
-            --bg-gradient: linear-gradient(180deg, #7dd3fc 0%, #e0f2fe 100%); /* HOMEと同じ青空 */
-            --text-main: #1e293b;
-            --text-sub: #475569;
+            --bg-gradient: linear-gradient(135deg, #ffe4e6 0%, #fecdd3 50%, #fff1f2 100%); /* ピーチ〜ローズの背景 */
+            --text-main: #4c0519; /* 深いローズ */
+            --text-sub: #881337;
             --card-bg: rgba(255, 255, 255, 0.7);
             --card-border: rgba(255, 255, 255, 1);
-            --card-hover-border: #f43f5e; /* ローズレッド（アクセント） */
+            --card-hover-border: #f43f5e; /* ローズレッド */
             --card-hover-bg: rgba(255, 255, 255, 0.95);
-            --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            --title-color: #be123c; /* ダークローズ */
-            --accent-color: #e11d48; /* プライマリローズ */
-            --input-bg: rgba(255, 255, 255, 0.8);
-            --input-border: rgba(203, 213, 225, 0.8);
+            --card-shadow: 0 10px 30px rgba(225, 29, 72, 0.05); /* 影も少し赤みを帯びさせる */
+            --title-color: #be123c; 
+            --accent-color: #e11d48; 
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --input-border: rgba(251, 113, 133, 0.4);
             --svg-color: rgba(225, 29, 72, 0.15); /* 赤いSVG */
-            --star-color: #f59e0b; /* HOMEと同じゴールドの星屑 */
+            --star-color: #fca5a5; /* ピンクの星屑 */
             --error-bg: #fff1f2;
             --error-border: #e11d48;
           }
           
           .theme-dark {
-            --bg-gradient: radial-gradient(ellipse at bottom, #1e1b4b 0%, #020617 100%); /* HOMEと同じ夜空 */
-            --text-main: #f8fafc;
-            --text-sub: #cbd5e1;
-            --card-bg: rgba(15, 23, 42, 0.7);
-            --card-border: rgba(255, 255, 255, 0.15);
-            --card-hover-border: #fb7185; /* 発光するローズ（アクセント） */
-            --card-hover-bg: rgba(30, 41, 59, 0.9);
+            --bg-gradient: radial-gradient(ellipse at top right, #4c0519 0%, #0a0205 100%); /* ディープバーガンディ〜漆黒 */
+            --text-main: #fff1f2;
+            --text-sub: #fecdd3;
+            --card-bg: rgba(30, 5, 15, 0.65); /* 暗いローズグラス */
+            --card-border: rgba(255, 255, 255, 0.1);
+            --card-hover-border: #fb7185; /* 発光するローズ */
+            --card-hover-bg: rgba(60, 10, 25, 0.85);
             --card-shadow: 0 20px 50px rgba(0,0,0,0.8);
-            --title-color: #fda4af; /* 薄いローズ */
+            --title-color: #fda4af; 
             --accent-color: #fb7185;
             --input-bg: rgba(0, 0, 0, 0.4);
-            --input-border: rgba(255, 255, 255, 0.2);
-            --svg-color: rgba(251, 113, 133, 0.2);
-            --star-color: #fef08a; /* HOMEと同じイエローの星屑 */
+            --input-border: rgba(244, 63, 94, 0.3);
+            --svg-color: rgba(251, 113, 133, 0.15);
+            --star-color: #ffe4e6; /* ペールピンクの星屑 */
             --error-bg: rgba(225, 29, 72, 0.2);
             --error-border: #fb7185;
           }
@@ -236,10 +235,10 @@ export default function SmsKraken() {
           .input-group label { font-size: 13px; font-weight: 800; color: var(--text-sub); margin-bottom: 8px; border-left: 3px solid var(--accent-color); padding-left: 8px; }
           
           .input-control { width: 100%; padding: 12px 14px; border: 1px solid var(--input-border); border-radius: 10px; font-size: 14px; background: var(--input-bg); color: var(--text-main); transition: 0.3s; font-weight: 700; outline: none; }
-          .input-control:focus { border-color: var(--card-hover-border); box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.2); background: var(--card-hover-bg); }
+          .input-control:focus { border-color: var(--card-hover-border); box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.2); background: var(--card-hover-bg); }
           .input-control:disabled { background: var(--input-border); opacity: 0.5; cursor: not-allowed; }
-          .input-control option { background: #0f172a; color: #fff; }
-          .theme-light .input-control option { background: #fff; color: #1e293b; }
+          .input-control option { background: #4c0519; color: #fff; }
+          .theme-light .input-control option { background: #fff; color: #4c0519; }
 
           /* ラジオボタンエリア */
           .radio-group { display: flex; flex-wrap: wrap; gap: 24px; padding: 16px 20px; border-radius: 10px; background: var(--input-bg); border: 1px solid var(--input-border); }
@@ -251,11 +250,12 @@ export default function SmsKraken() {
           .footer-bar { position: fixed; bottom: 0; left: 0; width: 100%; padding: 16px 40px; background: var(--card-bg); backdrop-filter: blur(12px); border-top: 1px solid var(--card-border); display: flex; gap: 16px; z-index: 100; justify-content: center; }
           .btn-footer { max-width: 300px; width: 100%; padding: 16px; border-radius: 30px; font-weight: 900; font-size: 15px; border: none; cursor: pointer; transition: 0.3s; letter-spacing: 1px; color: #fff; }
           
-          .btn-copy-phone { background: linear-gradient(135deg, #0ea5e9, #0284c7); box-shadow: 0 5px 15px rgba(2, 132, 199, 0.3); }
-          .btn-copy-phone:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(2, 132, 199, 0.5); }
+          .btn-copy-phone { background: linear-gradient(135deg, #f43f5e, #be123c); box-shadow: 0 5px 15px rgba(225, 29, 72, 0.3); }
+          .btn-copy-phone:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(225, 29, 72, 0.5); }
           
-          .btn-copy-text { background: linear-gradient(135deg, #f43f5e, #be123c); box-shadow: 0 5px 15px rgba(225, 29, 72, 0.3); }
-          .btn-copy-text:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(225, 29, 72, 0.5); }
+          /* 本文コピーは少しオレンジ（Coral）寄りに変更して視認性を高める */
+          .btn-copy-text { background: linear-gradient(135deg, #f97316, #c2410c); box-shadow: 0 5px 15px rgba(249, 115, 22, 0.3); }
+          .btn-copy-text:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(249, 115, 22, 0.5); }
           
           .btn-clear { background: var(--input-bg); color: var(--text-sub); border: 2px solid var(--card-border); }
           .btn-clear:hover { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.1); }
@@ -263,7 +263,7 @@ export default function SmsKraken() {
           #toast { visibility: hidden; position: fixed; bottom: 100px; right: 40px; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); padding: 16px 24px; border-radius: 12px; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 200; opacity: 0; transition: 0.4s; backdrop-filter: blur(10px); }
           #toast.show { visibility: visible; opacity: 1; transform: translateY(-10px); }
           #toast.error { background: #fee2e2; color: #e11d48; border-color: #f43f5e; box-shadow: 0 10px 30px rgba(225, 29, 72, 0.2); }
-          #toast.info { color: #0284c7; border-color: #38bdf8; }
+          #toast.info { color: #f43f5e; border-color: #be123c; }
           .theme-dark #toast.error { background: rgba(225, 29, 72, 0.2); border-color: #fb7185; }
 
           /* 🪄 スクロール連動 */
