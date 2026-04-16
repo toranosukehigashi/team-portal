@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// 🌟 高度技術①＆③：3Dパララックス魔法カード（中身は元のテキスト！）
+// 🌟 高度技術①＆③：3Dパララックス魔法カード
 const MagicCard = ({ title, desc, delay, onClick, badge, children }: any) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
@@ -65,7 +65,9 @@ export default function ThemeParkEntrance() {
   const [toast, setToast] = useState({ show: false, msg: "" });
   const [userName, setUserName] = useState<string>("Guest");
   const [isAdmin, setIsAdmin] = useState(false);
-  const [showWarpExit, setShowWarpExit] = useState(false);
+  
+  // ✨ 光の到着アニメーション用フラグ
+  const [showMagicEntry, setShowMagicEntry] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -77,7 +79,13 @@ export default function ThemeParkEntrance() {
   useEffect(() => {
     const savedUser = localStorage.getItem("team_portal_user");
     if (savedUser) { setUserName(savedUser); if (savedUser.toLowerCase().trim().includes("toranosuke.higashi")) setIsAdmin(true); }
-    if (sessionStorage.getItem("just_logged_in") === "true") { setShowWarpExit(true); sessionStorage.removeItem("just_logged_in"); }
+    
+    // ✨ ログイン画面から来た場合のトランジションフラグ
+    if (sessionStorage.getItem("just_logged_in") === "true") { 
+      setShowMagicEntry(true); 
+      sessionStorage.removeItem("just_logged_in"); 
+    }
+    
     const savedMemo = localStorage.getItem("team_portal_quick_memo"); if (savedMemo) setMemoText(savedMemo);
     const savedNews = localStorage.getItem("team_portal_news"); if (savedNews) setNewsText(savedNews);
     
@@ -139,6 +147,15 @@ export default function ThemeParkEntrance() {
     setResult({ day3: getDeadline(3, false), day5Before: getDeadline(5, false), day5After: getDeadline(5, true) });
   };
 
+  // ⏳【復活！】納期シミュレーターを開くときに今日の日付をセットする魔法の関数！
+  const handleOpenSim = () => {
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    setTargetDate(todayStr);
+    calculateDeadlines(todayStr); // 今日の日付で計算を実行！
+    setIsSimOpen(true);
+  };
+
   const handleSaveNews = () => { setNewsText(tempNews); localStorage.setItem("team_portal_news", tempNews); setIsEditingNews(false); showToast("📢 お知らせを更新しました！"); };
   const handleMemoChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => { const val = e.target.value; setMemoText(val); localStorage.setItem("team_portal_quick_memo", val); };
   const handleCopyMemo = async () => { if(memoText){ await navigator.clipboard.writeText(memoText); showToast("📋 メモをコピーしました！"); } };
@@ -154,7 +171,8 @@ export default function ThemeParkEntrance() {
         <MagicParticles />
       </div>
 
-      <main className={`app-wrapper ${showWarpExit ? "animate-warp-arrival" : ""} ${isReady ? "ready" : ""}`}>
+      {/* ✨ クラス名に animate-magic-arrival を付与 */}
+      <main className={`app-wrapper ${showMagicEntry ? "animate-magic-arrival" : ""} ${isReady ? "ready" : ""}`}>
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
           
@@ -171,8 +189,13 @@ export default function ThemeParkEntrance() {
           @keyframes drawMagic { 0% { stroke-dashoffset: 3000; } 100% { stroke-dashoffset: 0; } }
 
           .app-wrapper { min-height: 100vh; padding: 20px; font-family: "Helvetica Neue", Arial, sans-serif; overflow-x: hidden; position: relative; color: #fff; }
-          .app-wrapper.animate-warp-arrival { animation: warpArrivalEffect 1.2s cubic-bezier(0.1, 1, 0.2, 1) forwards; transform-origin: center center; }
-          @keyframes warpArrivalEffect { 0% { opacity: 0; filter: blur(50px) brightness(4); transform: scale(0.1) translateZ(-1000px); } 100% { opacity: 1; filter: blur(0) brightness(1); transform: scale(1) translateZ(0); } }
+          
+          /* 🎇 ログイン画面のホワイトアウトとシームレスに繋がる【光の到着アニメーション】 */
+          .app-wrapper.animate-magic-arrival { animation: magicArrivalEffect 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; transform-origin: center center; }
+          @keyframes magicArrivalEffect { 
+            0% { opacity: 0; filter: brightness(10) blur(30px); transform: scale(1.1); } 
+            100% { opacity: 1; filter: brightness(1) blur(0); transform: scale(1); } 
+          }
 
           .dashboard-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 10; }
           .top-bar { display: flex; justify-content: flex-end; align-items: center; gap: 15px; margin-bottom: 20px; }
@@ -204,7 +227,7 @@ export default function ThemeParkEntrance() {
           .news-text { display: inline-block; padding-left: 100%; animation: marquee 25s linear infinite; font-weight: 800; color: #fff; font-size: 15px; text-shadow: 0 2px 5px rgba(0,0,0,0.8); }
           @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
-          /* 🌟 高度技術①・③：魔法のカード（テキストは完全維持！） */
+          /* 🌟 高度技術①・③：魔法のカード */
           .attraction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
           
           .magic-card-wrapper { perspective: 1200px; opacity: 0; transform: translateY(60px); transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: var(--delay); }
@@ -276,7 +299,8 @@ export default function ThemeParkEntrance() {
             <h1 className="park-main-title">Team Portal Workspace</h1>
             <div className="park-sub-title">Where Work Meets Magic</div>
             <div className="quick-actions">
-              <button className="btn-qa btn-sim" onClick={() => setIsSimOpen(true)}>⏳ 納期確認</button>
+              {/* ⏳ ここも handleOpenSim を使うように完全修正！ */}
+              <button className="btn-qa btn-sim" onClick={handleOpenSim}>⏳ 納期確認</button>
               <button className="btn-qa btn-clockout" onClick={handleClockOut}>🏃‍♂️ 退園する</button>
               <button className="btn-qa" style={{ background: "rgba(239, 68, 68, 0.2)", color: "#fca5a5", border: "1px solid rgba(239, 68, 68, 0.4)", textShadow:"none" }} onClick={handleLogout}>🚪 ログアウト</button>
             </div>
@@ -295,7 +319,6 @@ export default function ThemeParkEntrance() {
             </div>
           )}
 
-          {/* 🎡 各項目：見た目は魔法カード、名前と説明文は1ミリも変えずに完全復元！！ */}
           <div className="attraction-grid">
             <MagicCard delay={0.1} title="📊 本日の進捗・KPI" desc="チーム全体の獲得状況。クリックでメンバー別の詳細やランキングを確認できます。" onClick={() => setIsKpiOpen(true)}>
               <div className="kpi-widget">
@@ -305,20 +328,12 @@ export default function ThemeParkEntrance() {
             </MagicCard>
 
             <MagicCard delay={0.2} title="📦 データ一括登録システム" desc="複数の顧客データを一括で処理し、データベースへ高速登録します。" onClick={() => router.push("/bulk-register")} />
-
             <MagicCard delay={0.3} title="🌐 ネットトス連携ツール" desc="ネット回線のトスアップ用データを生成し、指定のシートへ送信します。" onClick={() => router.push("/net-toss")} />
-
             <MagicCard delay={0.4} title="🤝 自己クロ連携ツール" desc="サイバーUI仕様の入力フォーム。成約後の情報をシームレスに連携します。" onClick={() => router.push("/self-close")} />
-            
             <MagicCard delay={0.5} title="📱 SMS（kraken）作成" desc="Kraken連携を用いたSMS送信・履歴管理・テンプレート展開を行います。" onClick={() => router.push("/sms-kraken")} />
-            
             <MagicCard delay={0.6} title="✉️ メールテンプレート" desc="用途に応じたメール文面を素早く作成し、ワンクリックでコピーします。" onClick={() => router.push("/email-template")} />
-
-            {/* この「Krakenマニュアル」を開いた先で、あの「ソアリン・フライト」を爆発させます！🦅 */}
             <MagicCard delay={0.7} title="🐙 Kraken マニュアル" badge="NEW" desc="プラン変更や住所変更など、各手続きに必要な情報を入力し、Kraken提出用フォーマットを自動生成します。" onClick={() => router.push("/procedure-wizard")} />
-
             <MagicCard delay={0.8} title="🆚 通信費 見直しシミュレーター" badge="NEW" desc="現在の利用状況をヒアリングし、乗り換え時のおトク額（実質無料など）を即座に算出します。" onClick={() => router.push("/simulator")} />
-
             <MagicCard delay={0.9} title="🛠️ トラブル解決ナビゲーター" badge="NEW" desc="SWエラーやメアド重複など、複雑なイレギュラー対応の手順を対話形式でご案内します。" onClick={() => router.push("/trouble-nav")} />
 
             <MagicCard delay={1.0} title="📝 クイック一時メモ" desc="通話中などに一時的に情報を置いておく、ブラウザ自動保存のスクラッチパッド。" onClick={() => setIsMemoOpen(true)}>
@@ -327,7 +342,6 @@ export default function ThemeParkEntrance() {
           </div>
         </div>
 
-        {/* 🔍 浮遊ユーティリティ */}
         <details className="quick-utility">
           <summary className="utility-fab">🔍</summary>
           <div className="utility-content">
@@ -337,8 +351,7 @@ export default function ThemeParkEntrance() {
           </div>
         </details>
 
-        {/* モーダル群 (KPI・メモ等の中身は今まで通り維持) */}
-        {/* ⏳ 納期シミュレーター */}
+        {/* ⏳ 納期シミュレーター モーダル */}
         <div className={`modal-overlay ${isSimOpen ? "open" : ""}`} onClick={() => setIsSimOpen(false)}>
           <div className="custom-modal" style={{maxWidth: "400px"}} onClick={(e) => e.stopPropagation()}>
             <div className="modal-title">⏳ 納期シミュレーター</div>
