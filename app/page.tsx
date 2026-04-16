@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// 🌟 魔法のカスタムカーソル（ホバー時に色が反転して大きくなる！）
+// 🌟 魔法のカスタムカーソル（ホバー時に色が反転して、程よく大きくなる！）
 const CustomCursor = () => {
   const cursorRef = useRef<HTMLDivElement>(null);
   
@@ -13,6 +13,7 @@ const CustomCursor = () => {
 
     const onMouseMove = (e: MouseEvent) => {
       if (cursorRef.current) {
+        // GPUで処理させるためtranslate3dを使用
         cursorRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
       }
     };
@@ -46,7 +47,7 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children }:
     const rect = cardRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
     const y = e.clientY - rect.top - rect.height / 2;
-    setTilt({ x: -(y / 25), y: x / 25 }); // 傾きを少し滑らかに調整
+    setTilt({ x: -(y / 25), y: x / 25 });
   };
   const handleMouseLeave = () => setTilt({ x: 0, y: 0 });
 
@@ -61,7 +62,7 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children }:
     >
       <div className="magic-card" style={{ transform: `perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)` }}>
         <div className="card-glare" style={{ transform: `translate(${tilt.y * 4}px, ${-tilt.x * 4}px)` }} />
-        {/* ✨ クリップパスによるホバー時の波エフェクト */}
+        {/* ✨ Clip-Pathによるホバー時のウェーブエフェクト */}
         <div className="card-wave-bg"></div>
         
         <div className="card-content-3d">
@@ -127,7 +128,7 @@ export default function ThemeParkEntrance() {
     
     setIsReady(true);
 
-    // 🪄 スクロールトリガー（Scroll-Linked）
+    // 🪄 スクロールトリガー（Scroll-Triggered）
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("visible"); });
     }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
@@ -227,8 +228,9 @@ export default function ThemeParkEntrance() {
             transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), margin 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
             will-change: transform;
           }
+          /* ✨ ホバー時のサイズを洗練（40pxに縮小 ww） */
           .custom-cursor.hover {
-            width: 70px; height: 70px; margin-top: -35px; margin-left: -35px;
+            width: 40px; height: 40px; margin-top: -20px; margin-left: -20px;
             background: rgba(255, 255, 255, 1); mix-blend-mode: difference;
           }
 
@@ -322,22 +324,22 @@ export default function ThemeParkEntrance() {
           .news-text { display: inline-block; padding-left: 100%; animation: marquee 30s linear infinite; font-weight: 800; color: var(--text-main); font-size: 16px; letter-spacing: 1px; }
           @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
-          /* 🌟 レイアウト（Bento UI）左幅を260pxに縮小！ */
+          /* 🌟 レイアウト（Bento UI）左幅を260pxに縮小（そのまま） */
           .main-layout { display: grid; grid-template-columns: 260px 1fr; gap: 25px; margin-bottom: 50px; }
           @media (max-width: 950px) { .main-layout { grid-template-columns: 1fr; } }
 
-          /* ℹ️ 左側：設定パネル（小さめ） */
+          /* ℹ️ 左側：設定パネル（そのまま） */
           .info-sidebar { display: flex; flex-direction: column; gap: 20px; }
           .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 18px; box-shadow: var(--card-shadow); }
           .info-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
 
-          /* 📋 クリップボードツール（コンパクト化） */
+          /* 📋 クリップボードツール（そのまま） */
           .script-box { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; }
           .script-box:hover { border-color: var(--card-hover-border); transform: translateX(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
           .script-title { font-weight: 900; font-size: 11px; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
           .script-icon { font-size: 14px; opacity: 0.7; }
 
-          /* 🎡 右側：アトラクショングリッド */
+          /* 🎡 右側：アトラクショングリッド（そのまま） */
           .attraction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; perspective: 1200px; }
           .fade-up-element { opacity: 0; transform: translateY(50px) scale(0.95); transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: var(--delay); }
           .fade-up-element.visible { opacity: 1; transform: translateY(0) scale(1); }
@@ -369,13 +371,13 @@ export default function ThemeParkEntrance() {
           .card-glare { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, transparent 60%); pointer-events: none; z-index: 1; mix-blend-mode: overlay; transition: 0.5s; }
           .theme-dark .card-glare { background: radial-gradient(circle at center, rgba(255,255,255,0.15) 0%, transparent 60%); }
           
-          /* テキスト等の深度表現 */
-          .card-content-3d { z-index: 2; position: relative; transform: translateZ(40px); transform-style: preserve-3d; display: flex; flex-direction: column; height: 100%; }
+          /* テキスト等の深度表現（深度を少し浅くして落ち着かせる） */
+          .card-content-3d { z-index: 2; position: relative; transform: translateZ(30px); transform-style: preserve-3d; display: flex; flex-direction: column; height: 100%; }
           
           .attraction-name { font-size: 11px; color: var(--accent-color); font-weight: 900; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
           .card-title { font-size: 18px; font-weight: 900; color: var(--title-color); margin: 0; line-height: 1.4; letter-spacing: 1px; transition: color 0.3s; }
-          .card-desc { font-size: 13px; color: var(--text-sub); margin: 8px 0 0 0; line-height: 1.6; font-weight: 700; transform: translateZ(20px); transition: color 0.3s; flex: 1; }
-          .card-custom-inner { margin-top: 15px; transform: translateZ(30px); }
+          .card-desc { font-size: 13px; color: var(--text-sub); margin: 8px 0 0 0; line-height: 1.6; font-weight: 700; transform: translateZ(15px); transition: color 0.3s; flex: 1; }
+          .card-custom-inner { margin-top: 15px; transform: translateZ(25px); }
           
           .badge-new { position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; font-size: 10px; font-weight: 900; padding: 4px 12px; border-radius: 20px; z-index: 3; box-shadow: 0 5px 15px rgba(225,29,72,0.5); letter-spacing: 2px; }
 
@@ -404,7 +406,7 @@ export default function ThemeParkEntrance() {
           .modal-overlay.open .custom-modal { transform: translateY(0) scale(1); }
           .modal-title { font-size: 24px; font-weight: 900; text-align: center; margin-bottom: 30px; letter-spacing: 2px; color: var(--title-color); }
           
-          .btn-close-modal { width: 100%; margin-top: 30px; padding: 15px; background: var(--kpi-bg); color: var(--text-main); border: 2px solid var(--card-border); border-radius: 15px; font-weight: 900; transition: 0.2s; text-transform: uppercase; letter-spacing: 2px; }
+          .btn-close-modal { width: 100%; margin-top: 30px; padding: 15px; background: var(--kpi-bg); color: var(--text-main); border: 2px solid var(--card-border); border-radius: 15px; font-weight: 900; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 2px; }
           .btn-close-modal:hover { background: var(--card-hover-border); color: #fff; border-color: transparent; }
 
           #toast { visibility: hidden; position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px); padding: 16px 32px; background: rgba(15,23,42, 0.95); color: #fde047; border-radius: 30px; font-weight: 900; font-size: 15px; z-index: 2000; opacity: 0; transition: 0.4s; backdrop-filter: blur(20px); border: 2px solid #fde047; box-shadow: 0 20px 50px rgba(0,0,0,0.3); letter-spacing: 1px; }
@@ -450,7 +452,7 @@ export default function ThemeParkEntrance() {
 
           <div className="main-layout">
             
-            {/* ℹ️ 左カラム：ブックマークBOX (コンパクト化) */}
+            {/* ℹ️ 左カラム：ブックマークBOX (コンパクト化・そのまま維持) */}
             <aside className="info-sidebar">
               <div className="info-panel fade-up-element" style={{ transitionDelay: "0.2s" }}>
                 <h3 className="info-title">📋 CallTree & ブックマーク管理</h3>
@@ -458,11 +460,11 @@ export default function ThemeParkEntrance() {
                   クリックでコードをコピーし、ブックマークのURL欄に貼り付けてください。
                 </div>
                 
-                <div className="script-box" onClick={() => copyScriptCode("データ一括取得", "javascript:(function(){/* ここに一括取得のスクリプトを記述 */ alert('Warpデータを取得しました');})();")}>
+                <div className="script-box" onClick={() => copyScriptCode("データ一括取得（Warp）", "javascript:(function(){/* ここに一括取得のスクリプトを記述 */ alert('Warpデータを取得しました');})();")}>
                   <span className="script-title"><span className="script-icon">📦</span> データ一括取得（Warp）</span>
                 </div>
                 
-                <div className="script-box" onClick={() => copyScriptCode("電話番号コピー", "javascript:(function(){/* ここに電話番号抽出のスクリプトを記述 */ alert('電話番号を抽出しました');})();")}>
+                <div className="script-box" onClick={() => copyScriptCode("電話番号一括コピー", "javascript:(function(){/* ここに電話番号抽出のスクリプトを記述 */ alert('電話番号を抽出しました');})();")}>
                   <span className="script-title"><span className="script-icon">📞</span> 電話番号一括コピー</span>
                 </div>
                 
@@ -472,7 +474,7 @@ export default function ThemeParkEntrance() {
               </div>
             </aside>
 
-            {/* 🎡 右カラム：アトラクション グリッド (Bento UI・ホバーエフェクト強化) */}
+            {/* 🎡 右カラム：アトラクション グリッド */}
             <div className="attraction-grid">
               <MagicCard delay={0.1} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="チームの進捗やランキング状況をリアルタイムに確認。" onClick={() => router.push("/kpi-detail")}>
                 <div className="kpi-widget">
