@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-// ✨ 背景のエナジー・パーティクル（オクトパスカラーのピンク＆シアン）
+// ✨ 背景のエナジー・パーティクル
 const EnergyParticles = () => {
   const [particles, setParticles] = useState<{ id: number; left: string; top: string; delay: string; size: string; type: string }[]>([]);
   useEffect(() => {
@@ -27,7 +27,6 @@ const EnergyParticles = () => {
   );
 };
 
-// 🌟 メニュー項目定義（トラブル解決ナビの項目を統合！）
 type MenuId = 
   | "plan_change" | "cancel_process" | "status_check" 
   | "sw_error" | "email_dup" | "bh_process" | "move_out" 
@@ -100,7 +99,8 @@ export default function ProcedureWizard() {
             --accent-pink: #e5007e;
             --accent-cyan: #00c4b5;
             --input-bg: rgba(255, 255, 255, 0.9);
-            --svg-color: rgba(229, 0, 126, 0.1);
+            /* ✨ SVGの線の透明度を極限まで下げる（濃くする） */
+            --svg-color: rgba(229, 0, 126, 0.6); /* クッキリ濃く */
           }
           
           .theme-dark {
@@ -116,7 +116,8 @@ export default function ProcedureWizard() {
             --accent-pink: #f43f5e;
             --accent-cyan: #2dd4bf;
             --input-bg: rgba(0, 0, 0, 0.4);
-            --svg-color: rgba(0, 196, 181, 0.15);
+            /* ✨ SVGの線の透明度を極限まで下げる（濃くする） */
+            --svg-color: rgba(0, 196, 181, 0.8); /* クッキリ濃く */
           }
 
           .app-wrapper { 
@@ -130,16 +131,22 @@ export default function ProcedureWizard() {
           .entrance-bg.theme-light { background: var(--bg-gradient); }
           .entrance-bg.theme-dark { background: var(--bg-gradient); }
 
-          /* ✨ エナジー・パーティクル */
           .particles-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
           .particle { position: absolute; border-radius: 50%; animation: energyFlow 6s infinite cubic-bezier(0.2, 0.8, 0.2, 1); transition: 0.5s; }
           .particle-pink { background: var(--accent-pink); box-shadow: 0 0 12px var(--accent-pink); }
           .particle-cyan { background: var(--accent-cyan); box-shadow: 0 0 12px var(--accent-cyan); }
           @keyframes energyFlow { 0% { opacity: 0; transform: translateY(30px) scale(0.5); } 50% { opacity: 0.6; transform: translateY(-40px) scale(1.5); } 100% { opacity: 0; transform: translateY(-100px) scale(0.5); } }
 
-          /* 🌟 テンタクル・ウェーブ（SVG背景） */
-          .energy-svg-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.8; }
-          .energy-path { fill: none; stroke: var(--svg-color); stroke-width: 4; stroke-dasharray: 2000; stroke-dashoffset: 2000; animation: drawEnergy 12s ease-in-out infinite alternate; transition: stroke 0.5s; filter: blur(2px); }
+          /* 🌟 テンタクル・ウェーブ（SVG背景）: クッキリ発光＆本数増量！ */
+          .energy-svg-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 1; }
+          .energy-path { 
+            fill: none; stroke: var(--svg-color); 
+            stroke-width: 6; /* ✨ 太く */
+            stroke-dasharray: 2000; stroke-dashoffset: 2000; 
+            animation: drawEnergy 12s ease-in-out infinite alternate; transition: stroke 0.5s; 
+            /* ✨ 発光（drop-shadow）をより広く、強く！ */
+            filter: drop-shadow(0 0 20px var(--svg-color)); 
+          }
           @keyframes drawEnergy { 0% { stroke-dashoffset: 2000; } 100% { stroke-dashoffset: 0; } }
 
           /* ハンバーガーボタン */
@@ -153,7 +160,7 @@ export default function ProcedureWizard() {
           .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
           .menu-overlay.open { opacity: 1; pointer-events: auto; }
 
-          /* 🗄️ サイドメニュー（トラブル解決ナビを削除） */
+          /* サイドメニュー */
           .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
           .side-menu.open { left: 0; }
           .menu-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--card-border); letter-spacing: 1px; }
@@ -161,7 +168,6 @@ export default function ProcedureWizard() {
           .side-link { text-decoration: none; padding: 14px 20px; border-radius: 14px; background: var(--input-bg); color: var(--text-main); font-weight: 800; font-size: 14px; border: 1px solid var(--card-border); transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
           .side-link:hover { border-color: var(--card-hover-border); transform: translateX(8px); color: var(--accent-cyan); }
           .side-link.current-page { background: linear-gradient(135deg, var(--accent-pink), #be123c); color: #fff; border: none; box-shadow: 0 6px 15px rgba(229, 0, 126, 0.3); pointer-events: none; }
-          .theme-dark .side-link.current-page { background: linear-gradient(135deg, var(--accent-cyan), #0d9488); box-shadow: 0 6px 15px rgba(0, 196, 181, 0.3); }
 
           /* 🎈 ナビゲーション */
           .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 30px; }
@@ -175,18 +181,18 @@ export default function ProcedureWizard() {
           .theme-toggle-btn { background: var(--input-bg); border: 1px solid var(--card-border); padding: 10px 20px; border-radius: 30px; cursor: pointer; transition: 0.3s; font-size: 14px; color: var(--text-main); font-weight: 800; }
           .theme-toggle-btn:hover { border-color: var(--card-hover-border); transform: scale(1.05); }
 
-          /* 🌟 レイアウト：Bento UI（左マニュアルメニュー / 右コンテンツ） */
+          /* 🌟 レイアウト：Bento UI */
           .main-layout { display: grid; grid-template-columns: 280px 1fr; gap: 30px; max-width: 1200px; margin: 0 auto; }
           @media (max-width: 850px) { .main-layout { grid-template-columns: 1fr; } }
 
-          /* 📖 左側：マニュアル用ローカルメニュー */
+          /* Left Sidebar */
           .manual-sidebar { display: flex; flex-direction: column; gap: 10px; }
           .topic-btn { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 16px; padding: 16px 20px; text-align: left; font-weight: 800; font-size: 14px; color: var(--text-sub); cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; box-shadow: var(--card-shadow); }
           .topic-btn:hover { background: var(--card-hover-bg); border-color: var(--accent-cyan); color: var(--accent-cyan); transform: translateX(5px); }
           .topic-btn.active { background: var(--card-hover-bg); color: var(--accent-pink); border-color: var(--accent-pink); border-left: 6px solid var(--accent-pink); box-shadow: 0 10px 20px rgba(229, 0, 126, 0.1); pointer-events: none; }
           .theme-dark .topic-btn.active { color: var(--accent-cyan); border-color: var(--accent-cyan); box-shadow: 0 10px 20px rgba(0, 196, 181, 0.15); border-left: 6px solid var(--accent-cyan); }
 
-          /* 📝 右側：手順メインコンテンツ */
+          /* 右コンテンツ */
           .dictionary-card { background: var(--card-bg); backdrop-filter: blur(25px); border: 1px solid var(--card-border); border-radius: 24px; padding: 40px; box-shadow: var(--card-shadow); animation: slideIn 0.4s ease-out forwards; }
           @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -197,7 +203,6 @@ export default function ProcedureWizard() {
           .step-item:hover { border-color: var(--card-hover-border); transform: translateX(5px); box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
           
           .step-badge { width: 36px; height: 36px; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-pink)); color: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-          .theme-dark .step-badge { background: linear-gradient(135deg, var(--accent-cyan), #3b82f6); }
           
           .step-text { font-size: 15px; font-weight: 700; color: var(--text-main); line-height: 1.6; padding-top: 6px; }
           .step-text b { color: var(--accent-pink); background: linear-gradient(transparent 70%, rgba(229,0,126,0.1) 0%); padding: 0 4px; border-radius: 4px; }
@@ -217,20 +222,39 @@ export default function ProcedureWizard() {
           .status-val { font-size: 20px; font-weight: 900; }
 
           .note-tag { display: inline-block; padding: 10px 16px; background: rgba(245, 158, 11, 0.1); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; font-size: 13px; font-weight: 800; margin-top: 20px; display: flex; align-items: center; gap: 8px; }
-          .theme-dark .note-tag { color: #fcd34d; }
 
           #toast { visibility: hidden; position: fixed; bottom: 40px; right: 40px; background: var(--card-hover-bg); color: var(--accent-pink); border: 1px solid var(--accent-pink); padding: 16px 24px; border-radius: 12px; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 200; opacity: 0; transition: 0.4s; backdrop-filter: blur(10px); }
-          .theme-dark #toast { color: var(--accent-cyan); border-color: var(--accent-cyan); }
           #toast.show { visibility: visible; opacity: 1; transform: translateY(-10px); }
 
           .fade-up-element { opacity: 0; transform: translateY(40px); transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
           .fade-up-element.visible { opacity: 1; transform: translateY(0); }
         `}} />
 
+        {/* 🌟 🐙 オクトパス・テンタクル（SVG背景）: クッキリ発光＆8本増量！ */}
         <svg className="energy-svg-bg" viewBox="0 0 100 100" preserveAspectRatio="none">
+          {/* 1本目: メイン (delay: 0s, opacity: 1) */}
           <path className="energy-path" d="M -10,50 Q 25,20 50,50 T 110,50" />
-          <path className="energy-path" d="M -10,80 Q 30,100 60,60 T 110,20" style={{animationDelay: "2s", opacity: 0.5}} />
-          <path className="energy-path" d="M -10,20 Q 40,80 70,30 T 110,90" style={{animationDelay: "4s", opacity: 0.3}} />
+          
+          {/* 2本目: (delay: 2s, opacity: 0.8) */}
+          <path className="energy-path" d="M -10,80 Q 30,100 60,60 T 110,20" style={{animationDelay: "2s", opacity: 0.8}} />
+          
+          {/* 3本目: (delay: 4s, opacity: 0.6) */}
+          <path className="energy-path" d="M -10,20 Q 40,80 70,30 T 110,90" style={{animationDelay: "4s", opacity: 0.6}} />
+          
+          {/* 4本目: (delay: 6s, opacity: 0.5) */}
+          <path className="energy-path" d="M -10,100 Q 45,60 80,110 T 110,110" style={{animationDelay: "6s", opacity: 0.5}} />
+          
+          {/* 5本目: (delay: 1s, opacity: 0.4) */}
+          <path className="energy-path" d="M -10,30 Q 30,10 60,40 T 110,0" style={{animationDelay: "1s", opacity: 0.4}} />
+          
+          {/* 6本目: (delay: 3s, opacity: 0.3) */}
+          <path className="energy-path" d="M -10,70 Q 40,50 70,80 T 110,40" style={{animationDelay: "3s", opacity: 0.3}} />
+
+          {/* 7本目: (delay: 5s, opacity: 0.2) */}
+          <path className="energy-path" d="M -10,0 Q 20,30 50,0 T 110,30" style={{animationDelay: "5s", opacity: 0.2}} />
+
+          {/* 8本目: (delay: 7s, opacity: 0.1) */}
+          <path className="energy-path" d="M -10,90 Q 50,70 80,90 T 110,60" style={{animationDelay: "7s", opacity: 0.1}} />
         </svg>
 
         {/* 🍔 ハンバーガーボタン */}
@@ -260,7 +284,7 @@ export default function ProcedureWizard() {
           <div className="glass-nav">
             <div className="nav-left">
               <a href="/" className="glass-nav-link">← 司令室に戻る</a>
-              <div className="glass-nav-active">🐙 Kraken 手順辞書（トラブル解決統合）</div>
+              <div className="glass-nav-active">🐙 Kraken 手順辞書（トラブル解決統合版）</div>
             </div>
             <button className="theme-toggle-btn" onClick={toggleTheme}>
               {isDarkMode ? "🎇 NIGHT" : "☀️ DAY"}
@@ -442,8 +466,8 @@ export default function ProcedureWizard() {
                 <h2 className="card-title">⏱️ 直近再点対応</h2>
                 <div className="step-list">
                   <div className="step-item"><div className="step-badge">1</div><div className="step-text">インダストリータブから <b>過去の再点日（スイッチング日）</b> を確認する</div></div>
-                  <div className="step-item"><div className="step-badge">2</div><div className="step-text">前回から「3ヶ月以内」の再点である場合、<b>直近再点アラート</b> を確認する</div></div>
-                  <div className="step-item"><div className="step-badge">3</div><div className="step-text">お客様に状況をヒアリングし、必要に応じて <b>特記事項</b> に理由を記載する</div></div>
+                  <div className="step-item"><div className="step-badge">2</div><div className="step-text">前回から「3ヶ月以内」の再点である場合, <b>直近再点アラート</b> を確認する</div></div>
+                  <div className="step-item"><div className="step-badge">3</div><div className="step-text">お客様に状況をヒアリングし, 必要に応じて <b>特記事項</b> に理由を記載する</div></div>
                 </div>
               </div>
             )}
