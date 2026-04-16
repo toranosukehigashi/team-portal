@@ -42,7 +42,7 @@ export default function EmailTemplate() {
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
 
-  // ⚙️ システム状態管理（一切変更なし）
+  // ⚙️ システム状態管理
   const [toast, setToast] = useState({ show: false, msg: "", isBlue: false });
   const [preview, setPreview] = useState("");
   const [form, setForm] = useState({ name1: "", date: "", listKey: "", name2: "", area: "" });
@@ -52,7 +52,6 @@ export default function EmailTemplate() {
     setIsReady(true);
   }, []);
 
-  // ⚙️ システムロジック（一切変更なし）
   const showToast = (msg: string, isBlue = false) => {
     setToast({ show: true, msg, isBlue });
     setTimeout(() => setToast({ show: false, msg: "", isBlue: false }), 3000);
@@ -175,20 +174,17 @@ export default function EmailTemplate() {
 
   return (
     <div className={`small-world-theme ${isReady ? "ready" : ""}`}>
-      {/* ✨ 究極魔法のCSS（9つのデザイン技術を投入） */}
       <style dangerouslySetInnerHTML={{ __html: `
         .small-world-theme * { box-sizing: border-box; }
         
-        /* 🌤️ 1. ジェネレーティブUI & カームデザイン (パステルグラデーション) */
         .small-world-theme { 
-          font-family: 'M PLUS Rounded 1c', 'Nunito', 'Varela Round', sans-serif; /* 丸くて優しいフォント */
+          font-family: 'M PLUS Rounded 1c', 'Nunito', 'Varela Round', sans-serif;
           padding: 20px 40px 100px 40px; min-height: 100vh; 
           background: linear-gradient(135deg, #fdf4ff 0%, #e0e7ff 50%, #fef08a 100%); 
           background-attachment: fixed; color: #334155; overflow-x: hidden; position: relative; z-index: 1;
         }
         
-        /* 🎨 メアリー・ブレア風の図形アニメーション */
-        .pastel-shapes-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: -1; overflow: hidden; opacity: 0.7; }
+        .pastel-shapes-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: -3; overflow: hidden; opacity: 0.7; }
         .mary-shape { position: absolute; animation: floatShape linear infinite alternate; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.05)); }
         .shape-circle { border-radius: 50%; }
         .shape-triangle { clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
@@ -196,11 +192,24 @@ export default function EmailTemplate() {
         .shape-flower { clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
         @keyframes floatShape { 0% { transform: translateY(0) rotate(0deg); } 100% { transform: translateY(-100px) rotate(180deg); } }
 
-        /* 🕰️ 9. イマーシブ要素（背景の微笑む時計塔/太陽 SVG） */
-        .clock-tower-bg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80vh; height: 80vh; opacity: 0.1; z-index: -2; animation: gentleRock 20s ease-in-out infinite alternate; pointer-events: none; }
-        @keyframes gentleRock { 0% { transform: translate(-50%, -50%) rotate(-5deg); } 100% { transform: translate(-50%, -50%) rotate(5deg); } }
+        /* 🕰️ 修正版：イマーシブな太陽/時計塔のアニメーション SVG */
+        .clock-tower-bg { 
+          position: fixed; 
+          top: 50%; left: 50%; 
+          width: 70vh; height: 70vh; 
+          opacity: 0.6; /* 薄すぎたのを修正し、しっかり見えるように */
+          z-index: -1;  /* コンテンツの後ろ、背景の図形より前 */
+          pointer-events: none; 
+          filter: drop-shadow(0 15px 30px rgba(0,0,0,0.1));
+          transform-origin: center center;
+          /* 時計の振り子のように、分かりやすく大きく左右に揺れるアニメーション */
+          animation: gentleRock 6s ease-in-out infinite alternate; 
+        }
+        @keyframes gentleRock { 
+          0% { transform: translate(-50%, -50%) rotate(-10deg); } 
+          100% { transform: translate(-50%, -50%) rotate(10deg); } 
+        }
 
-        /* 🍔 マイクロインタラクション（ハンバーガーボタン） */
         .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 1001; background: rgba(255,255,255,0.8); backdrop-filter: blur(15px); border: 2px solid #fbcfe8; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; box-shadow: 0 5px 15px rgba(244, 114, 182, 0.2); transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .hamburger-btn:hover { background: #fff; box-shadow: 0 8px 25px rgba(244, 114, 182, 0.4); transform: scale(1.1); }
         .hamburger-line { width: 22px; height: 3px; background: #db2777; border-radius: 3px; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
@@ -208,11 +217,9 @@ export default function EmailTemplate() {
         .hamburger-btn.open .line2 { opacity: 0; transform: translateX(-10px); }
         .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: #2563eb; }
 
-        /* 🌌 オーバーレイ */
         .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 255, 255, 0.3); backdrop-filter: blur(8px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
         .menu-overlay.open { opacity: 1; pointer-events: auto; }
 
-        /* 🗄️ サイドメニュー */
         .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(30px); border-right: 2px dashed #fbcfe8; z-index: 1000; box-shadow: 20px 0 50px rgba(0,0,0,0.05); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
         .side-menu.open { left: 0; }
         .menu-title { font-size: 14px; font-weight: 900; color: #db2777; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 3px dotted #fbcfe8; letter-spacing: 2px; }
@@ -221,13 +228,11 @@ export default function EmailTemplate() {
         .side-link:hover { background: #fff; border-color: #bae6fd; color: #0284c7; transform: translateX(8px) scale(1.02); box-shadow: 0 8px 20px rgba(2, 132, 199, 0.15); }
         .side-link.current-page { background: linear-gradient(135deg, #fbcfe8, #a7f3d0); color: #0f172a; border: none; box-shadow: 0 8px 25px rgba(167, 243, 208, 0.5); pointer-events: none; }
 
-        /* 🎈 ナビゲーション */
         .glass-nav { position: relative; z-index: 10; display: flex; gap: 12px; padding: 12px; margin-bottom: 30px; margin-left: 60px; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); border: 2px solid #fff; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .glass-nav-link { text-decoration: none; padding: 10px 24px; border-radius: 18px; font-weight: 800; background: transparent; color: #64748b; transition: 0.3s; }
         .glass-nav-link:hover { background: rgba(255,255,255,0.9); color: #0284c7; box-shadow: 0 4px 10px rgba(2,132,199,0.1); }
         .glass-nav-active { padding: 10px 24px; border-radius: 18px; font-weight: 900; background: #fff; color: #db2777; box-shadow: 0 4px 15px rgba(219, 39, 119, 0.15); border: 2px solid #fbcfe8; }
         
-        /* 🔠 5. ダイナミック・タイポグラフィ (パステルの立体タイトル) */
         .page-title { 
           text-align: center; font-size: 38px; font-weight: 900; margin-bottom: 40px; letter-spacing: 3px; color: #fff; 
           text-shadow: 2px 2px 0 #f472b6, 4px 4px 0 #38bdf8, 6px 6px 0 #a7f3d0, 0 10px 20px rgba(0,0,0,0.1);
@@ -235,7 +240,6 @@ export default function EmailTemplate() {
         }
         @keyframes gentleBounce { to { transform: translateY(-8px); } }
 
-        /* 📦 2. Bento UI (フロストガラスのメインパネル) */
         .glass-panel { 
           background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(25px); 
           border: 3px solid #fff; border-radius: 40px; padding: 40px; margin-bottom: 30px; 
@@ -246,7 +250,6 @@ export default function EmailTemplate() {
         .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 40px; }
         @media (max-width: 800px) { .form-grid { grid-template-columns: 1fr; } }
 
-        /* フォームカード (ピンクとブルーのアクセント) */
         .form-card { 
           background: rgba(255, 255, 255, 0.85); border-radius: 30px; padding: 30px; 
           border: 2px solid #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.03); 
@@ -260,7 +263,6 @@ export default function EmailTemplate() {
         .pink-card .card-header { color: #db2777; }
         .blue-card .card-header { color: #0284c7; }
         
-        /* 🕹️ 4. マイクロインタラクション (入力フォーム) */
         .input-group { display: flex; flex-direction: column; margin-bottom: 24px; }
         .input-group label { font-size: 13px; font-weight: 800; color: #64748b; margin-bottom: 8px; padding-left: 8px; }
         .input-control { 
@@ -271,7 +273,6 @@ export default function EmailTemplate() {
         .pink-card .input-control:focus { border-color: #f472b6; background: #fff; box-shadow: 0 0 0 5px rgba(244, 114, 182, 0.2); }
         .blue-card .input-control:focus { border-color: #38bdf8; background: #fff; box-shadow: 0 0 0 5px rgba(56, 189, 248, 0.2); }
 
-        /* 🔘 6. アクションファースト (ピル型コピーボタン) */
         .btn-copy { 
           width: 100%; padding: 18px; border: none; border-radius: 30px; font-weight: 900; font-size: 16px; 
           cursor: pointer; transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); color: #fff; margin-top: 15px; 
@@ -282,11 +283,9 @@ export default function EmailTemplate() {
         .btn-blue { background: linear-gradient(135deg, #38bdf8, #0284c7); box-shadow: 0 8px 20px rgba(2, 132, 199, 0.3); }
         .btn-blue:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 12px 25px rgba(2, 132, 199, 0.5); }
 
-        /* 📜 魔法のスクロール (プレビューエリア) */
         .preview-area { 
           width: 100%; height: 220px; padding: 25px; 
-          background: #1e1b4b; /* 深いナイトパープル */
-          color: #e9d5ff; /* 淡いラベンダーテキスト */
+          background: #1e1b4b; color: #e9d5ff; 
           border-radius: 24px; font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.7; 
           border: 4px solid #c084fc; outline: none; resize: vertical; 
           box-shadow: inset 0 10px 20px rgba(0,0,0,0.5), 0 10px 30px rgba(192,132,252,0.2); 
@@ -299,7 +298,6 @@ export default function EmailTemplate() {
         }
         .btn-clear:hover { background: #fef2f2; color: #e11d48; border-color: #fecdd3; transform: translateY(-2px); }
 
-        /* 🍞 トースト通知 (スプリングアニメーション) */
         #toast { 
           visibility: hidden; position: fixed; bottom: 40px; right: 40px; padding: 18px 28px; border-radius: 20px; 
           font-weight: 900; font-size: 15px; box-shadow: 0 15px 40px rgba(0,0,0,0.3); z-index: 2000; opacity: 0; 
@@ -310,13 +308,23 @@ export default function EmailTemplate() {
         #toast.blue { background: #0284c7; border-color: #7dd3fc; }
       `}} />
 
-      {/* 🎪 イマーシブ背景 (パステル図形と時計塔) */}
+      {/* 🎪 イマーシブ背景 (パステル図形) */}
       <PastelShapes />
+      
+      {/* 🕰️ 修正版：イマーシブな太陽（顔付き）SVG */}
       <svg className="clock-tower-bg" viewBox="0 0 200 200">
-        <circle cx="100" cy="100" r="80" fill="#fef08a" />
-        <circle cx="75" cy="85" r="10" fill="#fde047" />
-        <circle cx="125" cy="85" r="10" fill="#fde047" />
-        <path d="M 60 120 Q 100 160 140 120" fill="none" stroke="#fde047" strokeWidth="12" strokeLinecap="round" />
+        {/* 太陽の光 / 時計の装飾 */}
+        <path d="M100,5 L110,25 L135,15 L135,40 L160,40 L150,60 L175,70 L155,90 L175,110 L150,120 L160,145 L135,140 L135,165 L110,155 L100,180 L90,155 L65,165 L65,140 L40,145 L50,120 L25,110 L45,90 L25,70 L50,60 L40,40 L65,40 L65,15 L90,25 Z" fill="#fde047" opacity="0.8"/>
+        {/* メインの顔 */}
+        <circle cx="100" cy="95" r="55" fill="#fff" stroke="#fbcfe8" strokeWidth="6" />
+        {/* ほっぺ */}
+        <circle cx="65" cy="100" r="10" fill="#fce7f3" />
+        <circle cx="135" cy="100" r="10" fill="#fce7f3" />
+        {/* 優しい目 */}
+        <path d="M 70 80 Q 80 70 90 80" fill="none" stroke="#db2777" strokeWidth="4" strokeLinecap="round" />
+        <path d="M 110 80 Q 120 70 130 80" fill="none" stroke="#db2777" strokeWidth="4" strokeLinecap="round" />
+        {/* ニッコリ口 */}
+        <path d="M 75 110 Q 100 135 125 110" fill="none" stroke="#db2777" strokeWidth="5" strokeLinecap="round" />
       </svg>
 
       {/* 🍔 ハンバーガーボタン */}
