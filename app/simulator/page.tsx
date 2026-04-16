@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// ✨ 背景の光の粒（アンバーテーマに合わせたカームデザイン）
+// ✨ 背景の光の粒（サファイアブルーのデータパーティクル）
 const FlowParticles = () => {
   const [particles, setParticles] = useState<{ id: number; left: string; top: string; delay: string; size: string }[]>([]);
   useEffect(() => {
@@ -184,41 +184,41 @@ export default function Simulator() {
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
 
-          /* 🎨 新しい洗練されたカラーパレット：アンバー（琥珀）＆サンセット */
+          /* 🌊 サファイア＆ディープオーシャン テーマ（被りなし！） */
           .theme-light {
-            --bg-gradient: linear-gradient(135deg, #fffbeb 0%, #ffedd5 50%, #fef2f2 100%);
-            --text-main: #334155;
-            --text-sub: #64748b;
+            --bg-gradient: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 50%, #eff6ff 100%);
+            --text-main: #0f172a;
+            --text-sub: #475569;
             --card-bg: rgba(255, 255, 255, 0.85);
             --card-border: rgba(255, 255, 255, 1);
-            --card-hover-border: #f59e0b;
+            --card-hover-border: #3b82f6; /* Blue 500 */
             --card-hover-bg: rgba(255, 255, 255, 0.95);
-            --card-shadow: 0 10px 30px rgba(0,0,0,0.04);
-            --title-color: #d97706;
-            --accent-color: #ea580c;
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            --title-color: #1d4ed8; /* Blue 700 */
+            --accent-color: #2563eb; /* Blue 600 */
             --input-bg: rgba(255, 255, 255, 0.9);
-            --input-border: rgba(253, 186, 116, 0.5);
-            --svg-color: rgba(245, 158, 11, 0.2);
-            --particle-color: #fcd34d;
-            --error-bg: #fff1f2;
+            --input-border: rgba(147, 197, 253, 0.5); /* Blue 300 */
+            --svg-color: rgba(59, 130, 246, 0.15);
+            --particle-color: #93c5fd; /* Blue 300 */
+            --error-bg: #fef2f2;
             --error-border: #e11d48;
           }
           
           .theme-dark {
-            --bg-gradient: radial-gradient(ellipse at top left, #451a03 0%, #0f172a 100%);
+            --bg-gradient: radial-gradient(ellipse at top left, #1e3a8a 0%, #020617 100%);
             --text-main: #f8fafc;
-            --text-sub: #cbd5e1;
-            --card-bg: rgba(30, 20, 15, 0.65);
+            --text-sub: #94a3b8;
+            --card-bg: rgba(15, 23, 42, 0.65);
             --card-border: rgba(255, 255, 255, 0.1);
-            --card-hover-border: #fbbf24;
-            --card-hover-bg: rgba(60, 30, 15, 0.85);
+            --card-hover-border: #60a5fa; /* Blue 400 */
+            --card-hover-bg: rgba(30, 41, 59, 0.85);
             --card-shadow: 0 20px 50px rgba(0,0,0,0.8);
-            --title-color: #fcd34d; 
-            --accent-color: #fbbf24;
+            --title-color: #93c5fd; /* Blue 300 */
+            --accent-color: #60a5fa; /* Blue 400 */
             --input-bg: rgba(0, 0, 0, 0.4);
-            --input-border: rgba(245, 158, 11, 0.3);
-            --svg-color: rgba(251, 191, 36, 0.15);
-            --particle-color: #fef3c7;
+            --input-border: rgba(59, 130, 246, 0.3);
+            --svg-color: rgba(96, 165, 250, 0.15);
+            --particle-color: #bfdbfe; /* Blue 200 */
             --error-bg: rgba(225, 29, 72, 0.2);
             --error-border: #fb7185;
           }
@@ -238,7 +238,7 @@ export default function Simulator() {
           .particle { position: absolute; border-radius: 50%; background: var(--particle-color); box-shadow: 0 0 10px var(--particle-color); animation: flowUp 8s infinite ease-in-out; transition: background 0.5s, box-shadow 0.5s; }
           @keyframes flowUp { 0% { opacity: 0; transform: translateY(20px) scale(0.5); } 50% { opacity: 0.8; transform: translateY(-50px) scale(1.2); } 100% { opacity: 0; transform: translateY(-100px) scale(0.5); } }
 
-          /* 🌟 SVGデータフロー背景（海賊からアナリティクスへ） */
+          /* 🌟 SVGデータフロー背景 */
           .data-svg-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.8; }
           .data-path { fill: none; stroke: var(--svg-color); stroke-width: 2; stroke-dasharray: 1500; stroke-dashoffset: 1500; animation: drawDataFlow 15s linear infinite; transition: stroke 0.5s; }
           @keyframes drawDataFlow { 0% { stroke-dashoffset: 1500; } 100% { stroke-dashoffset: -1500; } }
@@ -262,7 +262,7 @@ export default function Simulator() {
 
           .side-link { text-decoration: none; padding: 14px 20px; border-radius: 14px; background: var(--input-bg); color: var(--text-main); font-weight: 800; font-size: 14px; border: 1px solid var(--card-border); transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
           .side-link:hover { border-color: var(--card-hover-border); transform: translateX(8px); color: var(--accent-color); }
-          .side-link.current-page { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; box-shadow: 0 6px 15px rgba(245, 158, 11, 0.3); pointer-events: none; }
+          .side-link.current-page { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; border: none; box-shadow: 0 6px 15px rgba(59, 130, 246, 0.3); pointer-events: none; }
 
           /* 🎈 ナビゲーション（中央配置） */
           .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 30px; }
@@ -300,43 +300,43 @@ export default function Simulator() {
           
           .tab-group { display: flex; gap: 8px; background: var(--input-bg); padding: 6px; border-radius: 12px; border: 1px solid var(--input-border); }
           .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.3s; background: transparent; color: var(--text-sub); }
-          .tab-btn.active { background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); box-shadow: 0 4px 10px rgba(245,158,11,0.2); }
+          .tab-btn.active { background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); box-shadow: 0 4px 10px rgba(59,130,246,0.15); }
 
           .sim-select, .sim-input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--input-border); background: var(--input-bg); font-size: 14px; font-weight: 800; color: var(--text-main); outline: none; transition: 0.3s; cursor: pointer; }
-          .sim-select:focus, .sim-input:focus { border-color: var(--card-hover-border); box-shadow: 0 0 0 4px rgba(245,158,11,0.2); background: var(--card-hover-bg); }
-          .sim-select option { background: #fffbeb; color: #334155; }
+          .sim-select:focus, .sim-input:focus { border-color: var(--card-hover-border); box-shadow: 0 0 0 4px rgba(59,130,246,0.2); background: var(--card-hover-bg); }
+          .sim-select option { background: #eff6ff; color: #0f172a; }
           .theme-dark .sim-select option { background: #0f172a; color: #f8fafc; }
 
           .range-slider { -webkit-appearance: none; width: 100%; height: 8px; background: var(--input-border); border-radius: 5px; outline: none; transition: 0.2s; }
-          .range-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--accent-color); cursor: pointer; box-shadow: 0 4px 10px rgba(245,158,11,0.4); }
+          .range-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--accent-color); cursor: pointer; box-shadow: 0 4px 10px rgba(59,130,246,0.4); }
 
           /* 🔘 6. Action-First（重要オプションとトグル） */
           .option-box { display: flex; align-items: center; justify-content: space-between; background: var(--input-bg); padding: 16px 20px; border-radius: 16px; border: 1px solid var(--input-border); cursor: pointer; transition: 0.3s; transform: translateZ(15px); }
           .option-box:hover { background: var(--card-hover-bg); border-color: var(--card-hover-border); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
           
-          .active-promo { background: radial-gradient(circle at right, rgba(245,158,11,0.1) 0%, var(--input-bg) 100%); border: 1px solid var(--card-hover-border); cursor: default; }
+          .active-promo { background: radial-gradient(circle at right, rgba(59,130,246,0.1) 0%, var(--input-bg) 100%); border: 1px solid var(--card-hover-border); cursor: default; }
           .cb-input { background: var(--card-bg); border: 2px solid var(--card-hover-border); border-radius: 10px; padding: 10px 15px; width: 140px; font-weight: 900; font-size: 18px; color: var(--accent-color); text-align: right; outline: none; transition: 0.3s; }
-          .cb-input:focus { box-shadow: 0 0 0 4px rgba(245,158,11,0.2); background: var(--card-hover-bg); }
+          .cb-input:focus { box-shadow: 0 0 0 4px rgba(59,130,246,0.2); background: var(--card-hover-bg); }
           
           .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
           .switch input { opacity: 0; width: 0; height: 0; }
           .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--input-border); transition: .4s; border-radius: 34px; border: 1px solid var(--card-border); }
           .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: var(--text-sub); transition: .4s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-          input:checked + .slider { background-color: rgba(245,158,11,0.2); border-color: var(--card-hover-border); }
+          input:checked + .slider { background-color: rgba(59,130,246,0.2); border-color: var(--card-hover-border); }
           input:checked + .slider:before { transform: translateX(22px); background-color: var(--accent-color); box-shadow: 0 0 10px var(--accent-color); }
 
           /* 💎 データアナリティクス・結果エリア */
-          .result-hero { background: radial-gradient(ellipse at center, rgba(245,158,11,0.15) 0%, var(--input-bg) 100%); border: 1px solid var(--card-hover-border); padding: 35px 20px; border-radius: 20px; text-align: center; position: relative; overflow: hidden; transform: translateZ(30px); }
+          .result-hero { background: radial-gradient(ellipse at center, rgba(59,130,246,0.15) 0%, var(--input-bg) 100%); border: 1px solid var(--card-hover-border); padding: 35px 20px; border-radius: 20px; text-align: center; position: relative; overflow: hidden; transform: translateZ(30px); }
           
-          .hero-amount { font-size: 56px; font-weight: 900; line-height: 1; margin: 15px 0; letter-spacing: -2px; color: var(--title-color); filter: drop-shadow(0 4px 10px rgba(245,158,11,0.2)); animation: pulseTreasure 2s infinite alternate; }
+          .hero-amount { font-size: 56px; font-weight: 900; line-height: 1; margin: 15px 0; letter-spacing: -2px; color: var(--title-color); filter: drop-shadow(0 4px 10px rgba(59,130,246,0.2)); animation: pulseTreasure 2s infinite alternate; }
           .hero-amount.negative { color: #e11d48; filter: drop-shadow(0 4px 10px rgba(225,29,72,0.2)); }
-          @keyframes pulseTreasure { 0% { transform: scale(1); filter: drop-shadow(0 4px 10px rgba(245,158,11,0.2)); } 100% { transform: scale(1.02); filter: drop-shadow(0 8px 20px rgba(245,158,11,0.4)); } }
+          @keyframes pulseTreasure { 0% { transform: scale(1); filter: drop-shadow(0 4px 10px rgba(59,130,246,0.2)); } 100% { transform: scale(1.02); filter: drop-shadow(0 8px 20px rgba(59,130,246,0.4)); } }
           
           /* Bento UI: 内訳ボックス */
           .bar-wrap { width: 100%; background: var(--input-border); border-radius: 8px; height: 12px; border: 1px solid var(--card-border); overflow: hidden; }
           .bar-fill { height: 100%; border-radius: 8px; transition: width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
           .bar-current { background: var(--text-sub); }
-          .bar-new { background: linear-gradient(90deg, #fbbf24, #ea580c); }
+          .bar-new { background: linear-gradient(90deg, #60a5fa, #2563eb); }
           
           .breakdown-box { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 12px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
           .breakdown-box:hover { background: var(--card-hover-bg); border-color: var(--card-hover-border); transform: translateX(5px); }
@@ -400,9 +400,9 @@ export default function Simulator() {
         {/* 📱 8. バーティカルUI（可変グリッド） */}
         <div className="sim-layout">
           
-          {/* 🏴‍☠️ 左側パネル：ヒアリング（入力） */}
+          {/* 📊 左側パネル：ヒアリング（入力） */}
           <div className="glass-panel fade-up-element">
-            <h2 className="panel-title">🗺️ 現在のご利用状況</h2>
+            <h2 className="panel-title">📡 現在のご利用状況</h2>
 
             <div className="input-group">
               <label className="input-label">建物のタイプ</label>
@@ -462,7 +462,7 @@ export default function Simulator() {
               <input type="range" min="0" max="10000" step="100" className="range-slider" value={Number(currentNet) || 0} onChange={(e) => setCurrentNet(e.target.value)} />
             </div>
 
-            <h2 className="panel-title" style={{ marginTop: "10px" }}>⚓ ご提案プラン</h2>
+            <h2 className="panel-title" style={{ marginTop: "10px" }}>🎯 ご提案プラン</h2>
 
             <div className="input-group">
               <label className="input-label">提案回線</label>
@@ -540,7 +540,7 @@ export default function Simulator() {
 
           {/* ✨ 右側：データアナリティクス（結果）パネル */}
           <div className="glass-panel fade-up-element" style={{ transitionDelay: "0.2s" }}>
-            <h2 className="panel-title">💎 シミュレーション結果</h2>
+            <h2 className="panel-title">📈 シミュレーション結果</h2>
             
             <div className="result-hero">
               <div style={{ fontSize: "14px", color: "var(--text-sub)", fontWeight: 800, letterSpacing:"1px", textTransform:"uppercase" }}>初年度トータル節約額</div>
