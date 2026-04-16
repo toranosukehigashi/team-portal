@@ -37,7 +37,7 @@ const MagicCard = ({ title, desc, delay, onClick, badge, children }: any) => {
   );
 };
 
-// ✨ 背景の魔法の星屑（パーティクル）
+// ✨ 背景の魔法の星屑
 const MagicParticles = () => {
   const [stars, setStars] = useState<{ id: number; left: string; top: string; delay: string; size: string }[]>([]);
   useEffect(() => {
@@ -65,12 +65,12 @@ export default function ThemeParkEntrance() {
   const [toast, setToast] = useState({ show: false, msg: "" });
   const [userName, setUserName] = useState<string>("Guest");
   const [isAdmin, setIsAdmin] = useState(false);
-  
-  // ✨ 光の到着アニメーション用フラグ
-  const [showMagicEntry, setShowMagicEntry] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
   const [isDarkMode, setIsDarkMode] = useState(true);
+
+  // ✨ ログイン画面からの到着アニメーション用フラグ
+  const [showArrivalFlash, setShowArrivalFlash] = useState(false);
 
   const [newsText, setNewsText] = useState("【お知らせ】新システム「Team Portal」稼働開始！本日はご来園ありがとうございます！");
   const [isEditingNews, setIsEditingNews] = useState(false);
@@ -80,12 +80,14 @@ export default function ThemeParkEntrance() {
     const savedUser = localStorage.getItem("team_portal_user");
     if (savedUser) { setUserName(savedUser); if (savedUser.toLowerCase().trim().includes("toranosuke.higashi")) setIsAdmin(true); }
     
-    // ✨ ログイン画面から来た場合のトランジションフラグ
-    if (sessionStorage.getItem("just_logged_in") === "true") { 
-      setShowMagicEntry(true); 
-      sessionStorage.removeItem("just_logged_in"); 
+    // 🌟 ここがログインからの到着フラグ！あれば光のバーストを発生させる！
+    if (sessionStorage.getItem("just_logged_in") === "true") {
+      setShowArrivalFlash(true);
+      sessionStorage.removeItem("just_logged_in");
+      // 2秒後にフラグを消してDOMから完全に消去
+      setTimeout(() => setShowArrivalFlash(false), 2000);
     }
-    
+
     const savedMemo = localStorage.getItem("team_portal_quick_memo"); if (savedMemo) setMemoText(savedMemo);
     const savedNews = localStorage.getItem("team_portal_news"); if (savedNews) setNewsText(savedNews);
     
@@ -105,9 +107,11 @@ export default function ThemeParkEntrance() {
   const [isSimOpen, setIsSimOpen] = useState(false);
   const [targetDate, setTargetDate] = useState("");
   const [result, setResult] = useState<{ day3: string; day5Before: string; day5After: string } | null>(null);
+  
   const [isKpiOpen, setIsKpiOpen] = useState(false);
   const [isMemoOpen, setIsMemoOpen] = useState(false);
   const [memoText, setMemoText] = useState("");
+  
   const [utilInput, setUtilInput] = useState("");
   const [utilResult, setUtilResult] = useState("ここに変換結果や住所が表示されます。");
   const [isSearching, setIsSearching] = useState(false);
@@ -134,6 +138,7 @@ export default function ThemeParkEntrance() {
     try { await navigator.clipboard.writeText(`${hours}:${minutes} 退勤いたします`); showToast(`✨ 退勤メッセージをコピーしました！`); } catch (err) { alert("コピー失敗"); }
   };
 
+  // ⏳ 納期計算ロジック
   const calculateDeadlines = (dateStr: string) => {
     if (!dateStr) return;
     const holidays = ["2026/01/01", "2026/01/02", "2026/01/12", "2026/02/11", "2026/02/23", "2026/03/20", "2026/04/29", "2026/05/03", "2026/05/04", "2026/05/05", "2026/05/06"]; 
@@ -147,13 +152,16 @@ export default function ThemeParkEntrance() {
     setResult({ day3: getDeadline(3, false), day5Before: getDeadline(5, false), day5After: getDeadline(5, true) });
   };
 
-  // ⏳【復活！】納期シミュレーターを開くときに今日の日付をセットする魔法の関数！
+  // ⏳【復活！】ボタンを押した瞬間に今日の日付をセットし、即座に納期を計算してモーダルを開く魔法！
   const handleOpenSim = () => {
     const today = new Date();
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${y}-${m}-${d}`; // YYYY-MM-DD形式
     setTargetDate(todayStr);
-    calculateDeadlines(todayStr); // 今日の日付で計算を実行！
-    setIsSimOpen(true);
+    calculateDeadlines(todayStr); // 即座に計算！
+    setIsSimOpen(true); // モーダルを開く！
   };
 
   const handleSaveNews = () => { setNewsText(tempNews); localStorage.setItem("team_portal_news", tempNews); setIsEditingNews(false); showToast("📢 お知らせを更新しました！"); };
@@ -167,15 +175,28 @@ export default function ThemeParkEntrance() {
 
   return (
     <>
+      {/* ✨ ログイン画面からの到着ホワイトアウト・フラッシュ（これだけが最初に光る！） */}
+      {showArrivalFlash && <div className="arrival-flash"></div>}
+
       <div className={`entrance-bg ${isDarkMode ? "deep-night" : "twilight"}`}>
         <MagicParticles />
       </div>
 
-      {/* ✨ クラス名に animate-magic-arrival を付与 */}
-      <main className={`app-wrapper ${showMagicEntry ? "animate-magic-arrival" : ""} ${isReady ? "ready" : ""}`}>
+      <main className={`app-wrapper ${isReady ? "ready" : ""}`}>
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
           
+          /* 🎇 ログイン到着時のホワイトアウト（真っ白からフワッと現れる） */
+          .arrival-flash {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #fff; z-index: 9999; pointer-events: none;
+            animation: flashFadeOut 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+          }
+          @keyframes flashFadeOut {
+            0% { opacity: 1; filter: blur(10px); transform: scale(1.05); }
+            100% { opacity: 0; filter: blur(0); transform: scale(1); }
+          }
+
           .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; transition: background 1.5s ease; }
           .entrance-bg.deep-night { background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%); }
           .entrance-bg.twilight { background: radial-gradient(ellipse at bottom, #2d1b4e 0%, #0f172a 100%); }
@@ -189,13 +210,6 @@ export default function ThemeParkEntrance() {
           @keyframes drawMagic { 0% { stroke-dashoffset: 3000; } 100% { stroke-dashoffset: 0; } }
 
           .app-wrapper { min-height: 100vh; padding: 20px; font-family: "Helvetica Neue", Arial, sans-serif; overflow-x: hidden; position: relative; color: #fff; }
-          
-          /* 🎇 ログイン画面のホワイトアウトとシームレスに繋がる【光の到着アニメーション】 */
-          .app-wrapper.animate-magic-arrival { animation: magicArrivalEffect 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; transform-origin: center center; }
-          @keyframes magicArrivalEffect { 
-            0% { opacity: 0; filter: brightness(10) blur(30px); transform: scale(1.1); } 
-            100% { opacity: 1; filter: brightness(1) blur(0); transform: scale(1); } 
-          }
 
           .dashboard-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 10; }
           .top-bar { display: flex; justify-content: flex-end; align-items: center; gap: 15px; margin-bottom: 20px; }
@@ -299,7 +313,7 @@ export default function ThemeParkEntrance() {
             <h1 className="park-main-title">Team Portal Workspace</h1>
             <div className="park-sub-title">Where Work Meets Magic</div>
             <div className="quick-actions">
-              {/* ⏳ ここも handleOpenSim を使うように完全修正！ */}
+              {/* ⏳ ボタンクリックで handleOpenSim が発動し、今日の日付がセットされる！ */}
               <button className="btn-qa btn-sim" onClick={handleOpenSim}>⏳ 納期確認</button>
               <button className="btn-qa btn-clockout" onClick={handleClockOut}>🏃‍♂️ 退園する</button>
               <button className="btn-qa" style={{ background: "rgba(239, 68, 68, 0.2)", color: "#fca5a5", border: "1px solid rgba(239, 68, 68, 0.4)", textShadow:"none" }} onClick={handleLogout}>🚪 ログアウト</button>
@@ -319,6 +333,7 @@ export default function ThemeParkEntrance() {
             </div>
           )}
 
+          {/* 🎡 各項目カード */}
           <div className="attraction-grid">
             <MagicCard delay={0.1} title="📊 本日の進捗・KPI" desc="チーム全体の獲得状況。クリックでメンバー別の詳細やランキングを確認できます。" onClick={() => setIsKpiOpen(true)}>
               <div className="kpi-widget">
@@ -342,6 +357,7 @@ export default function ThemeParkEntrance() {
           </div>
         </div>
 
+        {/* 🔍 浮遊ユーティリティ */}
         <details className="quick-utility">
           <summary className="utility-fab">🔍</summary>
           <div className="utility-content">
@@ -356,7 +372,18 @@ export default function ThemeParkEntrance() {
           <div className="custom-modal" style={{maxWidth: "400px"}} onClick={(e) => e.stopPropagation()}>
             <div className="modal-title">⏳ 納期シミュレーター</div>
             <label style={{ fontSize: "12px", fontWeight: 900, color: "#cbd5e1", marginBottom: "8px", display: "block" }}>基準日（受付日）を変更</label>
-            <input type="date" style={{width:"100%", padding:"14px", borderRadius:"12px", border:"1px solid rgba(255,255,255,0.3)", fontSize:"16px", fontWeight:900, color:"#fff", outline:"none", marginBottom:"25px", background:"rgba(0,0,0,0.4)"}} value={targetDate} onChange={(e) => { setTargetDate(e.target.value); calculateDeadlines(e.target.value); }} />
+            
+            {/* 🗓️ ここでカレンダーの日付を選んだら、即座に calculateDeadlines が発動して計算し直します！！ */}
+            <input 
+              type="date" 
+              style={{width:"100%", padding:"14px", borderRadius:"12px", border:"1px solid rgba(255,255,255,0.3)", fontSize:"16px", fontWeight:900, color:"#fff", outline:"none", marginBottom:"25px", background:"rgba(0,0,0,0.4)"}} 
+              value={targetDate} 
+              onChange={(e) => { 
+                setTargetDate(e.target.value); 
+                calculateDeadlines(e.target.value); // 日付を変えた瞬間に再計算！
+              }} 
+            />
+            
             {result && (
               <div style={{background:"rgba(0,0,0,0.4)", borderRadius:"16px", padding:"20px", display:"flex", flexDirection:"column", gap:"12px", border:"1px solid rgba(255,255,255,0.2)"}}>
                 <div style={{display:"flex", justifyContent:"space-between", borderBottom:"1px dashed rgba(255,255,255,0.2)", paddingBottom:"10px"}}><span style={{fontSize:"13px", fontWeight:800, color:"#cbd5e1"}}>3日後（通常）</span><span style={{fontSize:"16px", fontWeight:900, color:"#a5b4fc", textShadow:"0 0 10px rgba(165,180,252,0.5)"}}>{result.day3}</span></div>
