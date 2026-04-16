@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// ✨ 背景の光の粒（新しいテーマカラーに合わせたカームデザイン）
+// ✨ 背景の光の粒
 const PixieDust = () => {
   const [stars, setStars] = useState<{ id: number; left: string; top: string; delay: string; size: string }[]>([]);
   useEffect(() => {
@@ -285,39 +285,39 @@ export default function SelfClose() {
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
 
-          /* 🎨 自己クロ専用の洗練されたパープルテーマ */
+          /* 🔮 完全なパープル仕様のカラーテーマ（手抜きなし！） */
           .theme-light {
-            --bg-gradient: linear-gradient(180deg, #7dd3fc 0%, #e0f2fe 100%); /* HOMEと同じ青空 */
+            --bg-gradient: linear-gradient(135deg, #e9d5ff 0%, #f3e8ff 50%, #f8fafc 100%); /* ラベンダーから白へ */
             --text-main: #1e293b;
             --text-sub: #475569;
-            --card-bg: rgba(255, 255, 255, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.75);
             --card-border: rgba(255, 255, 255, 1);
-            --card-hover-border: #a78bfa; /* 鮮やかなパープル */
+            --card-hover-border: #a855f7; /* パープル500 */
             --card-hover-bg: rgba(255, 255, 255, 0.95);
-            --card-shadow: 0 10px 30px rgba(0,0,0,0.04);
-            --title-color: #5b21b6; /* 深い紫 */
-            --accent-color: #7c3aed; /* プライマリ紫 */
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            --title-color: #6d28d9; /* バイオレット700 */
+            --accent-color: #7c3aed; /* バイオレット600 */
             --input-bg: rgba(255, 255, 255, 0.9);
-            --input-border: rgba(148, 163, 184, 0.4);
-            --svg-color: rgba(124, 58, 237, 0.15); /* 紫のSVG */
-            --star-color: #d8b4fe; /* 薄いラベンダーの星屑 */
+            --input-border: rgba(196, 181, 253, 0.8); /* パープル調のボーダー */
+            --svg-color: rgba(124, 58, 237, 0.15);
+            --star-color: #c084fc; /* 紫の星屑 */
           }
           
           .theme-dark {
-            --bg-gradient: radial-gradient(ellipse at bottom, #1e1b4b 0%, #020617 100%); /* HOMEと同じ夜空 */
+            --bg-gradient: radial-gradient(ellipse at top left, #2e1065 0%, #0f172a 100%); /* 深いプラムからミッドナイト */
             --text-main: #f8fafc;
             --text-sub: #cbd5e1;
-            --card-bg: rgba(15, 23, 42, 0.6);
+            --card-bg: rgba(25, 15, 40, 0.65); /* ほんのり紫がかったグラス */
             --card-border: rgba(255, 255, 255, 0.1);
-            --card-hover-border: #a855f7; /* 発光する紫 */
-            --card-hover-bg: rgba(30, 41, 59, 0.8);
+            --card-hover-border: #c084fc; /* 発光するライトパープル */
+            --card-hover-bg: rgba(40, 20, 60, 0.85);
             --card-shadow: 0 20px 50px rgba(0,0,0,0.6);
-            --title-color: #c084fc; /* 鮮やかな紫 */
-            --accent-color: #a855f7;
-            --input-bg: rgba(0, 0, 0, 0.3);
-            --input-border: rgba(255, 255, 255, 0.15);
-            --svg-color: rgba(168, 85, 247, 0.25);
-            --star-color: #e9d5ff; /* バイオレットの星屑 */
+            --title-color: #d8b4fe; /* 薄紫 */
+            --accent-color: #c084fc;
+            --input-bg: rgba(0, 0, 0, 0.4);
+            --input-border: rgba(168, 85, 247, 0.3);
+            --svg-color: rgba(192, 132, 252, 0.2);
+            --star-color: #e9d5ff;
           }
 
           .app-wrapper { 
@@ -358,8 +358,8 @@ export default function SelfClose() {
           .menu-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--card-border); letter-spacing: 1px; }
 
           .side-link { text-decoration: none; padding: 14px 20px; border-radius: 14px; background: var(--input-bg); color: var(--text-main); font-weight: 800; font-size: 14px; border: 1px solid var(--card-border); transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
-          .side-link:hover { border-color: var(--card-hover-border); transform: translateX(8px); }
-          .side-link.current-page { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff; border: none; box-shadow: 0 6px 15px rgba(139, 92, 246, 0.3); pointer-events: none; }
+          .side-link:hover { border-color: var(--card-hover-border); transform: translateX(8px); color: var(--accent-color); }
+          .side-link.current-page { background: linear-gradient(135deg, #a855f7, #7c3aed); color: #fff; border: none; box-shadow: 0 6px 15px rgba(139, 92, 246, 0.3); pointer-events: none; }
 
           /* 🎈 ナビゲーション（中央配置） */
           .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 30px; }
@@ -419,14 +419,14 @@ export default function SelfClose() {
           .paste-area { width: 100%; height: 100px; padding: 14px; border: 2px dashed var(--card-hover-border); border-radius: 12px; background: var(--input-bg); color: var(--text-main); margin-bottom: 16px; outline: none; transition: 0.3s; font-family: monospace; resize: vertical; }
           .paste-area:focus { background: var(--card-hover-bg); box-shadow: 0 0 15px rgba(139, 92, 246, 0.2); }
           
-          /* 新しい紫のボタンのグラデーション */
-          .btn-primary { width: 100%; padding: 12px; background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff; border: none; border-radius: 10px; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: 14px; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3); }
+          /* 新しいパープルのボタングラデーション */
+          .btn-primary { width: 100%; padding: 12px; background: linear-gradient(135deg, #a855f7, #7c3aed); color: #fff; border: none; border-radius: 10px; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: 14px; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3); }
           .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(139, 92, 246, 0.5); }
 
           /* ラジオボタンとチェックボックスエリア */
           .radio-group { display: flex; flex-wrap: wrap; gap: 16px; padding: 12px 14px; border-radius: 10px; background: var(--input-bg); border: 1px solid var(--input-border); }
           .radio-group label { margin: 0; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: var(--text-main); border: none; padding: 0; font-weight: 700; }
-          .radio-group input[type="radio"] { width: 18px; height: 18px; accent-color: var(--accent-color); cursor: pointer; margin: 0; }
+          .radio-group input[type="radio"], .radio-group input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent-color); cursor: pointer; margin: 0; }
 
           .preview-area { width: 100%; height: 250px; padding: 16px; background: var(--input-bg); color: var(--text-main); border-radius: 12px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; border: 2px solid var(--accent-color); outline: none; resize: vertical; box-shadow: inset 0 4px 10px rgba(0,0,0,0.05); }
           
@@ -436,7 +436,7 @@ export default function SelfClose() {
           
           .footer-bar { position: fixed; bottom: 0; left: 0; width: 100%; padding: 16px 40px; background: var(--card-bg); backdrop-filter: blur(12px); border-top: 1px solid var(--card-border); display: flex; gap: 16px; z-index: 100; justify-content: center; }
           .btn-footer { max-width: 300px; width: 100%; padding: 16px; border-radius: 30px; font-weight: 900; font-size: 15px; border: none; cursor: pointer; transition: 0.3s; letter-spacing: 1px; color: #fff; }
-          .btn-copy { background: linear-gradient(135deg, #8b5cf6, #6d28d9); box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3); }
+          .btn-copy { background: linear-gradient(135deg, #a855f7, #7c3aed); box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3); }
           .btn-copy:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(139, 92, 246, 0.5); }
           .btn-clear { background: var(--input-bg); color: var(--text-sub); border: 2px solid var(--card-border); }
           .btn-clear:hover { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.1); }
