@@ -3,15 +3,39 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
+// ✨ 背景の光の粒（静寂なカームデザイン）
+const PixieDust = () => {
+  const [stars, setStars] = useState<{ id: number; left: string; top: string; delay: string; size: string }[]>([]);
+  useEffect(() => {
+    const generatedStars = Array.from({ length: 50 }).map((_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}vw`,
+      top: `${Math.random() * 100}vh`,
+      delay: `${Math.random() * 5}s`,
+      size: `${Math.random() * 3 + 1}px`
+    }));
+    setStars(generatedStars);
+  }, []);
+  return (
+    <div className="particles-container">
+      {stars.map(star => (
+        <div key={star.id} className="star" style={{ left: star.left, top: star.top, width: star.size, height: star.size, animationDelay: star.delay }} />
+      ))}
+    </div>
+  );
+};
+
 export default function NetToss() {
   const router = useRouter();
 
   // 🌟 状態管理
   const [rawText, setRawText] = useState("");
   const [toast, setToast] = useState({ show: false, msg: "" });
-  
-  // 🍔 ハンバーガーメニューの開閉状態を追加
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+
+  // ☀️ テーマ管理
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const [form, setForm] = useState({
     colList: "",
@@ -28,8 +52,17 @@ export default function NetToss() {
     colMemo: ""
   });
 
-  // 🌟 プレビュー文字列の自動生成
   const [preview, setPreview] = useState("");
+
+  useEffect(() => {
+    setIsReady(true);
+    // スクロール連動トリガー
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("visible"); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const nameParts = [form.colSei, form.colMei, form.colSeiKana, form.colMeiKana].filter(v => v !== "");
@@ -53,19 +86,21 @@ export default function NetToss() {
     setPreview(text);
   }, [form]);
 
-  // 🌟 トースト表示
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+    showToast(!isDarkMode ? "🌙 ダークモードに切り替えました" : "☀️ ライトモードに切り替えました");
+  };
+
   const showToast = (msg: string) => {
     setToast({ show: true, msg });
     setTimeout(() => setToast({ show: false, msg: "" }), 3000);
   };
 
-  // 🌟 入力変更ハンドラ
   const handleChange = (e: any) => {
     const { id, value } = e.target;
     setForm(prev => ({ ...prev, [id]: value }));
   };
 
-  // 🌟 定型文追加
   const addPhrase = (phrase: string) => {
     setForm(prev => ({
       ...prev,
@@ -73,7 +108,6 @@ export default function NetToss() {
     }));
   };
 
-  // 🌟 WarpID 感知 (CallTree連携)
   const lastWarpId = useRef<string | null>(null);
   useEffect(() => {
     const checkWarpData = async () => {
@@ -96,7 +130,6 @@ export default function NetToss() {
     return () => window.removeEventListener("focus", checkWarpData);
   }, []);
 
-  // 🔤 カナ自動入力補助
   const baseKana = useRef("");
   const handleKanaUpdate = (e: any, targetKanaId: string) => {
     const text = e.data;
@@ -106,7 +139,6 @@ export default function NetToss() {
     }
   };
 
-  // ✨ 自動振り分けロジック (元ツールのロジックを継承)
   const doParse = (text: string) => {
     if (!text) { showToast("⚠️ データを貼り付けてください"); return; }
     const lines = text.split(/\r?\n/).map(line => line.replace(/^[^：:]+[：:]\s*/, '').trim());
@@ -117,7 +149,6 @@ export default function NetToss() {
       let planRaw = (raw0.includes("シンプル") || raw0.includes("グリーン") || raw0.includes("LL") || raw0.includes("電化") || raw0.includes("ゼロ")) ? raw0 : raw1;
       let listRaw = planRaw === raw0 ? raw1 : raw0;
 
-      // リスト名変換
       let pList = listRaw;
       if (listRaw.includes("レ点") || listRaw.includes("引越侍")) pList = "引越侍レ点有";
       else if (listRaw.includes("SUUMO")) pList = "SUUMO";
@@ -140,7 +171,6 @@ export default function NetToss() {
     }
   };
 
-  // 📋 コピー機能
   const copyTemplate = async () => {
     try {
       await navigator.clipboard.writeText(preview);
@@ -161,206 +191,354 @@ export default function NetToss() {
   };
 
   return (
-    <div className="glass-net-toss">
-      <style dangerouslySetInnerHTML={{ __html: `
-        .glass-net-toss * { box-sizing: border-box; }
-        .glass-net-toss { font-family: 'Inter', 'Noto Sans JP', sans-serif; padding: 20px 40px 100px 40px; min-height: 100vh; background: linear-gradient(135deg, #e0e7ff 0%, #fef9c3 50%, #f8fafc 100%); background-attachment: fixed; color: #1e293b; overflow-x: hidden; }
-        
-        /* 🍔 ハンバーガーボタン */
-        .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 1001; background: rgba(255,255,255,0.6); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.9); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s; }
-        .hamburger-btn:hover { background: #fff; box-shadow: 0 6px 20px rgba(234, 179, 8, 0.2); transform: scale(1.05); }
-        .hamburger-line { width: 22px; height: 3px; background: #475569; border-radius: 3px; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
-        .hamburger-btn.open .line1 { transform: translateY(8px) rotate(45deg); background: #eab308; }
-        .hamburger-btn.open .line2 { opacity: 0; transform: translateX(-10px); }
-        .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: #eab308; }
-
-        /* 🌌 オーバーレイ */
-        .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.3); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
-        .menu-overlay.open { opacity: 1; pointer-events: auto; }
-
-        /* 🗄️ サイドメニュー */
-        .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border-right: 1px solid rgba(255, 255, 255, 0.7); z-index: 1000; box-shadow: 20px 0 50px rgba(0,0,0,0.1); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
-        .side-menu.open { left: 0; }
-        .menu-title { font-size: 13px; font-weight: 900; color: #64748b; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed rgba(234, 179, 8, 0.5); letter-spacing: 1px; }
-
-        .side-link { text-decoration: none; padding: 14px 20px; border-radius: 14px; background: rgba(255, 255, 255, 0.6); color: #334155; font-weight: 800; font-size: 14px; border: 1px solid rgba(255,255,255,0.8); transition: all 0.2s; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
-        .side-link:hover { background: #fff; border-color: #fde047; color: #eab308; transform: translateX(8px); box-shadow: 0 6px 15px rgba(234, 179, 8, 0.15); }
-        .side-link.current-page { background: linear-gradient(135deg, #facc15, #eab308); color: #422006; border: none; box-shadow: 0 6px 20px rgba(234, 179, 8, 0.3); pointer-events: none; }
-
-        /* 🎈 ナビゲーション（ハンバーガー回避でmargin-left追加） */
-        .glass-nav { position: relative; z-index: 10; display: flex; gap: 12px; padding: 12px; margin-bottom: 24px; margin-left: 60px; background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.7); border-radius: 16px; box-shadow: 0 4px 30px rgba(0,0,0,0.03); }
-        .glass-nav-link { text-decoration: none; padding: 10px 20px; border-radius: 10px; font-weight: 700; background: rgba(255, 255, 255, 0.6); color: #64748b; transition: 0.2s; border: 1px solid transparent; }
-        .glass-nav-link:hover { background: #fff; color: #eab308; border-color: #fef08a; }
-        .glass-nav-active { padding: 10px 20px; border-radius: 10px; font-weight: 800; background: #fff; color: #eab308; border: 1px solid #fef08a; box-shadow: 0 2px 10px rgba(234,179,8,0.1); }
-        
-        .glass-panel { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 20px; padding: 24px; margin-bottom: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.04); }
-        .section-title { font-size: 16px; font-weight: 800; color: #1e293b; margin-bottom: 20px; border-left: 5px solid #eab308; padding-left: 12px; display: flex; align-items: center; gap: 8px; }
-        
-        .form-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 24px; }
-        .input-group { display: flex; flex-direction: column; }
-        .input-group label { font-size: 11px; font-weight: 800; color: #64748b; margin-bottom: 6px; margin-left: 4px; }
-        .input-control { width: 100%; padding: 10px 14px; border: 1px solid rgba(203, 213, 225, 0.6); border-radius: 10px; font-size: 13px; background: rgba(255, 255, 255, 0.8); outline: none; transition: 0.2s; }
-        .input-control:focus { border-color: #eab308; background: #fff; box-shadow: 0 0 0 4px rgba(234, 179, 8, 0.1); transform: translateY(-1px); }
-        
-        .paste-area { width: 100%; height: 90px; padding: 14px; border: 2px dashed rgba(234, 179, 8, 0.4); border-radius: 15px; background: rgba(255, 255, 255, 0.5); font-size: 13px; margin-bottom: 12px; outline: none; transition: 0.2s; }
-        .paste-area:focus { border-color: #eab308; background: rgba(255, 255, 255, 0.8); box-shadow: 0 8px 20px rgba(234, 179, 8, 0.1); }
-        
-        .btn-parse { width: 100%; padding: 12px; background: #1e293b; color: #fef08a; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.2s; }
-        .btn-parse:hover { background: #0f172a; transform: scale(1.01); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-
-        .preview-area { width: 100%; height: 180px; padding: 16px; background: #1e293b; color: #fef08a; border-radius: 15px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.5; border: none; outline: none; resize: none; box-shadow: inset 0 4px 10px rgba(0,0,0,0.2); }
-        
-        .tag-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-        .tag-btn { padding: 6px 12px; background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; color: #64748b; transition: 0.2s; }
-        .tag-btn:hover { border-color: #eab308; color: #eab308; background: #fefce8; }
-
-        .footer-bar { position: fixed; bottom: 0; left: 0; width: 100%; padding: 16px 40px; background: rgba(255,255,255,0.7); backdrop-filter: blur(15px); border-top: 1px solid rgba(255,255,255,0.8); display: flex; gap: 16px; z-index: 100; }
-        .btn-footer { flex: 1; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 15px; border: none; cursor: pointer; transition: 0.2s; }
-        .btn-copy { background: linear-gradient(135deg, #facc15, #eab308); color: #422006; box-shadow: 0 4px 15px rgba(234, 179, 8, 0.3); }
-        .btn-copy:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(234, 179, 8, 0.4); }
-        .btn-clear { background: #f1f5f9; color: #64748b; flex: 0.3; }
-
-        #toast { visibility: hidden; position: fixed; bottom: 100px; right: 40px; background: #1e293b; color: #fff; padding: 16px 24px; border-radius: 12px; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 200; opacity: 0; transition: 0.4s; }
-        #toast.show { visibility: visible; opacity: 1; transform: translateY(-10px); }
-      `}} />
-
-      {/* 🍔 ハンバーガーボタン */}
-      <div className={`hamburger-btn ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
-        <div className="hamburger-line line1"></div>
-        <div className="hamburger-line line2"></div>
-        <div className="hamburger-line line3"></div>
+    <>
+      <div className={`entrance-bg ${isDarkMode ? "theme-dark" : "theme-light"}`}>
+        <PixieDust />
       </div>
 
-      {/* 🌌 メニュー展開時の背景オーバーレイ（クリックで閉じる） */}
-      <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
+      <main className={`app-wrapper ${isReady ? "ready" : ""} ${isDarkMode ? "theme-dark" : "theme-light"}`}>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .app-wrapper * { box-sizing: border-box; }
 
-      {/* 🗄️ 左から現れる透け透けサイドメニュー */}
-      <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
-        <div className="menu-title">🧭 TOOL MENU</div>
-        <a href="/bulk-register" className="side-link">📦 一括登録（自己クロ）</a>
-        <a href="/net-toss" className="side-link current-page">🌐 ネットトス連携</a>
-        <a href="/self-close" className="side-link">🌲 自己クロ連携</a>
-        <a href="/sms-kraken" className="side-link">📱 SMS (Kraken)</a>
-        <a href="/email-template" className="side-link">✨ メールテンプレート</a>
-        
-        <div className="side-link" style={{ opacity: 0.5, cursor: "not-allowed", background: "transparent", border: "1px dashed #cbd5e1" }}>
-          🔒 新ツール（開発中...）
+          /* 🎨 HOME画面と完全一致するテーマ変数 */
+          .theme-light {
+            --bg-gradient: linear-gradient(180deg, #7dd3fc 0%, #e0f2fe 100%);
+            --text-main: #1e293b;
+            --text-sub: #475569;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --card-border: rgba(255, 255, 255, 1);
+            --card-hover-border: #38bdf8;
+            --card-hover-bg: rgba(255, 255, 255, 0.95);
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            --title-color: #0369a1;
+            --accent-color: #0284c7;
+            --input-bg: rgba(255, 255, 255, 0.8);
+            --input-border: rgba(203, 213, 225, 0.8);
+            --svg-color: rgba(2, 132, 199, 0.2);
+            --star-color: #f59e0b;
+          }
+          
+          .theme-dark {
+            --bg-gradient: radial-gradient(ellipse at bottom, #1e1b4b 0%, #020617 100%);
+            --text-main: #f8fafc;
+            --text-sub: #cbd5e1;
+            --card-bg: rgba(15, 23, 42, 0.7);
+            --card-border: rgba(255, 255, 255, 0.15);
+            --card-hover-border: #38bdf8;
+            --card-hover-bg: rgba(30, 41, 59, 0.9);
+            --card-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            --title-color: #fde047;
+            --accent-color: #38bdf8;
+            --input-bg: rgba(0, 0, 0, 0.4);
+            --input-border: rgba(255, 255, 255, 0.2);
+            --svg-color: rgba(255, 255, 255, 0.4);
+            --star-color: #fef08a;
+          }
+
+          .app-wrapper { 
+            min-height: 100vh; padding: 20px 40px 100px 40px; 
+            font-family: 'Inter', 'Noto Sans JP', sans-serif; 
+            color: var(--text-main); font-size: 13px; 
+            transition: color 0.5s; overflow-x: hidden; position: relative;
+          }
+
+          .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; transition: background 0.8s ease; }
+          .entrance-bg.theme-light { background: var(--bg-gradient); }
+          .entrance-bg.theme-dark { background: var(--bg-gradient); }
+
+          .particles-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
+          .star { position: absolute; border-radius: 50%; background: var(--star-color); box-shadow: 0 0 10px var(--star-color); animation: twinkle 4s infinite ease-in-out; transition: background 0.5s, box-shadow 0.5s; }
+          @keyframes twinkle { 0% { opacity: 0.1; transform: scale(0.5) translateY(0); } 50% { opacity: 1; transform: scale(1.2) translateY(-20px); } 100% { opacity: 0.1; transform: scale(0.5) translateY(0); } }
+
+          /* 🌟 SVGアニメーション背景 */
+          .magic-svg-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.7; }
+          .magic-path { fill: none; stroke: var(--svg-color); stroke-width: 3; stroke-dasharray: 3000; stroke-dashoffset: 3000; animation: drawMagic 10s ease-in-out infinite alternate; transition: stroke 0.5s; }
+          @keyframes drawMagic { 0% { stroke-dashoffset: 3000; } 100% { stroke-dashoffset: 0; } }
+
+          /* 🍔 ハンバーガーボタン */
+          .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 1001; background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; box-shadow: var(--card-shadow); transition: 0.3s; }
+          .hamburger-btn:hover { background: var(--card-hover-bg); transform: scale(1.05); }
+          .hamburger-line { width: 22px; height: 3px; background: var(--text-sub); border-radius: 3px; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+          .hamburger-btn.open .line1 { transform: translateY(8px) rotate(45deg); background: var(--accent-color); }
+          .hamburger-btn.open .line2 { opacity: 0; transform: translateX(-10px); }
+          .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: var(--accent-color); }
+
+          /* 🌌 オーバーレイ */
+          .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
+          .menu-overlay.open { opacity: 1; pointer-events: auto; }
+
+          /* 🗄️ サイドメニュー */
+          .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+          .side-menu.open { left: 0; }
+          .menu-title { font-size: 13px; font-weight: 900; color: var(--text-sub); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--card-border); letter-spacing: 1px; }
+
+          .side-link { text-decoration: none; padding: 14px 20px; border-radius: 14px; background: var(--input-bg); color: var(--text-main); font-weight: 800; font-size: 14px; border: 1px solid var(--card-border); transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
+          .side-link:hover { border-color: var(--card-hover-border); transform: translateX(8px); }
+          .side-link.current-page { background: linear-gradient(135deg, #0284c7, #38bdf8); color: #fff; border: none; box-shadow: 0 6px 15px rgba(2, 132, 199, 0.3); pointer-events: none; }
+
+          /* 🎈 ナビゲーション（中央配置） */
+          .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 30px; }
+          .glass-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 50px; box-shadow: var(--card-shadow); max-width: 800px; width: 100%; }
+          
+          .nav-left { display: flex; gap: 12px; align-items: center; }
+          .glass-nav-link { text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 800; background: var(--input-bg); color: var(--text-sub); border: 1px solid var(--card-border); transition: 0.2s; font-size: 14px; }
+          .glass-nav-link:hover { color: var(--accent-color); border-color: var(--card-hover-border); }
+          .glass-nav-active { padding: 10px 20px; border-radius: 30px; font-weight: 900; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); font-size: 14px; }
+
+          /* テーマ切り替えボタン */
+          .theme-toggle-btn { background: var(--input-bg); border: 1px solid var(--card-border); padding: 10px 20px; border-radius: 30px; cursor: pointer; transition: 0.3s; font-size: 14px; color: var(--text-main); font-weight: 800; }
+          .theme-toggle-btn:hover { border-color: var(--card-hover-border); transform: scale(1.05); }
+
+          /* 🌟 レイアウト：左の注意事項 ＋ 右の入力フォーム */
+          .main-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto 50px auto;
+          }
+          @media (max-width: 950px) { .main-layout { grid-template-columns: 1fr; } }
+
+          /* ℹ️ 左側：注意事項パネル */
+          .info-sidebar { display: flex; flex-direction: column; gap: 20px; }
+          .info-panel {
+            background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border);
+            border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow);
+          }
+          .info-title { font-size: 15px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
+          .info-list { padding-left: 20px; margin: 0; color: var(--text-main); font-size: 13px; line-height: 1.8; }
+          .info-list li { margin-bottom: 8px; }
+
+          /* 📝 右側：メインフォームエリア */
+          .form-main-area { display: flex; flex-direction: column; gap: 24px; }
+
+          .glass-panel { 
+            background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); 
+            border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow); 
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s; 
+          }
+          .glass-panel:hover { border-color: var(--card-hover-border); transform: translateY(-2px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+
+          .form-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px 20px; }
+          @media (max-width: 1100px) { .form-grid-3 { grid-template-columns: repeat(2, 1fr); } }
+          @media (max-width: 600px) { .form-grid-3 { grid-template-columns: 1fr; } }
+          
+          .input-group { display: flex; flex-direction: column; }
+          .input-group label { font-size: 12px; font-weight: 800; color: var(--text-sub); margin-bottom: 6px; border-left: 3px solid var(--accent-color); padding-left: 8px; }
+          
+          .input-control { width: 100%; padding: 12px 14px; border: 1px solid var(--input-border); border-radius: 10px; font-size: 13px; background: var(--input-bg); color: var(--text-main); transition: 0.3s; font-weight: 700; outline: none; }
+          .input-control:focus { border-color: var(--card-hover-border); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); background: var(--card-hover-bg); }
+          .input-control option { background: #0f172a; color: #fff; }
+          .theme-light .input-control option { background: #fff; color: #1e293b; }
+
+          .paste-area { width: 100%; height: 100px; padding: 14px; border: 2px dashed var(--card-hover-border); border-radius: 12px; background: var(--input-bg); color: var(--text-main); margin-bottom: 16px; outline: none; transition: 0.3s; font-family: monospace; resize: vertical; }
+          .paste-area:focus { background: var(--card-hover-bg); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
+          
+          .btn-primary { width: 100%; padding: 12px; background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #fff; border: none; border-radius: 10px; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: 14px; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(2, 132, 199, 0.3); }
+          .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(2, 132, 199, 0.5); }
+
+          .preview-area { width: 100%; height: 200px; padding: 16px; background: var(--input-bg); color: var(--text-main); border-radius: 12px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; border: 2px solid var(--accent-color); outline: none; resize: vertical; box-shadow: inset 0 4px 10px rgba(0,0,0,0.05); }
+          
+          .tag-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+          .tag-btn { padding: 8px 14px; background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 20px; font-size: 12px; font-weight: 800; cursor: pointer; color: var(--text-main); transition: 0.2s; }
+          .tag-btn:hover { border-color: var(--card-hover-border); color: var(--accent-color); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+          
+          .footer-bar { position: fixed; bottom: 0; left: 0; width: 100%; padding: 16px 40px; background: var(--card-bg); backdrop-filter: blur(12px); border-top: 1px solid var(--card-border); display: flex; gap: 16px; z-index: 100; justify-content: center; }
+          .btn-footer { max-width: 300px; width: 100%; padding: 16px; border-radius: 30px; font-weight: 900; font-size: 15px; border: none; cursor: pointer; transition: 0.3s; letter-spacing: 1px; }
+          .btn-copy { background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #fff; box-shadow: 0 5px 15px rgba(2, 132, 199, 0.3); }
+          .btn-copy:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(2, 132, 199, 0.5); }
+          .btn-clear { background: var(--input-bg); color: var(--text-sub); border: 2px solid var(--card-border); }
+          .btn-clear:hover { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+
+          #toast { visibility: hidden; position: fixed; bottom: 100px; right: 40px; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); padding: 16px 24px; border-radius: 12px; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 200; opacity: 0; transition: 0.4s; backdrop-filter: blur(10px); }
+          #toast.show { visibility: visible; opacity: 1; transform: translateY(-10px); }
+
+          /* 🪄 スクロール連動 */
+          .fade-up-element { opacity: 0; transform: translateY(40px); transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+          .fade-up-element.visible { opacity: 1; transform: translateY(0); }
+        `}} />
+
+        {/* 🌟 SVG魔法の軌跡 */}
+        <svg className="magic-svg-bg" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path className="magic-path" d="M -10,30 Q 30,80 50,50 T 110,40" />
+          <path className="magic-path" d="M -10,70 Q 40,20 70,60 T 110,80" style={{animationDelay: "4s", opacity: 0.5}} />
+        </svg>
+
+        {/* 🍔 ハンバーガーボタン */}
+        <div className={`hamburger-btn ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+          <div className="hamburger-line line1"></div>
+          <div className="hamburger-line line2"></div>
+          <div className="hamburger-line line3"></div>
         </div>
-      </div>
 
-      <div className="glass-nav">
-        <a href="/" className="glass-nav-link">← 司令室に戻る</a>
-        <div className="glass-nav-active">🌐 ネットトス連携</div>
-      </div>
+        {/* 🌌 メニュー展開時の背景オーバーレイ */}
+        <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
 
-      {/* 🚀 貼り付けエリア */}
-      <div className="glass-panel">
-        <textarea 
-          className="paste-area" 
-          placeholder="CallTreeのデータをここに貼り付け、または自動受信を待機..." 
-          value={rawText} 
-          onChange={(e) => setRawText(e.target.value)} 
-        />
-        <button className="btn-parse" onClick={() => doParse(rawText)}>✨ 一発自動入力（パース）を実行</button>
-      </div>
-
-      {/* 📝 入力フォーム */}
-      <div className="glass-panel">
-        <div className="section-title">📝 連携データ詳細</div>
-        <div className="form-grid-3">
-          <div className="input-group">
-            <label>リスト種別</label>
-            <input className="input-control" id="colList" value={form.colList} onChange={handleChange} />
-          </div>
-          <div className="input-group">
-            <label>姓</label>
-            <input className="input-control" id="colSei" value={form.colSei} onChange={handleChange} onCompositionStart={() => baseKana.current = form.colSeiKana} onCompositionUpdate={(e: any) => handleKanaUpdate(e, "colSeiKana")} onCompositionEnd={() => baseKana.current = form.colSeiKana} />
-          </div>
-          <div className="input-group">
-            <label>名</label>
-            <input className="input-control" id="colMei" value={form.colMei} onChange={handleChange} onCompositionStart={() => baseKana.current = form.colMeiKana} onCompositionUpdate={(e: any) => handleKanaUpdate(e, "colMeiKana")} onCompositionEnd={() => baseKana.current = form.colMeiKana} />
-          </div>
-          <div className="input-group">
-            <label>姓カナ</label>
-            <input className="input-control" id="colSeiKana" value={form.colSeiKana} onChange={handleChange} />
-          </div>
-          <div className="input-group">
-            <label>名カナ</label>
-            <input className="input-control" id="colMeiKana" value={form.colMeiKana} onChange={handleChange} />
-          </div>
-          <div className="input-group">
-            <label>電話番号</label>
-            <input className="input-control" id="colPhone" value={form.colPhone} onChange={handleChange} />
-          </div>
-          <div className="input-group">
-            <label>Email</label>
-            <input className="input-control" id="colMail" value={form.colMail} onChange={handleChange} />
-          </div>
-          <div className="input-group" style={{ gridColumn: "span 2" }}>
-            <label>新住所</label>
-            <input className="input-control" id="colAddress" value={form.colAddress} onChange={handleChange} />
-          </div>
-          <div className="input-group">
-            <label>引越日（再点日）</label>
-            <input className="input-control" id="colDate" value={form.colDate} onChange={handleChange} />
-          </div>
-          <div className="input-group">
-            <label>継続or新規</label>
-            <select className="input-control" id="colType" value={form.colType} onChange={handleChange}>
-              <option value="">-- 選択 --</option>
-              <option value="新規">新規</option>
-              <option value="継続">継続</option>
-            </select>
-          </div>
-          <div className="input-group">
-            <label>現在利用回線</label>
-            <input className="input-control" id="colLine" value={form.colLine} onChange={handleChange} />
-          </div>
-          <div className="input-group">
-            <label>携帯キャリア</label>
-            <select className="input-control" id="colCarrier" value={form.colCarrier} onChange={handleChange}>
-              <option value="">-- 選択 --</option>
-              <option value="docomo">docomo</option>
-              <option value="au">au</option>
-              <option value="SoftBank">SoftBank</option>
-              <option value="楽天">楽天</option>
-              <option value="格安SIM">格安SIM</option>
-            </select>
-          </div>
-          <div className="input-group">
-            <label>固定電話有無</label>
-            <select className="input-control" id="colTel" value={form.colTel} onChange={handleChange}>
-              <option value="なし">なし</option>
-              <option value="あり">あり</option>
-            </select>
+        {/* 🗄️ サイドメニュー */}
+        <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
+          <div className="menu-title">🧭 TOOL MENU</div>
+          <a href="/bulk-register" className="side-link">📦 一括登録（自己クロ）</a>
+          <a href="/net-toss" className="side-link current-page">🌐 ネットトス連携</a>
+          <a href="/self-close" className="side-link">🌲 自己クロ連携</a>
+          <a href="/sms-kraken" className="side-link">📱 SMS (Kraken)</a>
+          <a href="/email-template" className="side-link">✨ メールテンプレート</a>
+          <div className="side-link" style={{ opacity: 0.5, cursor: "not-allowed", background: "transparent", border: "1px dashed var(--card-border)", color: "var(--text-sub)" }}>
+            🔒 新ツール（開発中...）
           </div>
         </div>
 
-        <div className="input-group" style={{ marginTop: "20px" }}>
-          <label>備考欄（特記事項）</label>
-          <div className="tag-container">
-            <button className="tag-btn" onClick={() => addPhrase("〇時以降の連絡希望。")}>➕ 〇時以降希望</button>
-            <button className="tag-btn" onClick={() => addPhrase("順次架電お願いします！")}>➕ 順次</button>
-            <button className="tag-btn" onClick={() => addPhrase("設備確認しますと伝えております。")}>➕ 設備確認</button>
+        {/* 🎈 ナビゲーション & テーマ切り替え（中央配置） */}
+        <div className="glass-nav-wrapper fade-up-element" style={{ "--delay": "0s" } as any}>
+          <div className="glass-nav">
+            <div className="nav-left">
+              <a href="/" className="glass-nav-link">← 司令室</a>
+              <div className="glass-nav-active">🌐 ネットトス連携</div>
+            </div>
+            <button className="theme-toggle-btn" onClick={toggleTheme}>
+              {isDarkMode ? "🎇 NIGHT" : "☀️ DAY"}
+            </button>
           </div>
-          <textarea className="input-control" id="colMemo" style={{ marginTop: "10px", minHeight: "80px" }} value={form.colMemo} onChange={handleChange} />
         </div>
-      </div>
 
-      {/* 👀 プレビューエリア */}
-      <div className="glass-panel" style={{ background: "rgba(15, 23, 42, 0.9)", border: "none" }}>
-        <div className="section-title" style={{ color: "#fef08a", borderLeftColor: "#facc15" }}>👀 転送用フォーマット・プレビュー</div>
-        <textarea className="preview-area" value={preview} readOnly />
-      </div>
+        {/* 🌟 メインレイアウト（左：注意事項 / 右：入力フォーム） */}
+        <div className="main-layout">
+          
+          {/* ℹ️ 左カラム：注意事項・備考パネル */}
+          <aside className="info-sidebar">
+            <div className="info-panel fade-up-element">
+              <h3 className="info-title">📌 入力時の注意事項</h3>
+              <ul className="info-list">
+                <li>Warpのデータを貼り付けると、ネットトス用のフォーマットに自動でデータが割り当てられます。</li>
+                <li>WarpID付きのテキストをコピーした状態でこの画面を開くと、<b>自動でペースト・解析</b>が行われます。</li>
+                <li>お客様名（漢字）を入力すると、自動でカナが推測入力されます。（確認必須）</li>
+                <li>備考欄の下にあるボタンを押すと、よく使う定型文がワンクリックで追加されます。</li>
+              </ul>
+            </div>
+            
+            <div className="info-panel fade-up-element" style={{ transitionDelay: "0.1s" }}>
+              <h3 className="info-title">🛠️ 運用ステータス</h3>
+              <ul className="info-list">
+                <li>自動パース機能：正常（稼働中）</li>
+                <li>CallTree連携：有効</li>
+                <li>クリップボード連携：有効</li>
+              </ul>
+            </div>
+          </aside>
 
-      {/* 🛠️ フッター操作 */}
-      <div className="footer-bar">
-        <button className="btn-footer btn-clear" onClick={clearAll}>🗑️ リセット</button>
-        <button className="btn-footer btn-copy" onClick={copyTemplate}>📋 この内容でFMTをコピー</button>
-      </div>
+          {/* 📝 右カラム：メインフォームエリア */}
+          <div className="form-main-area">
+            
+            <section className="glass-panel fade-up-element">
+              <div style={{ fontWeight: 900, marginBottom: "12px", color: "var(--title-color)", fontSize: "15px" }}>1. データの貼り付けと解析</div>
+              <textarea 
+                className="paste-area" 
+                placeholder="CallTreeのデータをここに貼り付け、または自動受信を待機..." 
+                value={rawText} 
+                onChange={(e) => setRawText(e.target.value)} 
+              />
+              <button className="btn-primary" onClick={() => doParse(rawText)}>✨ 一発自動入力（パース）を実行</button>
+            </section>
 
-      {/* 🍞 通知 */}
-      <div id="toast" className={toast.show ? "show" : ""}>{toast.msg}</div>
-    </div>
+            <section className="glass-panel fade-up-element" style={{ transitionDelay: "0.1s" }}>
+              <div className="section-title">2. 連携データ詳細</div>
+              <div className="form-grid-3">
+                <div className="input-group">
+                  <label>リスト種別</label>
+                  <input className="input-control" id="colList" value={form.colList} onChange={handleChange} />
+                </div>
+                <div className="input-group">
+                  <label>姓</label>
+                  <input className="input-control" id="colSei" value={form.colSei} onChange={handleChange} onCompositionStart={() => baseKana.current = form.colSeiKana} onCompositionUpdate={(e: any) => handleKanaUpdate(e, "colSeiKana")} onCompositionEnd={() => baseKana.current = form.colSeiKana} />
+                </div>
+                <div className="input-group">
+                  <label>名</label>
+                  <input className="input-control" id="colMei" value={form.colMei} onChange={handleChange} onCompositionStart={() => baseKana.current = form.colMeiKana} onCompositionUpdate={(e: any) => handleKanaUpdate(e, "colMeiKana")} onCompositionEnd={() => baseKana.current = form.colMeiKana} />
+                </div>
+                <div className="input-group">
+                  <label>姓カナ</label>
+                  <input className="input-control" id="colSeiKana" value={form.colSeiKana} onChange={handleChange} />
+                </div>
+                <div className="input-group">
+                  <label>名カナ</label>
+                  <input className="input-control" id="colMeiKana" value={form.colMeiKana} onChange={handleChange} />
+                </div>
+                <div className="input-group">
+                  <label>電話番号</label>
+                  <input className="input-control" id="colPhone" value={form.colPhone} onChange={handleChange} />
+                </div>
+                <div className="input-group">
+                  <label>Email</label>
+                  <input className="input-control" id="colMail" value={form.colMail} onChange={handleChange} />
+                </div>
+                <div className="input-group" style={{ gridColumn: "span 2" }}>
+                  <label>新住所</label>
+                  <input className="input-control" id="colAddress" value={form.colAddress} onChange={handleChange} />
+                </div>
+                <div className="input-group">
+                  <label>引越日（再点日）</label>
+                  <input className="input-control" id="colDate" value={form.colDate} onChange={handleChange} />
+                </div>
+                <div className="input-group">
+                  <label>継続or新規</label>
+                  <select className="input-control" id="colType" value={form.colType} onChange={handleChange}>
+                    <option value="">-- 選択 --</option>
+                    <option value="新規">新規</option>
+                    <option value="継続">継続</option>
+                  </select>
+                </div>
+                <div className="input-group">
+                  <label>現在利用回線</label>
+                  <input className="input-control" id="colLine" value={form.colLine} onChange={handleChange} />
+                </div>
+                <div className="input-group">
+                  <label>携帯キャリア</label>
+                  <select className="input-control" id="colCarrier" value={form.colCarrier} onChange={handleChange}>
+                    <option value="">-- 選択 --</option>
+                    <option value="docomo">docomo</option>
+                    <option value="au">au</option>
+                    <option value="SoftBank">SoftBank</option>
+                    <option value="楽天">楽天</option>
+                    <option value="格安SIM">格安SIM</option>
+                  </select>
+                </div>
+                <div className="input-group">
+                  <label>固定電話有無</label>
+                  <select className="input-control" id="colTel" value={form.colTel} onChange={handleChange}>
+                    <option value="なし">なし</option>
+                    <option value="あり">あり</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="input-group" style={{ marginTop: "25px" }}>
+                <label>備考欄（特記事項）</label>
+                <div className="tag-container">
+                  <button className="tag-btn" onClick={() => addPhrase("〇時以降の連絡希望。")}>➕ 〇時以降希望</button>
+                  <button className="tag-btn" onClick={() => addPhrase("順次架電お願いします！")}>➕ 順次</button>
+                  <button className="tag-btn" onClick={() => addPhrase("設備確認しますと伝えております。")}>➕ 設備確認</button>
+                </div>
+                <textarea className="input-control" id="colMemo" style={{ marginTop: "12px", minHeight: "80px", resize: "vertical" }} value={form.colMemo} onChange={handleChange} />
+              </div>
+            </section>
+
+            {/* 👀 プレビューエリア */}
+            <section className="glass-panel fade-up-element" style={{ transitionDelay: "0.2s" }}>
+              <div className="section-title" style={{ color: "var(--accent-color)" }}>👀 転送用フォーマット・プレビュー</div>
+              <textarea className="preview-area" value={preview} readOnly />
+            </section>
+
+          </div>
+        </div>
+
+        {/* 🛠️ フッター操作 */}
+        <div className="footer-bar">
+          <button className="btn-footer btn-clear" onClick={clearAll}>🗑️ リセット</button>
+          <button className="btn-footer btn-copy" onClick={copyTemplate}>📋 この内容でFMTをコピー</button>
+        </div>
+
+        {/* 🍞 通知 */}
+        <div id="toast" className={toast.show ? "show" : ""}>{toast.msg}</div>
+      </main>
+    </>
   );
 }
