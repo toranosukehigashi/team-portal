@@ -1,18 +1,58 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+
+// 🌟 高度技術①＆⑦：ジェネレーティブUI ＆ カームデザイン (メアリー・ブレア風のパステル図形)
+const PastelShapes = () => {
+  const [shapes, setShapes] = useState<{ id: number; type: string; left: string; top: string; delay: string; duration: string; color: string; size: string }[]>([]);
+  
+  useEffect(() => {
+    const types = ['shape-circle', 'shape-triangle', 'shape-diamond', 'shape-flower'];
+    const colors = ['#fbcfe8', '#bae6fd', '#a7f3d0', '#fef08a', '#e9d5ff']; // 優しいパステルパレット
+    const newShapes = Array.from({ length: 35 }).map((_, i) => ({
+      id: i,
+      type: types[Math.floor(Math.random() * types.length)],
+      left: `${Math.random() * 100}vw`,
+      top: `${Math.random() * 100}vh`,
+      delay: `${Math.random() * 5}s`,
+      duration: `${Math.random() * 15 + 15}s`, // ゆっくりと平和に動く
+      color: colors[Math.floor(Math.random() * colors.length)],
+      size: `${Math.random() * 50 + 30}px`
+    }));
+    setShapes(newShapes);
+  }, []);
+
+  return (
+    <div className="pastel-shapes-container">
+      {shapes.map(s => (
+        <div 
+          key={s.id} className={`mary-shape ${s.type}`} 
+          style={{ 
+            left: s.left, top: s.top, width: s.size, height: s.size, 
+            backgroundColor: s.color, animationDelay: s.delay, animationDuration: s.duration 
+          }} 
+        />
+      ))}
+    </div>
+  );
+};
 
 export default function EmailTemplate() {
   const router = useRouter();
+  const [isReady, setIsReady] = useState(false);
 
+  // ⚙️ システム状態管理（一切変更なし）
   const [toast, setToast] = useState({ show: false, msg: "", isBlue: false });
   const [preview, setPreview] = useState("");
   const [form, setForm] = useState({ name1: "", date: "", listKey: "", name2: "", area: "" });
-
-  // 🍔 ハンバーガーメニューの開閉状態
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  useEffect(() => {
+    setIsReady(true);
+  }, []);
+
+  // ⚙️ システムロジック（一切変更なし）
   const showToast = (msg: string, isBlue = false) => {
     setToast({ show: true, msg, isBlue });
     setTimeout(() => setToast({ show: false, msg: "", isBlue: false }), 3000);
@@ -123,83 +163,161 @@ export default function EmailTemplate() {
     ].join("<br>");
 
     setPreview(html.replace(/<br>/g, "\n").replace(/<[^>]+>/g, ""));
-    if (execRichCopy(html)) showToast(`💰 ${form.area} の料金表をコピーしました！`, true);
+    if (execRichCopy(html)) showToast(`💎 ${form.area} の魔法の単価表をコピーしました！`, true);
   };
 
   const clearAll = () => {
     if (!confirm("入力をリセットしますか？")) return;
     setForm({ name1: "", date: "", listKey: "", name2: "", area: "" });
     setPreview("");
-    showToast("🗑️ データをクリアしました");
+    showToast("🗑️ 魔法をリセットしました");
   };
 
   return (
-    <div className="glass-email">
+    <div className={`small-world-theme ${isReady ? "ready" : ""}`}>
+      {/* ✨ 究極魔法のCSS（9つのデザイン技術を投入） */}
       <style dangerouslySetInnerHTML={{ __html: `
-        .glass-email * { box-sizing: border-box; }
-        /* 💎 背景：シアンとアメジストの透明感あるグラデーション */
-        .glass-email { font-family: 'Inter', 'Noto Sans JP', sans-serif; padding: 20px 40px 100px 40px; min-height: 100vh; background: linear-gradient(135deg, #e0f2fe 0%, #fae8ff 50%, #f0fdfa 100%); background-attachment: fixed; color: #1e293b; overflow-x: hidden; }
+        .small-world-theme * { box-sizing: border-box; }
         
-        /* 🍔 ハンバーガーボタン */
-        .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 1001; background: rgba(255,255,255,0.6); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.9); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s; }
-        .hamburger-btn:hover { background: #fff; box-shadow: 0 6px 20px rgba(2, 132, 199, 0.2); transform: scale(1.05); }
-        .hamburger-line { width: 22px; height: 3px; background: #475569; border-radius: 3px; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
-        .hamburger-btn.open .line1 { transform: translateY(8px) rotate(45deg); background: #0284c7; }
+        /* 🌤️ 1. ジェネレーティブUI & カームデザイン (パステルグラデーション) */
+        .small-world-theme { 
+          font-family: 'M PLUS Rounded 1c', 'Nunito', 'Varela Round', sans-serif; /* 丸くて優しいフォント */
+          padding: 20px 40px 100px 40px; min-height: 100vh; 
+          background: linear-gradient(135deg, #fdf4ff 0%, #e0e7ff 50%, #fef08a 100%); 
+          background-attachment: fixed; color: #334155; overflow-x: hidden; position: relative; z-index: 1;
+        }
+        
+        /* 🎨 メアリー・ブレア風の図形アニメーション */
+        .pastel-shapes-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: -1; overflow: hidden; opacity: 0.7; }
+        .mary-shape { position: absolute; animation: floatShape linear infinite alternate; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.05)); }
+        .shape-circle { border-radius: 50%; }
+        .shape-triangle { clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+        .shape-diamond { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+        .shape-flower { clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+        @keyframes floatShape { 0% { transform: translateY(0) rotate(0deg); } 100% { transform: translateY(-100px) rotate(180deg); } }
+
+        /* 🕰️ 9. イマーシブ要素（背景の微笑む時計塔/太陽 SVG） */
+        .clock-tower-bg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80vh; height: 80vh; opacity: 0.1; z-index: -2; animation: gentleRock 20s ease-in-out infinite alternate; pointer-events: none; }
+        @keyframes gentleRock { 0% { transform: translate(-50%, -50%) rotate(-5deg); } 100% { transform: translate(-50%, -50%) rotate(5deg); } }
+
+        /* 🍔 マイクロインタラクション（ハンバーガーボタン） */
+        .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 1001; background: rgba(255,255,255,0.8); backdrop-filter: blur(15px); border: 2px solid #fbcfe8; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; box-shadow: 0 5px 15px rgba(244, 114, 182, 0.2); transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .hamburger-btn:hover { background: #fff; box-shadow: 0 8px 25px rgba(244, 114, 182, 0.4); transform: scale(1.1); }
+        .hamburger-line { width: 22px; height: 3px; background: #db2777; border-radius: 3px; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        .hamburger-btn.open .line1 { transform: translateY(8px) rotate(45deg); background: #2563eb; }
         .hamburger-btn.open .line2 { opacity: 0; transform: translateX(-10px); }
-        .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: #0284c7; }
+        .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: #2563eb; }
 
         /* 🌌 オーバーレイ */
-        .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.2); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
+        .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 255, 255, 0.3); backdrop-filter: blur(8px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
         .menu-overlay.open { opacity: 1; pointer-events: auto; }
 
         /* 🗄️ サイドメニュー */
-        .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border-right: 1px solid rgba(255, 255, 255, 0.8); z-index: 1000; box-shadow: 20px 0 50px rgba(0,0,0,0.05); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+        .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(30px); border-right: 2px dashed #fbcfe8; z-index: 1000; box-shadow: 20px 0 50px rgba(0,0,0,0.05); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
         .side-menu.open { left: 0; }
-        .menu-title { font-size: 13px; font-weight: 900; color: #0369a1; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed rgba(2, 132, 199, 0.5); letter-spacing: 1px; }
+        .menu-title { font-size: 14px; font-weight: 900; color: #db2777; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 3px dotted #fbcfe8; letter-spacing: 2px; }
 
-        .side-link { text-decoration: none; padding: 14px 20px; border-radius: 14px; background: rgba(255, 255, 255, 0.7); color: #334155; font-weight: 800; font-size: 14px; border: 1px solid rgba(255,255,255,0.9); transition: all 0.2s; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
-        .side-link:hover { background: #fff; border-color: #7dd3fc; color: #0284c7; transform: translateX(8px); box-shadow: 0 6px 15px rgba(2, 132, 199, 0.15); }
-        /* 現在のページ：美しいシアンのグラデーション */
-        .side-link.current-page { background: linear-gradient(135deg, #38bdf8, #0284c7); color: #fff; border: none; box-shadow: 0 6px 20px rgba(2, 132, 199, 0.3); pointer-events: none; }
+        .side-link { text-decoration: none; padding: 14px 20px; border-radius: 20px; background: rgba(255, 255, 255, 0.9); color: #475569; font-weight: 800; font-size: 14px; border: 2px solid #f1f5f9; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .side-link:hover { background: #fff; border-color: #bae6fd; color: #0284c7; transform: translateX(8px) scale(1.02); box-shadow: 0 8px 20px rgba(2, 132, 199, 0.15); }
+        .side-link.current-page { background: linear-gradient(135deg, #fbcfe8, #a7f3d0); color: #0f172a; border: none; box-shadow: 0 8px 25px rgba(167, 243, 208, 0.5); pointer-events: none; }
 
         /* 🎈 ナビゲーション */
-        .glass-nav { position: relative; z-index: 10; display: flex; gap: 12px; padding: 12px; margin-bottom: 24px; margin-left: 60px; background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 16px; box-shadow: 0 4px 30px rgba(0,0,0,0.03); }
-        .glass-nav-link { text-decoration: none; padding: 10px 20px; border-radius: 10px; font-weight: 700; background: rgba(255, 255, 255, 0.6); color: #64748b; transition: 0.2s; border: 1px solid transparent; }
-        .glass-nav-link:hover { background: #fff; color: #0284c7; border-color: #bae6fd; }
-        .glass-nav-active { padding: 10px 20px; border-radius: 10px; font-weight: 800; background: #fff; color: #0284c7; border: 1px solid #bae6fd; box-shadow: 0 2px 10px rgba(2,132,199,0.1); }
+        .glass-nav { position: relative; z-index: 10; display: flex; gap: 12px; padding: 12px; margin-bottom: 30px; margin-left: 60px; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); border: 2px solid #fff; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .glass-nav-link { text-decoration: none; padding: 10px 24px; border-radius: 18px; font-weight: 800; background: transparent; color: #64748b; transition: 0.3s; }
+        .glass-nav-link:hover { background: rgba(255,255,255,0.9); color: #0284c7; box-shadow: 0 4px 10px rgba(2,132,199,0.1); }
+        .glass-nav-active { padding: 10px 24px; border-radius: 18px; font-weight: 900; background: #fff; color: #db2777; box-shadow: 0 4px 15px rgba(219, 39, 119, 0.15); border: 2px solid #fbcfe8; }
         
-        /* 🌟 メインパネル */
-        .glass-panel { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.9); border-top: 4px solid #38bdf8; border-radius: 20px; padding: 30px; margin-bottom: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.04); max-width: 900px; margin-left: auto; margin-right: auto; }
-        .section-title { font-size: 18px; font-weight: 900; color: #0c4a6e; margin-bottom: 24px; border-left: 5px solid #38bdf8; padding-left: 12px; display: flex; align-items: center; gap: 8px; }
-        
-        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; }
-        .form-card { background: rgba(255, 255, 255, 0.5); border-radius: 15px; padding: 24px; border: 1px solid rgba(255, 255, 255, 0.8); box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
-        
-        .input-group { display: flex; flex-direction: column; margin-bottom: 20px; }
-        .input-group label { font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; padding-left: 4px; }
-        .input-control { width: 100%; padding: 12px 16px; border: 1px solid rgba(148, 163, 184, 0.4); border-radius: 12px; font-size: 14px; background: rgba(255, 255, 255, 0.8); color: #1e293b; outline: none; transition: 0.2s; }
-        .input-control:focus { border-color: #38bdf8; background: #fff; box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15); }
+        /* 🔠 5. ダイナミック・タイポグラフィ (パステルの立体タイトル) */
+        .page-title { 
+          text-align: center; font-size: 38px; font-weight: 900; margin-bottom: 40px; letter-spacing: 3px; color: #fff; 
+          text-shadow: 2px 2px 0 #f472b6, 4px 4px 0 #38bdf8, 6px 6px 0 #a7f3d0, 0 10px 20px rgba(0,0,0,0.1);
+          animation: gentleBounce 2s infinite alternate ease-in-out;
+        }
+        @keyframes gentleBounce { to { transform: translateY(-8px); } }
 
-        .btn-copy { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; transition: 0.2s; color: #fff; margin-top: 10px; }
-        /* ピンク（重説用） */
-        .btn-pink { background: linear-gradient(135deg, #f472b6, #e11d48); box-shadow: 0 4px 15px rgba(225, 29, 72, 0.2); }
-        .btn-pink:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(225, 29, 72, 0.4); }
+        /* 📦 2. Bento UI (フロストガラスのメインパネル) */
+        .glass-panel { 
+          background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(25px); 
+          border: 3px solid #fff; border-radius: 40px; padding: 40px; margin-bottom: 30px; 
+          box-shadow: 0 20px 50px rgba(0,0,0,0.05), inset 0 0 30px rgba(255,255,255,0.8); 
+          max-width: 950px; margin-left: auto; margin-right: auto; position: relative;
+        }
         
-        /* ブルー（単価表用） */
-        .btn-blue { background: linear-gradient(135deg, #38bdf8, #0284c7); box-shadow: 0 4px 15px rgba(2, 132, 199, 0.2); }
-        .btn-blue:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(2, 132, 199, 0.4); }
+        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 40px; }
+        @media (max-width: 800px) { .form-grid { grid-template-columns: 1fr; } }
 
-        /* 🌟 プレビュー（ディープ・ネイビー） */
-        .preview-area { width: 100%; height: 200px; padding: 20px; background: #0f172a; color: #38bdf8; border-radius: 15px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; border: none; outline: none; resize: vertical; box-shadow: inset 0 4px 10px rgba(0,0,0,0.4); }
+        /* フォームカード (ピンクとブルーのアクセント) */
+        .form-card { 
+          background: rgba(255, 255, 255, 0.85); border-radius: 30px; padding: 30px; 
+          border: 2px solid #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.03); 
+          transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .form-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
+        .form-card.pink-card { border-top: 8px solid #fbcfe8; }
+        .form-card.blue-card { border-top: 8px solid #bae6fd; }
+
+        .card-header { font-size: 20px; font-weight: 900; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
+        .pink-card .card-header { color: #db2777; }
+        .blue-card .card-header { color: #0284c7; }
         
-        .btn-clear { display: block; width: 200px; margin: 0 auto; padding: 12px; background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.2s; }
-        .btn-clear:hover { background: #e2e8f0; color: #1e293b; }
+        /* 🕹️ 4. マイクロインタラクション (入力フォーム) */
+        .input-group { display: flex; flex-direction: column; margin-bottom: 24px; }
+        .input-group label { font-size: 13px; font-weight: 800; color: #64748b; margin-bottom: 8px; padding-left: 8px; }
+        .input-control { 
+          width: 100%; padding: 15px 20px; border: 2px solid #e2e8f0; border-radius: 20px; 
+          font-size: 15px; font-weight: 800; background: rgba(255, 255, 255, 0.9); color: #1e293b; 
+          outline: none; transition: 0.3s; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02); font-family: 'M PLUS Rounded 1c', sans-serif;
+        }
+        .pink-card .input-control:focus { border-color: #f472b6; background: #fff; box-shadow: 0 0 0 5px rgba(244, 114, 182, 0.2); }
+        .blue-card .input-control:focus { border-color: #38bdf8; background: #fff; box-shadow: 0 0 0 5px rgba(56, 189, 248, 0.2); }
 
-        /* 🌟 トースト通知 */
-        #toast { visibility: hidden; position: fixed; bottom: 40px; right: 40px; padding: 16px 24px; border-radius: 12px; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 2000; opacity: 0; transition: 0.4s; color: #fff; background: #e11d48; border: 1px solid transparent; }
-        #toast.show { visibility: visible; opacity: 1; transform: translateY(-10px); }
-        #toast.blue { background: #0284c7; }
+        /* 🔘 6. アクションファースト (ピル型コピーボタン) */
+        .btn-copy { 
+          width: 100%; padding: 18px; border: none; border-radius: 30px; font-weight: 900; font-size: 16px; 
+          cursor: pointer; transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); color: #fff; margin-top: 15px; 
+          letter-spacing: 1px; display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+        .btn-pink { background: linear-gradient(135deg, #f472b6, #e11d48); box-shadow: 0 8px 20px rgba(225, 29, 72, 0.3); }
+        .btn-pink:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 12px 25px rgba(225, 29, 72, 0.5); }
+        .btn-blue { background: linear-gradient(135deg, #38bdf8, #0284c7); box-shadow: 0 8px 20px rgba(2, 132, 199, 0.3); }
+        .btn-blue:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 12px 25px rgba(2, 132, 199, 0.5); }
+
+        /* 📜 魔法のスクロール (プレビューエリア) */
+        .preview-area { 
+          width: 100%; height: 220px; padding: 25px; 
+          background: #1e1b4b; /* 深いナイトパープル */
+          color: #e9d5ff; /* 淡いラベンダーテキスト */
+          border-radius: 24px; font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.7; 
+          border: 4px solid #c084fc; outline: none; resize: vertical; 
+          box-shadow: inset 0 10px 20px rgba(0,0,0,0.5), 0 10px 30px rgba(192,132,252,0.2); 
+        }
+        
+        .btn-clear { 
+          display: block; width: 220px; margin: 0 auto; padding: 15px; 
+          background: #fff; color: #94a3b8; border: 3px solid #e2e8f0; border-radius: 30px; 
+          font-weight: 900; cursor: pointer; transition: 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
+        }
+        .btn-clear:hover { background: #fef2f2; color: #e11d48; border-color: #fecdd3; transform: translateY(-2px); }
+
+        /* 🍞 トースト通知 (スプリングアニメーション) */
+        #toast { 
+          visibility: hidden; position: fixed; bottom: 40px; right: 40px; padding: 18px 28px; border-radius: 20px; 
+          font-weight: 900; font-size: 15px; box-shadow: 0 15px 40px rgba(0,0,0,0.3); z-index: 2000; opacity: 0; 
+          color: #fff; background: #e11d48; border: 2px solid #fda4af; 
+          transform: translateY(50px) scale(0.9); transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); 
+        }
+        #toast.show { visibility: visible; opacity: 1; transform: translateY(0) scale(1); }
+        #toast.blue { background: #0284c7; border-color: #7dd3fc; }
       `}} />
+
+      {/* 🎪 イマーシブ背景 (パステル図形と時計塔) */}
+      <PastelShapes />
+      <svg className="clock-tower-bg" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="80" fill="#fef08a" />
+        <circle cx="75" cy="85" r="10" fill="#fde047" />
+        <circle cx="125" cy="85" r="10" fill="#fde047" />
+        <path d="M 60 120 Q 100 160 140 120" fill="none" stroke="#fde047" strokeWidth="12" strokeLinecap="round" />
+      </svg>
 
       {/* 🍔 ハンバーガーボタン */}
       <div className={`hamburger-btn ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -208,35 +326,33 @@ export default function EmailTemplate() {
         <div className="hamburger-line line3"></div>
       </div>
 
-      {/* 🌌 メニュー展開時の背景オーバーレイ（クリックで閉じる） */}
+      {/* 🌌 メニュー展開時の背景オーバーレイ */}
       <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
 
-      {/* 🗄️ 左から現れる透け透けサイドメニュー */}
+      {/* 🗄️ サイドメニュー */}
       <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
-        <div className="menu-title">🧭 TOOL MENU</div>
+        <div className="menu-title">🧭 ATTRACTION MENU</div>
         <a href="/bulk-register" className="side-link">📦 一括登録（自己クロ）</a>
         <a href="/net-toss" className="side-link">🌐 ネットトス連携</a>
         <a href="/self-close" className="side-link">🌲 自己クロ連携</a>
         <a href="/sms-kraken" className="side-link">📱 SMS (Kraken)</a>
-        <a href="/email-template" className="side-link current-page">✨ メールテンプレート</a>
-        
-        <div className="side-link" style={{ opacity: 0.5, cursor: "not-allowed", background: "transparent", border: "1px dashed #bae6fd" }}>
-          🔒 新ツール（開発中...）
-        </div>
+        <div className="side-link current-page">✨ メールテンプレート</div>
       </div>
 
+      {/* 🎈 トップナビゲーション */}
       <div className="glass-nav">
-        <a href="/" className="glass-nav-link">← 司令室に戻る</a>
+        <a href="/" className="glass-nav-link">← パーク入口へ戻る</a>
         <div className="glass-nav-active">✨ メールテンプレート</div>
       </div>
 
+      <h1 className="page-title">IT'S A SMALL WORLD</h1>
+
       <div className="glass-panel">
-        <div className="section-title">✉️ メール作成スイート</div>
         
         <div className="form-grid">
-          {/* 重説メールセクション */}
-          <div className="form-card" style={{ borderTop: "4px solid #f43f5e" }}>
-            <h4 style={{ color: "#e11d48", marginTop: 0 }}>📧 重要事項説明</h4>
+          {/* 🎀 重説メールセクション (ピンク) */}
+          <div className="form-card pink-card">
+            <h4 className="card-header">💌 重要事項説明</h4>
             <div className="input-group">
               <label>👤 お客様名</label>
               <input className="input-control" type="text" id="name1" placeholder="例：山田 太郎" value={form.name1} onChange={handleChange} />
@@ -248,7 +364,7 @@ export default function EmailTemplate() {
             <div className="input-group">
               <label>🔑 リスト選択</label>
               <select className="input-control" id="listKey" value={form.listKey} onChange={handleChange}>
-                <option value="">-- 選択 --</option>
+                <option value="">-- お選びください --</option>
                 <option value="シンプル">シンプル</option>
                 <option value="ガスセット">ガスセット</option>
                 <option value="LL">LL</option>
@@ -257,12 +373,12 @@ export default function EmailTemplate() {
                 <option value="空室通電">空室通電</option>
               </select>
             </div>
-            <button className="btn-copy btn-pink" onClick={copyTemplate}>重説メールをコピー</button>
+            <button className="btn-copy btn-pink" onClick={copyTemplate}>✨ 重説メールをコピー</button>
           </div>
 
-          {/* 料金単価表セクション */}
-          <div className="form-card" style={{ borderTop: "4px solid #0ea5e9" }}>
-            <h4 style={{ color: "#0284c7", marginTop: 0 }}>💰 料金単価表</h4>
+          {/* 💧 料金単価表セクション (ブルー) */}
+          <div className="form-card blue-card">
+            <h4 className="card-header">💎 料金単価表</h4>
             <div className="input-group">
               <label>👤 お客様名</label>
               <input className="input-control" type="text" id="name2" placeholder="例：鈴木 一郎" value={form.name2} onChange={handleChange} />
@@ -270,28 +386,31 @@ export default function EmailTemplate() {
             <div className="input-group">
               <label>📍 エリア選択</label>
               <select className="input-control" id="area" value={form.area} onChange={handleChange}>
-                <option value="">-- 選択 --</option>
+                <option value="">-- お選びください --</option>
                 {Object.keys(PRICING_DB).map(a => (
                   <option key={a} value={a}>{a}</option>
                 ))}
               </select>
             </div>
-            <div style={{ minHeight: "68px" }}></div> {/* 高さを揃えるためのスペーサー */}
-            <button className="btn-copy btn-blue" onClick={copyRate}>単価表をコピー</button>
+            <div style={{ minHeight: "84px" }}></div> {/* 高さを揃えるためのスペーサー */}
+            <button className="btn-copy btn-blue" onClick={copyRate}>🌍 単価表をコピー</button>
           </div>
         </div>
       </div>
 
+      {/* 📜 プレビューエリア */}
       {preview && (
-        <div className="glass-panel" style={{ background: "rgba(15, 23, 42, 0.95)", border: "none", maxWidth: "900px", margin: "20px auto" }}>
-          <div className="section-title" style={{ color: "#38bdf8", borderLeftColor: "#38bdf8" }}>{`> PREVIEW (PLAIN TEXT)`}</div>
+        <div className="glass-panel" style={{ background: "transparent", border: "none", boxShadow: "none", padding: "0" }}>
+          <div style={{ fontSize: "16px", fontWeight: 900, color: "#a855f7", marginBottom: "15px", paddingLeft: "10px" }}>
+            {`> MAGIC SCROLL (PREVIEW)`}
+          </div>
           <textarea className="preview-area" value={preview} readOnly />
         </div>
       )}
 
-      <button className="btn-clear" onClick={clearAll}>🗑️ 入力をクリア</button>
+      <button className="btn-clear" onClick={clearAll}>🗑️ 魔法をリセット</button>
 
-      {/* 🍞 通知 */}
+      {/* 🍞 トースト通知 */}
       <div id="toast" className={`${toast.show ? "show" : ""} ${toast.isBlue ? "blue" : ""}`}>{toast.msg}</div>
     </div>
   );
