@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// 🌟 3Dパララックスカード（デザインと動きはそのまま！）
+// 🌟 3Dパララックスカード
 const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children }: any) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
@@ -71,7 +71,7 @@ export default function ThemeParkEntrance() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isReady, setIsReady] = useState(false);
   
-  // ☀️ デフォルト：ライトモード
+  // ☀️ テーマ管理
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   const [showArrivalFlash, setShowArrivalFlash] = useState(false);
@@ -223,6 +223,14 @@ export default function ThemeParkEntrance() {
 
           .app-wrapper { min-height: 100vh; padding: 20px; font-family: 'Inter', 'Noto Sans JP', sans-serif; overflow-x: hidden; position: relative; color: var(--text-main); transition: color 0.5s; }
 
+          /* 🎇 到着アニメーション */
+          .arrival-flash {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #fff; z-index: 9999; pointer-events: none;
+            animation: flashFadeOut 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+          }
+          @keyframes flashFadeOut { 0% { opacity: 1; filter: blur(10px); transform: scale(1.05); } 100% { opacity: 0; filter: blur(0); transform: scale(1); } }
+
           .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; transition: background 0.8s ease; }
           .entrance-bg.theme-light { background: var(--bg-gradient); }
           .entrance-bg.theme-dark { background: var(--bg-gradient); }
@@ -246,7 +254,7 @@ export default function ThemeParkEntrance() {
           .greeting-text { font-size: 11px; color: var(--text-sub); font-weight: 800; display: flex; flex-direction: column; line-height: 1.2; text-transform: uppercase; letter-spacing: 2px; }
           .user-id-text { font-size: 15px; font-weight: 900; color: var(--accent-color); letter-spacing: 1px; }
 
-          .park-title-container { text-align: center; margin-bottom: 60px; padding: 40px 20px; position: relative; }
+          .park-title-container { text-align: center; margin-bottom: 50px; position: relative; }
           .park-main-title { 
             font-size: 65px; font-weight: 900; letter-spacing: 4px; margin: 0 0 15px 0;
             background: linear-gradient(to right, #0284c7, #38bdf8, #8b5cf6, #0284c7);
@@ -261,7 +269,7 @@ export default function ThemeParkEntrance() {
           
           .park-sub-title { color: var(--text-sub); font-size: 18px; font-weight: 800; letter-spacing: 8px; text-transform: uppercase; }
 
-          .quick-actions { display: flex; gap: 20px; justify-content: center; margin-top: 40px; }
+          .quick-actions { display: flex; gap: 20px; justify-content: center; margin-top: 30px; }
           .btn-qa { padding: 14px 30px; border: none; border-radius: 30px; font-size: 14px; font-weight: 900; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 2px; position: relative; overflow: hidden; }
           .btn-qa::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: 0.5s; }
           .btn-qa:hover::before { left: 100%; }
@@ -273,27 +281,30 @@ export default function ThemeParkEntrance() {
           .btn-logout { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
           .btn-logout:hover { background: rgba(239, 68, 68, 0.2); }
 
+          /* 📢 インフォメーション（流れるティッカー完全復活！） */
+          .news-ticker-wrapper { display: flex; align-items: center; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; margin-bottom: 50px; padding: 12px 25px; box-shadow: var(--card-shadow); backdrop-filter: blur(20px); transition: 0.5s; }
+          .news-badge { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-weight: 900; font-size: 13px; padding: 8px 18px; border-radius: 12px; white-space: nowrap; margin-right: 25px; animation: pulseGold 2s infinite; box-shadow: 0 0 15px rgba(245,158,11,0.4); letter-spacing: 2px; }
+          @keyframes pulseGold { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
+          
+          /* ここが重要！横スクロールの設定 */
+          .news-scroll-container { flex: 1; overflow: hidden; white-space: nowrap; position: relative; display: flex; align-items: center; }
+          .news-text { display: inline-block; padding-left: 100%; animation: marquee 30s linear infinite; font-weight: 800; color: var(--text-main); font-size: 16px; letter-spacing: 1px; }
+          @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
+
           /* 🌟 レイアウト：左のインフォ ＋ 右のグリッド */
           .main-layout { display: grid; grid-template-columns: 320px 1fr; gap: 30px; margin-bottom: 50px; }
           @media (max-width: 950px) { .main-layout { grid-template-columns: 1fr; } }
 
-          /* ℹ️ 左側：インフォ・設定パネル */
+          /* ℹ️ 左側：設定パネル */
           .info-sidebar { display: flex; flex-direction: column; gap: 20px; }
           .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow); }
           .info-title { font-size: 15px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
 
           /* 📋 クリップボードツール */
-          .script-box { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 12px; padding: 12px; margin-bottom: 10px; transition: 0.3s; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+          .script-box { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; transition: 0.3s; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
           .script-box:hover { border-color: var(--card-hover-border); transform: translateX(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-          .script-title { font-weight: 900; font-size: 13px; color: var(--text-main); }
+          .script-title { font-weight: 900; font-size: 13px; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
           .script-icon { font-size: 16px; opacity: 0.7; }
-
-          .news-ticker-wrapper { display: flex; align-items: center; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 12px 25px; box-shadow: var(--card-shadow); backdrop-filter: blur(20px); transition: 0.5s; }
-          .news-badge { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-weight: 900; font-size: 13px; padding: 8px 18px; border-radius: 12px; white-space: nowrap; margin-right: 25px; animation: pulseGold 2s infinite; box-shadow: 0 0 15px rgba(245,158,11,0.4); letter-spacing: 2px; }
-          @keyframes pulseGold { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
-          .news-scroll-container { flex: 1; overflow: hidden; white-space: nowrap; position: relative; display: flex; align-items: center; }
-          .news-text { display: inline-block; padding-left: 100%; animation: marquee 30s linear infinite; font-weight: 800; color: var(--text-main); font-size: 16px; letter-spacing: 1px; }
-          @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
           /* 🎡 右側：アトラクショングリッド */
           .attraction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; perspective: 1200px; }
@@ -373,46 +384,46 @@ export default function ThemeParkEntrance() {
             </div>
           </div>
 
+          {/* 📢 インフォメーション（流れるティッカー完全復活！） */}
+          <div className="news-ticker-wrapper fade-up-element" style={{ "--delay": "0.1s" } as any}>
+            <div className="news-badge">📢 インフォメーション</div>
+            <div className="news-scroll-container"><div className="news-text">{newsText}</div></div>
+            {isAdmin && <button style={{background: "var(--card-bg)", border:"1px solid var(--card-border)", color:"var(--text-main)", fontSize:"12px", fontWeight:900, padding:"6px 12px", borderRadius:"8px", cursor:"pointer", marginLeft:"15px"}} onClick={() => { setTempNews(newsText); setIsEditingNews(!isEditingNews); }}>✏️ 編集</button>}
+          </div>
+
+          {isAdmin && isEditingNews && (
+            <div style={{display:"flex", gap:"10px", marginBottom:"40px", background:"var(--modal-bg)", padding:"20px", borderRadius:"16px", border:"2px dashed var(--card-border)", backdropFilter:"blur(15px)"}}>
+              <input type="text" className="util-input" value={tempNews} onChange={(e) => setTempNews(e.target.value)} />
+              <button style={{background:"linear-gradient(135deg, #0ea5e9, #4f46e5)", color:"#fff", border:"none", padding:"0 25px", borderRadius:"10px", fontWeight:900, cursor:"pointer", boxShadow:"0 4px 15px rgba(2,132,199,0.3)"}} onClick={handleSaveNews}>保存</button>
+            </div>
+          )}
+
           <div className="main-layout">
             
-            {/* ℹ️ 左カラム：お知らせ＆クリップボード */}
+            {/* ℹ️ 左カラム：クリップボードBOX */}
             <aside className="info-sidebar">
-              <div className="news-ticker-wrapper fade-up-element" style={{ marginBottom: 0, padding: "20px", flexDirection: "column", alignItems: "flex-start", gap: "10px" }}>
-                <div className="news-badge" style={{ margin: "0 0 10px 0" }}>📢 インフォメーション</div>
-                <div style={{ fontWeight: 800, color: "var(--text-main)", fontSize: "14px", lineHeight: 1.5 }}>{newsText}</div>
-                {isAdmin && <button style={{background: "var(--input-bg)", border:"1px solid var(--card-border)", color:"var(--text-main)", fontSize:"12px", fontWeight:900, padding:"6px 12px", borderRadius:"8px", cursor:"pointer", marginTop: "10px"}} onClick={() => { setTempNews(newsText); setIsEditingNews(!isEditingNews); }}>✏️ 編集</button>}
-              </div>
-
-              {isAdmin && isEditingNews && (
-                <div style={{display:"flex", gap:"10px", background:"var(--modal-bg)", padding:"20px", borderRadius:"16px", border:"2px dashed var(--card-border)", backdropFilter:"blur(15px)"}}>
-                  <input type="text" className="util-input" value={tempNews} onChange={(e) => setTempNews(e.target.value)} />
-                  <button style={{background:"linear-gradient(135deg, #0ea5e9, #4f46e5)", color:"#fff", border:"none", padding:"0 25px", borderRadius:"10px", fontWeight:900, cursor:"pointer", boxShadow:"0 4px 15px rgba(2,132,199,0.3)"}} onClick={handleSaveNews}>保存</button>
-                </div>
-              )}
-
               {/* 📋 新機能：CallTree・ブックマーク管理BOX */}
-              <div className="info-panel fade-up-element" style={{ transitionDelay: "0.1s" }}>
+              <div className="info-panel fade-up-element" style={{ transitionDelay: "0.2s" }}>
                 <h3 className="info-title">📋 CallTree & ブックマーク管理</h3>
-                <div style={{ fontSize: "12px", color: "var(--text-sub)", fontWeight: 800, marginBottom: "15px" }}>クリックでコードをコピーし、ブックマークバーのURLに貼り付けてください。</div>
+                <div style={{ fontSize: "12px", color: "var(--text-sub)", fontWeight: 800, marginBottom: "15px", lineHeight: 1.5 }}>
+                  クリックでコードをコピーし、ブックマークのURL欄に貼り付けてご活用ください。
+                </div>
                 
                 <div className="script-box" onClick={() => copyScriptCode("データ一括取得（Warp）", "javascript:(function(){/* ここに一括取得のスクリプトを記述 */ alert('Warpデータを取得しました');})();")}>
-                  <span className="script-title">📦 データ一括取得（Warp）</span>
-                  <span className="script-icon">📄</span>
+                  <span className="script-title"><span className="script-icon">📦</span> データ一括取得（Warp）</span>
                 </div>
                 
                 <div className="script-box" onClick={() => copyScriptCode("電話番号一括コピー", "javascript:(function(){/* ここに電話番号抽出のスクリプトを記述 */ alert('電話番号を抽出しました');})();")}>
-                  <span className="script-title">📞 電話番号一括コピー</span>
-                  <span className="script-icon">📄</span>
+                  <span className="script-title"><span className="script-icon">📞</span> 電話番号一括コピー</span>
                 </div>
                 
                 <div className="script-box" onClick={() => copyScriptCode("ネットトス自動入力", "javascript:(function(){/* ここに自動入力のスクリプトを記述 */ alert('自動入力しました');})();")}>
-                  <span className="script-title">🌐 ネットトス自動入力</span>
-                  <span className="script-icon">📄</span>
+                  <span className="script-title"><span className="script-icon">🌐</span> ネットトス自動入力</span>
                 </div>
               </div>
             </aside>
 
-            {/* 🎡 右カラム：アトラクション グリッド（トラブルナビ削除済） */}
+            {/* 🎡 右カラム：アトラクション グリッド */}
             <div className="attraction-grid">
               <MagicCard delay={0.1} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="チームの獲得進捗や個人のランキング状況をリアルタイムに確認できます。" onClick={() => router.push("/kpi-detail")}>
                 <div className="kpi-widget">
@@ -422,17 +433,11 @@ export default function ThemeParkEntrance() {
               </MagicCard>
 
               <MagicCard delay={0.2} attraction="BULK REGISTER" title="📦 データ一括登録" desc="複数の顧客データを一括で処理し、データベースへ高速転送します。" onClick={() => router.push("/bulk-register")} />
-              
               <MagicCard delay={0.3} attraction="NET TOSS" title="🌐 ネットトス連携" desc="ネット回線のトスアップ用データを生成し、指定のシートへ送信します。" onClick={() => router.push("/net-toss")} />
-              
               <MagicCard delay={0.4} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="成約後の情報を専用フォームからシームレスに連携します。" onClick={() => router.push("/self-close")} />
-              
               <MagicCard delay={0.5} attraction="SMS KRAKEN" title="📱 SMS (Kraken) 送信" desc="Kraken連携を用いたSMS送信・履歴管理・テンプレート展開を行います。" onClick={() => router.push("/sms-kraken")} />
-              
               <MagicCard delay={0.6} attraction="EMAIL TEMPLATE" title="✉️ メールテンプレート" desc="用途に応じたメール文面を素早く作成し、ワンクリックでコピーします。" onClick={() => router.push("/email-template")} />
-              
               <MagicCard delay={0.7} attraction="KRAKEN PROCEDURE" title="🗺️ Kraken 手順辞書" badge="NEW" desc="プラン変更や住所変更など、各手続きに必要な情報を入力し、提出用フォーマットを自動生成します。" onClick={() => router.push("/procedure-wizard")} />
-              
               <MagicCard delay={0.8} attraction="COST SIMULATOR" title="🆚 料金シミュレーター" badge="NEW" desc="現在の利用状況をヒアリングし、乗り換え時の節約額を即座に算出します。" onClick={() => router.push("/simulator")} />
 
               <MagicCard delay={0.9} attraction="QUICK MEMO" title="🍯 クイックメモ" desc="通話中などに一時的に情報を置いておく、ブラウザ自動保存のメモパッド。" onClick={() => setIsMemoOpen(true)}>
