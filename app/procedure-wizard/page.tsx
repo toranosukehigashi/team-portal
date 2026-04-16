@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 // ✨ 背景のエナジー・パーティクル（オクトパスカラーのピンク＆シアン）
@@ -27,9 +27,10 @@ const EnergyParticles = () => {
   );
 };
 
+// 🌟 メニュー項目定義（トラブル解決ナビの項目を統合！）
 type MenuId = 
   | "plan_change" | "cancel_process" | "status_check" 
-  | "email_dup" | "bh_process" | "move_out" 
+  | "sw_error" | "email_dup" | "bh_process" | "move_out" 
   | "recent_repoint" | "invalid_address" | "address_spin";
 
 export default function ProcedureWizard() {
@@ -42,12 +43,14 @@ export default function ProcedureWizard() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [toast, setToast] = useState({ show: false, msg: "" });
 
+  // 🗂️ 統合されたメニューリスト
   const menuItems: { id: MenuId; icon: string; label: string }[] = [
     { id: "plan_change", icon: "📝", label: "プラン変更" },
     { id: "cancel_process", icon: "❌", label: "申込取消" },
     { id: "status_check", icon: "⚡", label: "キャンセル確認" },
-    { id: "email_dup", icon: "📧", label: "メアド重複対処法" },
-    { id: "bh_process", icon: "🗑️", label: "無効化＆BH処理" },
+    { id: "sw_error", icon: "⚙️", label: "SWエラー対応" }, // トラブルナビから移植
+    { id: "email_dup", icon: "📧", label: "メアド重複対処法" }, // トラブルナビのUIで更新
+    { id: "bh_process", icon: "🗑️", label: "無効化＆BH処理" }, // トラブルナビのUIで更新
     { id: "move_out", icon: "📦", label: "MOVE OUT（未完成）" },
     { id: "recent_repoint", icon: "⏱️", label: "直近再点対応" },
     { id: "invalid_address", icon: "🚫", label: "無効なアドレス対処法" },
@@ -90,10 +93,10 @@ export default function ProcedureWizard() {
             --text-sub: #475569;
             --card-bg: rgba(255, 255, 255, 0.85);
             --card-border: rgba(255, 255, 255, 1);
-            --card-hover-border: #e5007e; /* オクトパス・セリースピンク */
+            --card-hover-border: #e5007e;
             --card-hover-bg: rgba(255, 255, 255, 0.95);
             --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            --title-color: #1f0e45; /* オクトパス・ディープパープル */
+            --title-color: #1f0e45;
             --accent-pink: #e5007e;
             --accent-cyan: #00c4b5;
             --input-bg: rgba(255, 255, 255, 0.9);
@@ -101,12 +104,12 @@ export default function ProcedureWizard() {
           }
           
           .theme-dark {
-            --bg-gradient: radial-gradient(ellipse at top left, #1f0e45 0%, #020617 100%); /* オクトパス・ディープパープル */
+            --bg-gradient: radial-gradient(ellipse at top left, #1f0e45 0%, #020617 100%);
             --text-main: #f8fafc;
             --text-sub: #cbd5e1;
             --card-bg: rgba(15, 23, 42, 0.65);
             --card-border: rgba(255, 255, 255, 0.1);
-            --card-hover-border: #00c4b5; /* オクトパス・シアン */
+            --card-hover-border: #00c4b5;
             --card-hover-bg: rgba(30, 41, 59, 0.85);
             --card-shadow: 0 20px 50px rgba(0,0,0,0.8);
             --title-color: #00c4b5; 
@@ -134,12 +137,12 @@ export default function ProcedureWizard() {
           .particle-cyan { background: var(--accent-cyan); box-shadow: 0 0 12px var(--accent-cyan); }
           @keyframes energyFlow { 0% { opacity: 0; transform: translateY(30px) scale(0.5); } 50% { opacity: 0.6; transform: translateY(-40px) scale(1.5); } 100% { opacity: 0; transform: translateY(-100px) scale(0.5); } }
 
-          /* 🌟 テンタクル・ウェーブ（エネルギーの流れを表現するSVG背景） */
+          /* 🌟 テンタクル・ウェーブ（SVG背景） */
           .energy-svg-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.8; }
           .energy-path { fill: none; stroke: var(--svg-color); stroke-width: 4; stroke-dasharray: 2000; stroke-dashoffset: 2000; animation: drawEnergy 12s ease-in-out infinite alternate; transition: stroke 0.5s; filter: blur(2px); }
           @keyframes drawEnergy { 0% { stroke-dashoffset: 2000; } 100% { stroke-dashoffset: 0; } }
 
-          /* 🍔 ハンバーガーボタン */
+          /* ハンバーガーボタン */
           .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 1001; background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; box-shadow: var(--card-shadow); transition: 0.3s; }
           .hamburger-btn:hover { background: var(--card-hover-bg); transform: scale(1.05); }
           .hamburger-line { width: 22px; height: 3px; background: var(--text-sub); border-radius: 3px; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
@@ -147,11 +150,10 @@ export default function ProcedureWizard() {
           .hamburger-btn.open .line2 { opacity: 0; transform: translateX(-10px); }
           .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: var(--accent-cyan); }
 
-          /* 🌌 メニューオーバーレイ */
           .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
           .menu-overlay.open { opacity: 1; pointer-events: auto; }
 
-          /* 🗄️ サイドメニュー */
+          /* 🗄️ サイドメニュー（トラブル解決ナビを削除） */
           .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
           .side-menu.open { left: 0; }
           .menu-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--card-border); letter-spacing: 1px; }
@@ -161,10 +163,9 @@ export default function ProcedureWizard() {
           .side-link.current-page { background: linear-gradient(135deg, var(--accent-pink), #be123c); color: #fff; border: none; box-shadow: 0 6px 15px rgba(229, 0, 126, 0.3); pointer-events: none; }
           .theme-dark .side-link.current-page { background: linear-gradient(135deg, var(--accent-cyan), #0d9488); box-shadow: 0 6px 15px rgba(0, 196, 181, 0.3); }
 
-          /* 🎈 ナビゲーション（中央配置） */
+          /* 🎈 ナビゲーション */
           .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 30px; }
           .glass-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 50px; box-shadow: var(--card-shadow); max-width: 800px; width: 100%; }
-          
           .nav-left { display: flex; gap: 12px; align-items: center; }
           .glass-nav-link { text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 800; background: var(--input-bg); color: var(--text-sub); border: 1px solid var(--card-border); transition: 0.2s; font-size: 14px; }
           .glass-nav-link:hover { color: var(--accent-cyan); border-color: var(--card-hover-border); }
@@ -180,28 +181,13 @@ export default function ProcedureWizard() {
 
           /* 📖 左側：マニュアル用ローカルメニュー */
           .manual-sidebar { display: flex; flex-direction: column; gap: 10px; }
-          
-          .topic-btn { 
-            background: var(--card-bg); backdrop-filter: blur(20px); 
-            border: 1px solid var(--card-border); border-radius: 16px; 
-            padding: 16px 20px; text-align: left; font-weight: 800; font-size: 14px; 
-            color: var(--text-sub); cursor: pointer; transition: 0.2s; 
-            display: flex; align-items: center; gap: 12px; box-shadow: var(--card-shadow);
-          }
+          .topic-btn { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 16px; padding: 16px 20px; text-align: left; font-weight: 800; font-size: 14px; color: var(--text-sub); cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; box-shadow: var(--card-shadow); }
           .topic-btn:hover { background: var(--card-hover-bg); border-color: var(--accent-cyan); color: var(--accent-cyan); transform: translateX(5px); }
-          .topic-btn.active { 
-            background: var(--card-hover-bg); color: var(--accent-pink); 
-            border-color: var(--accent-pink); border-left: 6px solid var(--accent-pink);
-            box-shadow: 0 10px 20px rgba(229, 0, 126, 0.1); pointer-events: none;
-          }
+          .topic-btn.active { background: var(--card-hover-bg); color: var(--accent-pink); border-color: var(--accent-pink); border-left: 6px solid var(--accent-pink); box-shadow: 0 10px 20px rgba(229, 0, 126, 0.1); pointer-events: none; }
           .theme-dark .topic-btn.active { color: var(--accent-cyan); border-color: var(--accent-cyan); box-shadow: 0 10px 20px rgba(0, 196, 181, 0.15); border-left: 6px solid var(--accent-cyan); }
 
-          /* 📝 右側：手順メインコンテンツ（Glassmorphism Panel） */
-          .dictionary-card { 
-            background: var(--card-bg); backdrop-filter: blur(25px); 
-            border: 1px solid var(--card-border); border-radius: 24px; padding: 40px; 
-            box-shadow: var(--card-shadow); animation: slideIn 0.4s ease-out forwards;
-          }
+          /* 📝 右側：手順メインコンテンツ */
+          .dictionary-card { background: var(--card-bg); backdrop-filter: blur(25px); border: 1px solid var(--card-border); border-radius: 24px; padding: 40px; box-shadow: var(--card-shadow); animation: slideIn 0.4s ease-out forwards; }
           @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
           .card-title { font-size: 24px; font-weight: 900; color: var(--title-color); margin: 0 0 30px 0; display: flex; align-items: center; gap: 12px; border-bottom: 2px dashed var(--card-border); padding-bottom: 15px; }
@@ -214,11 +200,15 @@ export default function ProcedureWizard() {
           .theme-dark .step-badge { background: linear-gradient(135deg, var(--accent-cyan), #3b82f6); }
           
           .step-text { font-size: 15px; font-weight: 700; color: var(--text-main); line-height: 1.6; padding-top: 6px; }
-          .step-text b { color: var(--accent-pink); font-size: 16px; background: linear-gradient(transparent 70%, rgba(229,0,126,0.1) 0%); padding: 0 4px; border-radius: 4px; }
+          .step-text b { color: var(--accent-pink); background: linear-gradient(transparent 70%, rgba(229,0,126,0.1) 0%); padding: 0 4px; border-radius: 4px; }
           .theme-dark .step-text b { color: var(--accent-cyan); background: linear-gradient(transparent 70%, rgba(0,196,181,0.2) 0%); }
 
+          /* トラブルナビ用 解決パネル */
+          .solution-panel { background: rgba(16, 185, 129, 0.1); border: 2px solid rgba(16, 185, 129, 0.4); padding: 20px; border-radius: 16px; margin-top: 20px; text-align: left; }
+          .solution-title { font-weight: 900; color: #10b981; font-size: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+
           /* 特殊ステータス表示 */
-          .status-box { margin-top: 30px; padding: 24px; border-radius: 20px; border: 2px dashed var(--card-border); background: var(--input-bg); }
+          .status-box { margin-top: 30px; padding: 24px; border-radius: 20px; border: 2px dashed var(--card-border); background: var(--input-bg); text-align: center; }
           .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; }
           .status-item { padding: 20px; border-radius: 16px; text-align: center; font-family: 'Inter', sans-serif; }
           .status-ok { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; }
@@ -237,7 +227,6 @@ export default function ProcedureWizard() {
           .fade-up-element.visible { opacity: 1; transform: translateY(0); }
         `}} />
 
-        {/* 🌟 エナジー・ウェーブ（SVG背景） */}
         <svg className="energy-svg-bg" viewBox="0 0 100 100" preserveAspectRatio="none">
           <path className="energy-path" d="M -10,50 Q 25,20 50,50 T 110,50" />
           <path className="energy-path" d="M -10,80 Q 30,100 60,60 T 110,20" style={{animationDelay: "2s", opacity: 0.5}} />
@@ -251,10 +240,9 @@ export default function ProcedureWizard() {
           <div className="hamburger-line line3"></div>
         </div>
 
-        {/* 🌌 メニュー展開時の背景オーバーレイ */}
         <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
 
-        {/* 🗄️ サイドメニュー（全ツール網羅） */}
+        {/* 🗄️ サイドメニュー（トラブル解決ナビは辞書に統合されたため削除） */}
         <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
           <div className="menu-title">🧭 TOOL MENU</div>
           <a href="/kpi-detail" className="side-link">📊 獲得進捗・KPI</a>
@@ -265,7 +253,6 @@ export default function ProcedureWizard() {
           <a href="/email-template" className="side-link">✉️ メールテンプレート</a>
           <a href="/procedure-wizard" className="side-link current-page">🗺️ Kraken 手順辞書</a>
           <a href="/simulator" className="side-link">🆚 料金シミュレーター</a>
-          <a href="/trouble-nav" className="side-link">⚡ トラブル解決ナビ</a>
         </div>
 
         {/* 🎈 ナビゲーション & テーマ切り替え */}
@@ -273,7 +260,7 @@ export default function ProcedureWizard() {
           <div className="glass-nav">
             <div className="nav-left">
               <a href="/" className="glass-nav-link">← 司令室に戻る</a>
-              <div className="glass-nav-active">🐙 Kraken マニュアル</div>
+              <div className="glass-nav-active">🐙 Kraken 手順辞書（トラブル解決統合）</div>
             </div>
             <button className="theme-toggle-btn" onClick={toggleTheme}>
               {isDarkMode ? "🎇 NIGHT" : "☀️ DAY"}
@@ -281,7 +268,7 @@ export default function ProcedureWizard() {
           </div>
         </div>
 
-        {/* 🌟 メインレイアウト（Bento UI：左マニュアルリスト / 右コンテンツ） */}
+        {/* 🌟 メインレイアウト（Bento UI） */}
         <div className="main-layout">
           
           {/* 🗂️ 左側：ローカル・マニュアルメニュー */}
@@ -299,9 +286,10 @@ export default function ProcedureWizard() {
             ))}
           </aside>
 
-          {/* 📖 右側：マニュアルコンテンツ（辞書カード） */}
+          {/* 📖 右側：マニュアルコンテンツ */}
           <div className="form-main-area">
             
+            {/* --- 📝 プラン変更 --- */}
             {activeTab === "plan_change" && (
               <div className="dictionary-card">
                 <h2 className="card-title">📝 プラン変更の手順</h2>
@@ -314,6 +302,7 @@ export default function ProcedureWizard() {
               </div>
             )}
 
+            {/* --- ❌ 申込取消 --- */}
             {activeTab === "cancel_process" && (
               <div className="dictionary-card">
                 <h2 className="card-title">❌ 申込取消の手順</h2>
@@ -321,14 +310,15 @@ export default function ProcedureWizard() {
                   <div className="step-item"><div className="step-badge">1</div><div className="step-text">対象アカウントのダッシュボードで <b>「取消にする」</b> をクリック</div></div>
                   <div className="step-item"><div className="step-badge">2</div><div className="step-text"><b>「ユーザータブ」</b> へ移動し <b>「編集」</b> をクリック</div></div>
                   <div className="step-item"><div className="step-badge">3</div><div className="step-text"><b>「お客様がメールアドレスを持っていない」</b> にチェックを入れる</div></div>
-                  <div className="step-item" style={{ borderColor: "#fde68a", background: "rgba(254, 252, 232, 0.5)" }}>
+                  <div className="step-item" style={{ borderColor: "rgba(245, 158, 11, 0.3)", background: "rgba(245, 158, 11, 0.05)" }}>
                     <div className="step-badge" style={{ background: "#f59e0b", boxShadow: "none" }}>!</div>
-                    <div className="step-text" style={{ color: "#92400e" }}>警告が表示されますが、そのまま <b>「無視」</b> して進めてOKです。</div>
+                    <div className="step-text" style={{ color: "#d97706" }}>警告が表示されますが、そのまま <b>「無視」</b> して進めてOKです。</div>
                   </div>
                 </div>
               </div>
             )}
 
+            {/* --- ⚡ キャンセル確認 --- */}
             {activeTab === "status_check" && (
               <div className="dictionary-card">
                 <h2 className="card-title">⚡ キャンセル状況の確認方法</h2>
@@ -347,30 +337,91 @@ export default function ProcedureWizard() {
               </div>
             )}
 
+            {/* --- ⚙️ SWエラー対応 (トラブルナビから統合) --- */}
+            {activeTab === "sw_error" && (
+              <div className="dictionary-card">
+                <h2 className="card-title">⚙️ スイッチング(SW)エラーへの対応</h2>
+                <div className="step-list">
+                  <div className="step-item">
+                    <div className="step-badge">1</div>
+                    <div className="step-text"><b>供給地点特定番号（22桁）</b>が現在の電力会社のものと完全に一致しているか確認してください。</div>
+                  </div>
+                  <div className="step-item">
+                    <div className="step-badge">2</div>
+                    <div className="step-text">名義人が現在契約中の名義（旧姓や家族名義でないか）と一致しているか確認。</div>
+                  </div>
+                </div>
+                <div className="status-box">
+                  <div style={{ fontWeight: 900, color: "var(--text-sub)", marginBottom: "15px" }}>💡 チェック後のアクション</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
+                    <div className="solution-panel" style={{ background: "rgba(225, 29, 72, 0.1)", borderColor: "rgba(225, 29, 72, 0.4)", marginTop: 0 }}>
+                      <div className="solution-title" style={{ color: "#e11d48" }}>❌ 番号/名義ミス</div>
+                      <div style={{ fontSize: "12px", color: "var(--text-main)", fontWeight: 800 }}>正しい情報を再確認し、システム上の情報を修正して<b>再連携</b>を行ってください。</div>
+                    </div>
+                    <div className="solution-panel" style={{ marginTop: 0 }}>
+                      <div className="solution-title">✅ 全て一致している</div>
+                      <div style={{ fontSize: "12px", color: "var(--text-main)", fontWeight: 800 }}>特殊な契約状態の可能性があるため、<b>管理者へエスカレーション</b>してください。</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* --- 📧 メアド重複 (トラブルナビから統合リッチ版) --- */}
             {activeTab === "email_dup" && (
               <div className="dictionary-card">
-                <h2 className="card-title">📧 メアド重複対処法</h2>
+                <h2 className="card-title">📧 メールアドレス重複エラーへの対応</h2>
                 <div className="step-list">
-                  <div className="step-item"><div className="step-badge">1</div><div className="step-text">重複エラーが出ているメールアドレスを <b>ユーザー検索</b> で特定する</div></div>
-                  <div className="step-item"><div className="step-badge">2</div><div className="step-text">過去のアカウントが「有効」か「解約済み」かを確認する</div></div>
-                  <div className="step-item"><div className="step-badge">3</div><div className="step-text">旧アカウントのメアドの末尾に <b>「.bh」</b> などを付けてダミー化（無効化）する</div></div>
-                  <div className="step-item"><div className="step-badge">4</div><div className="step-text">新しく作成するアカウントに、正しいメールアドレスを登録し直す</div></div>
+                  <div className="step-item">
+                    <div className="step-badge">1</div>
+                    <div className="step-text">ユーザー検索で<b>重複している過去アカウント</b>を特定します。</div>
+                  </div>
+                  <div className="step-item">
+                    <div className="step-badge">2</div>
+                    <div className="step-text">過去のアカウントが現在も「有効」かを確認します。</div>
+                  </div>
+                </div>
+                <div className="solution-panel" style={{ marginTop: "30px" }}>
+                  <div className="solution-title">💡 解決策 A：エイリアスの活用</div>
+                  <div style={{ fontSize: "13px", color: "var(--text-main)", fontWeight: 700 }}>
+                    Gmail等の場合、既存アドレスに<b>「+1」</b>などを付けたアドレスでの登録をご案内してください。<br/>
+                    例: sample<b>+1</b>@gmail.com
+                  </div>
+                </div>
+                <div className="solution-panel" style={{ marginTop: "15px", background: "rgba(59, 130, 246, 0.1)", borderColor: "rgba(59, 130, 246, 0.4)" }}>
+                  <div className="solution-title" style={{ color: "#2563eb" }}>💡 解決策 B：完全削除依頼</div>
+                  <div style={{ fontSize: "13px", color: "var(--text-main)", fontWeight: 700 }}>
+                    旧アカウントが不要な場合は、サポート窓口へ<b>「退会処理（データ削除）」</b>を依頼してから再登録を行ってください。
+                  </div>
                 </div>
               </div>
             )}
 
+            {/* --- ❌ 無効化＆BH処理 (トラブルナビから統合版) --- */}
             {activeTab === "bh_process" && (
               <div className="dictionary-card">
-                <h2 className="card-title">🗑️ 無効化＆BH処理</h2>
+                <h2 className="card-title">🗑️ 無効化 ＆ ブラックホール(BH)処理</h2>
                 <div className="step-list">
-                  <div className="step-item"><div className="step-badge">1</div><div className="step-text">ユーザー情報の <b>「編集」</b> を開く</div></div>
-                  <div className="step-item"><div className="step-badge">2</div><div className="step-text">氏名の後ろ、またはメールアドレスの後ろに <b>「_BH」</b> を追記する</div></div>
-                  <div className="step-item"><div className="step-badge">3</div><div className="step-text">アカウントのステータスを <b>「無効（Inactive）」</b> に変更して保存する</div></div>
+                  <div className="step-item">
+                    <div className="step-badge">1</div>
+                    <div className="step-text">Kraken上でステータスを<b>「無効（Inactive）」</b>に変更します。</div>
+                  </div>
+                  <div className="step-item">
+                    <div className="step-badge">2</div>
+                    <div className="step-text">BH処理用専用シートへ<b>顧客IDと理由</b>を正確に入力してください。</div>
+                  </div>
+                  <div className="step-item">
+                    <div className="step-badge">3</div>
+                    <div className="step-text">完了！翌日のバッチ処理で自動的に除外されます。</div>
+                  </div>
                 </div>
-                <div className="note-tag">⚠️ 重要：ブラックホール（BH）処理を行った後は、必ず申し送り事項に記録を残してください。</div>
+                <div style={{ marginTop: "30px", padding: "15px", background: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.4)", borderRadius: "12px", fontSize: "13px", fontWeight: 800, color: "#d97706" }}>
+                  ⚠️ 注意：お客様には「キャンセル処理が完了しました」とお伝えして問題ありません。
+                </div>
               </div>
             )}
 
+            {/* --- 📦 MOVE OUT（未完成） --- */}
             {activeTab === "move_out" && (
               <div className="dictionary-card">
                 <h2 className="card-title">📦 MOVE OUT（引越退去）処理</h2>
@@ -385,6 +436,7 @@ export default function ProcedureWizard() {
               </div>
             )}
 
+            {/* --- ⏱️ 直近再点対応 --- */}
             {activeTab === "recent_repoint" && (
               <div className="dictionary-card">
                 <h2 className="card-title">⏱️ 直近再点対応</h2>
@@ -396,6 +448,7 @@ export default function ProcedureWizard() {
               </div>
             )}
 
+            {/* --- 🚫 無効なアドレス対処法 --- */}
             {activeTab === "invalid_address" && (
               <div className="dictionary-card">
                 <h2 className="card-title">🚫 無効なアドレス（住所）対処法</h2>
@@ -407,6 +460,7 @@ export default function ProcedureWizard() {
               </div>
             )}
 
+            {/* --- 🏠 住所変更＆SPIN入力 --- */}
             {activeTab === "address_spin" && (
               <div className="dictionary-card">
                 <h2 className="card-title">🏠 住所変更＆SPIN入力</h2>
@@ -422,7 +476,6 @@ export default function ProcedureWizard() {
           </div>
         </div>
 
-        {/* 🍞 通知 */}
         <div id="toast" className={toast.show ? "show" : ""}>{toast.msg}</div>
       </main>
     </>
