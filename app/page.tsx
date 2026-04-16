@@ -3,13 +3,22 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-// 🌍 ソアリンのフライトルート（世界中の絶景）
-const SOARING_SCENES = [
+// ☀️ デイ・フライトルート（大自然と絶景）
+const DAY_SCENES = [
   "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2000&auto=format&fit=crop", // スイスアルプスの山脈
   "https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?q=80&w=2000&auto=format&fit=crop", // 南国の透き通る海
-  "https://images.unsplash.com/photo-1474044159687-1ee9f3a51722?q=80&w=2000&auto=format&fit=crop", // グランドキャニオンの渓谷
+  "https://images.unsplash.com/photo-1474044159687-1ee9f3a51722?q=80&w=2000&auto=format&fit=crop", // グランドキャニオン
   "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?q=80&w=2000&auto=format&fit=crop", // アフリカのサバンナ
-  "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?q=80&w=2000&auto=format&fit=crop", // 大都市の夜景
+  "https://images.unsplash.com/photo-1506260408121-e353d10b87c7?q=80&w=2000&auto=format&fit=crop", // 壮大な森林と山
+];
+
+// 🌌 ナイト・フライトルート（Macスクリーンセーバー級の極上夜景！）
+const NIGHT_SCENES = [
+  "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=2000&auto=format&fit=crop", // ニューヨーク・マンハッタンの夜景
+  "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=2000&auto=format&fit=crop", // 東京の煌めく大都市夜景
+  "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=2000&auto=format&fit=crop", // ドバイの空中都市夜景
+  "https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?q=80&w=2000&auto=format&fit=crop", // 香港のサイバーパンク夜景
+  "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?q=80&w=2000&auto=format&fit=crop", // ロサンゼルス・ハイウェイの光の帯
 ];
 
 export default function Home() {
@@ -23,6 +32,9 @@ export default function Home() {
   
   // ✈️ 現在のフライトシーン
   const [currentScene, setCurrentScene] = useState(0);
+
+  // 🌍 モードに合わせて飛行ルート（写真リスト）を切り替える！
+  const activeScenes = isDarkMode ? NIGHT_SCENES : DAY_SCENES;
 
   const [newsText, setNewsText] = useState("【お知らせ】新システム「Team Portal」稼働開始！操作方法やバグの報告は管理者までお願いいたします！");
   const [isEditingNews, setIsEditingNews] = useState(false);
@@ -49,20 +61,23 @@ export default function Home() {
 
     const savedTheme = localStorage.getItem("team_portal_theme");
     if (savedTheme === "dark") setIsDarkMode(true);
+  }, []);
 
-    // ✈️ フライトエンジン（12秒ごとに次の景色へシームレス移行）
+  useEffect(() => {
+    // ✈️ フライトエンジン（モードが切り替わったら最初の景色からスタート）
+    setCurrentScene(0);
     const flightInterval = setInterval(() => {
-      setCurrentScene((prev) => (prev + 1) % SOARING_SCENES.length);
+      setCurrentScene((prev) => (prev + 1) % activeScenes.length);
     }, 12000);
 
     return () => clearInterval(flightInterval);
-  }, []);
+  }, [isDarkMode, activeScenes.length]);
 
   const toggleTheme = () => {
     const newTheme = !isDarkMode;
     setIsDarkMode(newTheme);
     localStorage.setItem("team_portal_theme", newTheme ? "dark" : "light");
-    showToast(newTheme ? "🌌 ミッドナイト・フライト（夜間飛行）へ移行します" : "☀️ デイ・フライト（昼間飛行）へ移行します");
+    showToast(newTheme ? "🌌 ミッドナイト・フライト（夜間飛行ルート）へ移行します" : "☀️ デイ・フライト（昼間飛行ルート）へ移行します");
   };
 
   const [isSimOpen, setIsSimOpen] = useState(false);
@@ -176,9 +191,9 @@ export default function Home() {
     <>
       {/* ✈️ ソアリン・フライトエンジン（全画面背景マッピング） */}
       <div className={`soaring-container ${isDarkMode ? "dark-sky" : ""}`}>
-        {SOARING_SCENES.map((sceneUrl, index) => (
+        {activeScenes.map((sceneUrl, index) => (
           <div
-            key={index}
+            key={sceneUrl} // URLをキーにすることで、モード切替時に綺麗にフェードします
             className={`soaring-scene ${currentScene === index ? "active" : ""}`}
             style={{ backgroundImage: `url(${sceneUrl})` }}
           />
@@ -208,7 +223,7 @@ export default function Home() {
           
           /* 背景の景色を邪魔しない、光と影のフィルター */
           .soaring-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.05); z-index: 2; transition: 0.8s; pointer-events: none; }
-          .dark-sky .soaring-overlay { background: rgba(10, 15, 30, 0.75); } /* 深夜の夜間飛行フィルター */
+          .dark-sky .soaring-overlay { background: rgba(5, 10, 20, 0.6); } /* 夜間飛行用の極上夜景フィルター */
 
           /* 🌤️ 全体レイアウト（背景透過前提） */
           .app-wrapper { min-height: 100vh; padding: 20px; font-family: "Helvetica Neue", Arial, sans-serif; overflow-x: hidden; position: relative; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
@@ -366,7 +381,64 @@ export default function Home() {
             </div>
           )}
 
-          {/*グリッド (順番変更済・究極透過仕様) */}
+          {/* ⏳ 納期シミュレーター モーダル本体 */}
+          <div className={`modal-overlay ${isSimOpen ? "open" : ""}`} onClick={() => setIsSimOpen(false)}>
+            <div className="custom-modal sim-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-title">⏳ 納期シミュレーター</div>
+              <label style={{ fontSize: "11px", fontWeight: 800, color: "#cbd5e1", marginBottom: "5px", display: "block" }}>基準日（受付日）を変更</label>
+              <input type="date" className="sim-input" value={targetDate} onChange={(e) => { setTargetDate(e.target.value); calculateDeadlines(e.target.value); }} />
+              {result && (
+                <div className="result-box">
+                  <div className="result-item"><span className="res-label">3日後（通常）</span><span className="res-value">{result.day3}</span></div>
+                  <div className="result-item"><span className="res-label">5日後（15時前）</span><span className="res-value">{result.day5Before}</span></div>
+                  <div className="result-item"><span className="res-label">5日後（15時後）</span><span className="res-value">{result.day5After}</span></div>
+                </div>
+              )}
+              <button className="btn-close-modal" onClick={() => { setIsSimOpen(false); setResult(null); setTargetDate(""); }}>閉じる</button>
+            </div>
+          </div>
+
+          {/* 📊 KPI モーダル */}
+          <div className={`modal-overlay ${isKpiOpen ? "open" : ""}`} onClick={() => setIsKpiOpen(false)}>
+            <div className="custom-modal kpi-modal-box" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-title">📊 本日の進捗詳細</div>
+              <div className="result-box" style={{ border: "none", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
+                <div style={{ textAlign: "center", marginBottom: "10px" }}>
+                  <span className="kpi-current" style={{ fontSize: "36px" }}>{mockKpi.current}</span><span className="kpi-target" style={{ color: "#cbd5e1" }}> / 目標 {mockKpi.target}件</span>
+                </div>
+                <div className="kpi-bar-bg"><div className="kpi-bar-fill" style={{ width: `${progressPercent}%` }}></div></div>
+                <div style={{ textAlign: "right", fontSize: "12px", fontWeight: 800, color: "#ec4899", marginTop: "5px" }}>達成率 {progressPercent}%</div>
+              </div>
+              <div className="member-list">
+                <div style={{ fontSize: "12px", fontWeight: 800, color: "#cbd5e1", marginBottom: "8px", marginLeft: "5px" }}>メンバー別 内訳</div>
+                {mockKpi.members.map((member, index) => (
+                  <div key={index} className="member-row" style={{ background: "rgba(0,0,0,0.3)", borderColor: "rgba(255,255,255,0.1)" }}>
+                    <span className="member-name" style={{ color: "#fff" }}>👤 {member.name}</span>
+                    <span className="member-count">{member.count} 件</span>
+                  </div>
+                ))}
+              </div>
+              <button className="btn-qa btn-sim" style={{ width: "100%", marginTop: "15px", padding: "12px", justifyContent: "center", fontSize: "14px", background: "rgba(255,255,255,0.1)", borderColor: "rgba(255,255,255,0.2)", color: "#fff", textShadow: "none" }} onClick={() => goToPage("/kpi-detail")}>
+                🏆 もっと詳しいランキングと目標を見る
+              </button>
+              <button className="btn-close-modal" onClick={() => setIsKpiOpen(false)}>閉じる</button>
+            </div>
+          </div>
+
+          {/* 📝 クイックメモ モーダル */}
+          <div className={`modal-overlay ${isMemoOpen ? "open" : ""}`} onClick={() => setIsMemoOpen(false)}>
+            <div className="custom-modal memo-modal-box" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-title">📝 クイック一時メモ</div>
+              <textarea className="memo-textarea" placeholder="電話中のメモや、一時的なテキストの退避に。&#10;入力した内容は自動でブラウザに保存されます。" value={memoText} onChange={handleMemoChange} />
+              <div className="memo-actions">
+                <button className="btn-memo-action" style={{background: "rgba(79, 70, 229, 0.2)", color: "#a5b4fc", border: "1px solid rgba(79, 70, 229, 0.5)"}} onClick={handleCopyMemo}>📋 全文コピー</button>
+                <button className="btn-memo-action" style={{background: "rgba(225, 29, 72, 0.2)", color: "#fda4af", border: "1px solid rgba(225, 29, 72, 0.5)"}} onClick={handleClearMemo}>🗑️ 全消去</button>
+              </div>
+              <button className="btn-close-modal" onClick={() => setIsMemoOpen(false)}>閉じる</button>
+            </div>
+          </div>
+
+          {/*グリッド (究極透過仕様) */}
           <div className="grid-layout">
             <section className="category-card" onClick={() => setIsKpiOpen(true)}>
               <h2 className="category-title">📊 本日の進捗・KPI</h2>
@@ -428,9 +500,31 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ⏳ モーダル等は元のガラス仕様を維持 */}
-        {/* ... (納期・KPI・メモ モーダル本体) ... */}
-        {/* code block shorted for display, but keep them in actual file */}
+        {/* ✨ 浮遊ユーティリティ（カナ・住所検索） */}
+        <details className="quick-utility">
+          <summary className="utility-fab">🔍</summary>
+          <div className="utility-content">
+            <h4 style={{margin: "0 0 12px 0", fontSize: "15px", fontWeight: 900, color: "#fff", borderBottom: "2px dashed rgba(255,255,255,0.2)", paddingBottom: "8px"}}>🔤 住所クイック検索</h4>
+            
+            <input 
+              type="text" 
+              placeholder="郵便番号を入力 (例: 1000001)" 
+              className="util-input" 
+              value={utilInput}
+              onChange={(e) => setUtilInput(e.target.value)}
+            />
+            
+            <div 
+              className={`util-result-box ${isSearching ? 'util-loading' : ''}`}
+              onClick={copyUtilResult}
+              title={utilResult.includes("📍") ? "クリックでコピー" : ""}
+            >
+              {utilResult}
+            </div>
+          </div>
+        </details>
+
+        <div id="toast" className={toast.show ? "show" : ""}>{toast.msg}</div>
       </main>
     </>
   );
