@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 export default function Simulator() {
   const router = useRouter();
 
-  // 🌟 入力状態の管理（現状ヒアリング）
+  // 🌟 入力状態の管理
   const [housingType, setHousingType] = useState<"family" | "mansion">("family");
   const [currentLine, setCurrentLine] = useState<string>("sb_hikari");
   const [currentPlan, setCurrentPlan] = useState<string>("1g");
@@ -19,13 +19,13 @@ export default function Simulator() {
   const [addPhone, setAddPhone] = useState<boolean>(true);
   const [cbAmount, setCbAmount] = useState<number | string>(30000);
   
-  // ✅ フレッツ光専用の「半年間無料（実質）」オプション
+  // ✅ フレッツ光専用オプション
   const [applyFletsFree, setApplyFletsFree] = useState<boolean>(false);
 
-  // 💰 初期費用・解約金の管理（新規追加！）
-  const [initialFee, setInitialFee] = useState<number | string>(3300); // 事務手数料
-  const [constructionFee, setConstructionFee] = useState<number | string>(22000); // 工事費
-  const [cancellationFee, setCancellationFee] = useState<number | string>(0); // 現回線の解約金
+  // 💰 初期費用・解約金の管理
+  const [initialFee, setInitialFee] = useState<number | string>(3300);
+  const [constructionFee, setConstructionFee] = useState<number | string>(22000);
+  const [cancellationFee, setCancellationFee] = useState<number | string>(0);
 
   // 🗂️ キャリア別マスタデータ
   const masterData: Record<string, any> = {
@@ -74,88 +74,51 @@ export default function Simulator() {
     else if (currentPlan === "router") setCurrentPlan("1g");
   }, [currentLine]);
 
-  // 🌟 フレッツ光以外が選ばれたら、フレッツ専用トグルをOFFにする
   useEffect(() => {
     if (!targetCarrier.startsWith("flets")) {
       setApplyFletsFree(false);
     }
   }, [targetCarrier]);
 
-  // 🧮 セット割判定
+  // 🧮 セット割＆プロモ計算
   const getSetDiscount = (carrierId: string, mobile: string) => {
-    let amount = 0;
-    let isApplied = false;
-    let desc = "スマホセット割 対象外";
-
-    if ((carrierId.startsWith("sb")) && (mobile === "sb" || mobile === "ymobile")) {
-      amount = 1100; isApplied = true; desc = "SB/ワイモバ 割引適用！";
-    } else if ((carrierId.startsWith("docomo")) && mobile === "docomo") {
-      amount = 1100; isApplied = true; desc = "ドコモ光セット割 適用！";
-    } else if ((carrierId === "au_1g" || carrierId === "biglobe_1g") && (mobile === "au" || mobile === "uq")) {
-      amount = 1100; isApplied = true; desc = "au/UQ スマートバリュー適用！";
-    }
+    let amount = 0; let isApplied = false; let desc = "スマホセット割 対象外";
+    if ((carrierId.startsWith("sb")) && (mobile === "sb" || mobile === "ymobile")) { amount = 1100; isApplied = true; desc = "SB/ワイモバ 割引適用！"; } 
+    else if ((carrierId.startsWith("docomo")) && mobile === "docomo") { amount = 1100; isApplied = true; desc = "ドコモ光セット割 適用！"; } 
+    else if ((carrierId === "au_1g" || carrierId === "biglobe_1g") && (mobile === "au" || mobile === "uq")) { amount = 1100; isApplied = true; desc = "au/UQ スマートバリュー適用！"; }
     return { amount, isApplied, desc };
   };
 
-  // 🧮 公式のキャンペーン判定 (キャリアがやってる公式割引)
   const getOfficialPromo = (carrierId: string, baseFee: number) => {
-    let promoValue = 0;
-    let promoText = "";
-
-    if (carrierId === "sb_1g") {
-      promoValue = baseFee * 3;
-      promoText = "🎊 SB光公式: 基本料金 3ヶ月間無料";
-    } else if (carrierId === "sb_10g") {
-      promoValue = baseFee * 6;
-      promoText = "🎊 SB光公式: 基本料金 6ヶ月間無料";
-    } else if (carrierId === "docomo_10g") {
-      promoValue = (baseFee - 500) * 6;
-      promoText = "🎊 ドコモ公式: 6ヶ月間 月額500円";
-    }
+    let promoValue = 0; let promoText = "";
+    if (carrierId === "sb_1g") { promoValue = baseFee * 3; promoText = "🎊 SB光公式: 基本料金 3ヶ月間無料"; } 
+    else if (carrierId === "sb_10g") { promoValue = baseFee * 6; promoText = "🎊 SB光公式: 基本料金 6ヶ月間無料"; } 
+    else if (carrierId === "docomo_10g") { promoValue = (baseFee - 500) * 6; promoText = "🎊 ドコモ公式: 6ヶ月間 月額500円"; }
     return { promoValue, promoText };
   };
 
-  // 🧮 全体の料金計算
   const calculateDiscounts = () => {
     const carrier = masterData[targetCarrier];
     const cNet = Number(currentNet) || 0;
     const cPhone = Number(currentPhone) || 0;
-    
-    // 【現状】年間コスト
     const currentMonthly = cNet + cPhone;
     const currentAnnual = currentMonthly * 12;
-
-    // 【新提案】月額コスト
     const baseFee = carrier[housingType];
     const phoneFee = addPhone ? carrier.phone : 0;
-    
-    // ✅ 初年度のみ発生する「追加費用」の合算（事務手数料＋工事費＋解約金）
     const firstYearExtraCosts = (Number(initialFee) || 0) + (Number(constructionFee) || 0) + (Number(cancellationFee) || 0);
-
-    // ✅ フレッツ光「完全」実質無料化に必要なトータル額（半年分の月額 ＋ 初期負担すべて）
     const fletsHalfYearCost = targetCarrier.startsWith("flets") ? (baseFee + phoneFee) * 6 : 0;
     const requiredCbForFlets = fletsHalfYearCost + firstYearExtraCosts;
-
-    // セット割＆公式キャンペーンの取得
     const setDiscountInfo = getSetDiscount(targetCarrier, mobileCarrier);
     const officialPromoInfo = getOfficialPromo(targetCarrier, baseFee);
-
-    // 新しい月額と、初年度の年間ベースコスト（月額12ヶ月 ＋ 追加費用）
     const newMonthly = baseFee + phoneFee - setDiscountInfo.amount;
     const newAnnualBase = (newMonthly * 12) + firstYearExtraCosts;
-    
-    // キャッシュバック＋公式キャンペーン を還元総額とする
     const totalPromoDiscount = (Number(cbAmount) || 0) + officialPromoInfo.promoValue;
-    
-    // 最終的な初年度トータルコストと、節約額
     const newAnnualTotal = newAnnualBase - totalPromoDiscount;
     const annualSavings = currentAnnual - newAnnualTotal;
 
     return { 
-      baseFee, phoneFee, currentMonthly, newMonthly, 
-      currentAnnual, newAnnualBase, newAnnualTotal, annualSavings,
-      totalPromoDiscount, carrierName: carrier.name,
-      setDiscount: setDiscountInfo, officialPromo: officialPromoInfo,
+      baseFee, phoneFee, currentMonthly, newMonthly, currentAnnual, newAnnualBase, newAnnualTotal, annualSavings,
+      totalPromoDiscount, carrierName: carrier.name, setDiscount: setDiscountInfo, officialPromo: officialPromoInfo,
       fletsHalfYearCost, firstYearExtraCosts, requiredCbForFlets
     };
   };
@@ -165,59 +128,136 @@ export default function Simulator() {
   const newChartWidth = results.currentAnnual > 0 ? Math.max(0, Math.min(100, Math.floor((results.newAnnualTotal / results.currentAnnual) * 100))) : 0;
 
   return (
-    <div className="glass-business-theme">
+    <div className="pirates-theme">
+      {/* ✨ 究極魔法のCSS（9つのデザイン技術を投入） */}
       <style dangerouslySetInnerHTML={{ __html: `
-        .glass-business-theme * { box-sizing: border-box; }
-        .glass-business-theme { font-family: 'Inter', 'Noto Sans JP', sans-serif; padding: 40px 20px; color: #334155; font-size: 14px; min-height: 100vh; background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 50%, #f8fafc 100%); overflow-x: hidden; }
-        .container { max-width: 1100px; margin: 0 auto; }
-        .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
-        .btn-back { background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(255,255,255,0.9); padding: 10px 20px; border-radius: 12px; font-weight: 800; color: #475569; cursor: pointer; transition: 0.2s; backdrop-filter: blur(4px); }
-        .btn-back:hover { background: #fff; transform: translateX(-3px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .page-title { font-size: 28px; font-weight: 900; background: linear-gradient(135deg, #0f172a 0%, #4f46e5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
-        .sim-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
-        @media (max-width: 850px) { .sim-layout { grid-template-columns: 1fr; } }
-        .glass-panel { background: rgba(255, 255, 255, 0.55); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 24px; padding: 30px; box-shadow: 0 10px 30px rgba(31, 38, 135, 0.05); display: flex; flex-direction: column; gap: 20px; }
-        .panel-title { font-size: 18px; font-weight: 900; color: #1e293b; margin: 0; display: flex; align-items: center; gap: 10px; border-bottom: 2px dashed #cbd5e1; padding-bottom: 10px; }
-        .input-group { display: flex; flex-direction: column; gap: 8px; }
-        .input-label { display: flex; justify-content: space-between; font-weight: 800; color: #475569; font-size: 13px; }
-        .val-display { color: #ec4899; font-size: 16px; font-weight: 900; }
-        .tab-group { display: flex; gap: 10px; background: rgba(255,255,255,0.5); padding: 5px; border-radius: 12px; border: 1px solid #e2e8f0; }
-        .tab-btn { flex: 1; padding: 8px; border: none; border-radius: 8px; font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.2s; background: transparent; color: #64748b; }
-        .tab-btn.active { background: #fff; color: #4f46e5; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .sim-select { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #cbd5e1; background: rgba(255,255,255,0.7); font-size: 14px; font-weight: 800; color: #334155; outline: none; transition: 0.2s; cursor: pointer; }
-        .option-box { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.7); padding: 12px 16px; border-radius: 12px; border: 1px solid #e2e8f0; cursor: pointer; }
-        .option-box.active-promo { background: linear-gradient(135deg, #fffbeb, #fef3c7); border-color: #fde68a; cursor: default; }
-        .cb-input { background: rgba(255,255,255,0.9); border: 2px solid #fde68a; border-radius: 8px; padding: 8px 12px; width: 130px; font-weight: 900; font-size: 16px; color: #d97706; text-align: right; outline: none; transition: 0.2s; }
-        .cb-input:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.2); }
+        .pirates-theme * { box-sizing: border-box; }
         
-        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #4f46e5; }
-        input:checked + .slider:before { transform: translateX(20px); }
+        /* 🌊 1. ジェネレーティブUI & カームデザイン (深海の波紋と霧) */
+        .pirates-theme { 
+          font-family: 'Georgia', 'Noto Serif JP', serif; 
+          min-height: 100vh; 
+          background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+          color: #e2e8f0; padding: 40px 20px; overflow-x: hidden; position: relative; z-index: 1;
+        }
+        .abyss-fog {
+          position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.15; mix-blend-mode: screen;
+          background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="f"><feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="3" result="noise" /><feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.5 0" /></filter><rect width="100%" height="100%" filter="url(%23f)" /></svg>');
+          animation: driftFog 60s linear infinite;
+        }
+        @keyframes driftFog { 0% { transform: scale(1.1) translateX(0); } 100% { transform: scale(1.1) translateX(-20%); } }
 
-        .result-hero { background: linear-gradient(135deg, #1e293b, #0f172a); color: #fff; padding: 25px; border-radius: 20px; text-align: center; position: relative; overflow: hidden; }
-        .hero-amount { font-size: 42px; font-weight: 900; color: #10b981; line-height: 1; margin: 10px 0; }
-        .hero-amount.negative { color: #ef4444; }
-        .bar-wrap { width: 100%; background: rgba(255,255,255,0.5); border-radius: 10px; height: 16px; border: 1px solid #cbd5e1; overflow: hidden; }
-        .bar-fill { height: 100%; border-radius: 10px; transition: width 1s ease-in-out; }
-        .bar-current { background: #94a3b8; }
-        .bar-new { background: linear-gradient(90deg, #3b82f6, #4f46e5); }
-        .breakdown-box { background: rgba(255,255,255,0.7); border: 1px dashed #cbd5e1; border-radius: 12px; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; }
-        .bd-val { font-size: 16px; font-weight: 900; color: #334155; }
+        /* 🧭 9. イマーシブ要素（背景の巨大な羅針盤の透かし） */
+        .compass-watermark {
+          position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+          width: 80vh; height: 80vh; border: 2px dashed rgba(251, 191, 36, 0.05); border-radius: 50%; z-index: -1; pointer-events: none;
+          display: flex; align-items: center; justify-content: center; animation: slowSpin 120s linear infinite;
+        }
+        .compass-watermark::before, .compass-watermark::after { content: ''; position: absolute; background: rgba(251, 191, 36, 0.03); }
+        .compass-watermark::before { width: 2px; height: 100%; } .compass-watermark::after { width: 100%; height: 2px; }
+        @keyframes slowSpin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+        .container { max-width: 1200px; margin: 0 auto; position: relative; }
+        
+        .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; }
+        .btn-back { background: rgba(15,23,42,0.8); border: 1px solid rgba(251, 191, 36, 0.3); padding: 12px 24px; border-radius: 30px; font-weight: 800; color: #fbbf24; cursor: pointer; transition: 0.3s; backdrop-filter: blur(10px); font-family: 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .btn-back:hover { background: rgba(251, 191, 36, 0.1); border-color: #fbbf24; transform: translateX(-5px); box-shadow: 0 0 20px rgba(251, 191, 36, 0.3); }
+
+        /* 👑 5. ダイナミック・タイポグラフィ（黄金の輝き） */
+        .page-title { 
+          font-size: 32px; font-weight: 900; margin: 0; letter-spacing: 3px;
+          background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+          background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          animation: goldShine 4s linear infinite; filter: drop-shadow(0 4px 10px rgba(251,191,36,0.3));
+        }
+        @keyframes goldShine { to { background-position: 200% center; } }
+
+        /* 📱 8. バーティカルUI対応（レスポンシブなBentoグリッド） */
+        .sim-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; perspective: 1000px; }
+        @media (max-width: 950px) { .sim-layout { grid-template-columns: 1fr; } }
+
+        /* 🏴‍☠️ 4. マイクロインタラクション＆深度（宝の地図パネル） */
+        .glass-panel { 
+          background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(25px); 
+          border: 1px solid rgba(255,255,255,0.05); border-top: 1px solid rgba(251, 191, 36, 0.3); border-bottom: 1px solid rgba(251, 191, 36, 0.1);
+          border-radius: 24px; padding: 35px; box-shadow: 0 25px 50px rgba(0,0,0,0.7), inset 0 0 30px rgba(0,0,0,0.4); 
+          display: flex; flex-direction: column; gap: 24px; transform-style: preserve-3d; transition: transform 0.4s ease, box-shadow 0.4s ease;
+        }
+        .glass-panel:hover { transform: translateY(-5px) rotateX(1deg); box-shadow: 0 30px 60px rgba(0,0,0,0.9), inset 0 0 40px rgba(251,191,36,0.05); }
+        
+        .panel-title { font-size: 20px; font-weight: 900; color: #fbbf24; margin: 0; display: flex; align-items: center; gap: 12px; border-bottom: 1px dashed rgba(251, 191, 36, 0.3); padding-bottom: 15px; letter-spacing: 1px; text-shadow: 0 2px 5px rgba(0,0,0,0.8); transform: translateZ(20px); }
+
+        /* 🗃️ 2. Bento UI（入力項目群） */
+        .input-group { display: flex; flex-direction: column; gap: 10px; transform: translateZ(10px); }
+        .input-label { display: flex; justify-content: space-between; font-weight: 800; color: #94a3b8; font-size: 13px; font-family: 'Inter', sans-serif; letter-spacing: 0.5px; }
+        .val-display { color: #fde047; font-size: 16px; font-weight: 900; text-shadow: 0 0 10px rgba(253,224,71,0.4); }
+        
+        .tab-group { display: flex; gap: 8px; background: rgba(0,0,0,0.4); padding: 6px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.3s; background: transparent; color: #64748b; font-family: 'Inter', sans-serif; }
+        .tab-btn.active { background: rgba(251, 191, 36, 0.15); color: #fde047; border: 1px solid rgba(251, 191, 36, 0.4); box-shadow: 0 0 15px rgba(251,191,36,0.2); }
+
+        .sim-select, .sim-input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.5); font-size: 15px; font-weight: 800; color: #fff; outline: none; transition: 0.3s; cursor: pointer; font-family: 'Inter', sans-serif; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); }
+        .sim-select:focus, .sim-input:focus { border-color: #fbbf24; box-shadow: 0 0 0 3px rgba(251,191,36,0.15), inset 0 2px 5px rgba(0,0,0,0.5); background: rgba(0,0,0,0.7); }
+        .sim-select option { background: #0f172a; color: #fff; }
+
+        .range-slider { -webkit-appearance: none; width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 5px; outline: none; transition: 0.2s; }
+        .range-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #fbbf24; cursor: pointer; box-shadow: 0 0 10px rgba(251,191,36,0.6); }
+
+        /* 🔘 6. Action-First（重要オプションとトグル） */
+        .option-box { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.3); padding: 16px 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.3s; transform: translateZ(15px); font-family: 'Inter', sans-serif; }
+        .option-box:hover { background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15); }
+        
+        .active-promo { background: radial-gradient(circle at right, rgba(251,191,36,0.1) 0%, rgba(0,0,0,0.5) 100%); border: 1px solid rgba(251,191,36,0.4); box-shadow: inset 0 0 20px rgba(251,191,36,0.05); cursor: default; }
+        .cb-input { background: rgba(0,0,0,0.8); border: 2px solid #fbbf24; border-radius: 10px; padding: 10px 15px; width: 140px; font-weight: 900; font-size: 18px; color: #fde047; text-align: right; outline: none; transition: 0.3s; box-shadow: 0 0 15px rgba(251,191,36,0.1); }
+        .cb-input:focus { box-shadow: 0 0 20px rgba(251,191,36,0.4), inset 0 0 10px rgba(251,191,36,0.2); }
+        
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); transition: .4s; border-radius: 34px; border: 1px solid rgba(255,255,255,0.2); box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: #94a3b8; transition: .4s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        input:checked + .slider { background-color: rgba(251,191,36,0.2); border-color: #fbbf24; }
+        input:checked + .slider:before { transform: translateX(22px); background-color: #fbbf24; box-shadow: 0 0 10px #fbbf24; }
+
+        /* 💎 お宝発見エリア（右側パネル） */
+        .result-hero { background: radial-gradient(ellipse at center, rgba(251,191,36,0.15) 0%, rgba(0,0,0,0.6) 100%); border: 1px solid rgba(251,191,36,0.3); color: #fff; padding: 35px 20px; border-radius: 20px; text-align: center; position: relative; overflow: hidden; box-shadow: inset 0 0 40px rgba(0,0,0,0.8); transform: translateZ(30px); }
+        
+        /* 息づく黄金の数字 */
+        .hero-amount { font-size: 56px; font-weight: 900; line-height: 1; margin: 15px 0; font-family: 'Inter', sans-serif; letter-spacing: -2px; background: linear-gradient(to bottom, #fef08a, #f59e0b, #b45309); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 5px 15px rgba(245,158,11,0.5)); animation: pulseTreasure 2s infinite alternate; }
+        .hero-amount.negative { background: linear-gradient(to bottom, #fca5a5, #ef4444, #9f1239); -webkit-text-fill-color: transparent; filter: drop-shadow(0 5px 15px rgba(225,29,72,0.5)); }
+        @keyframes pulseTreasure { 0% { transform: scale(1); filter: drop-shadow(0 5px 15px rgba(245,158,11,0.4)); } 100% { transform: scale(1.05); filter: drop-shadow(0 10px 25px rgba(245,158,11,0.8)); } }
+        
+        /* Bento UI: 内訳ボックス */
+        .bar-wrap { width: 100%; background: rgba(0,0,0,0.5); border-radius: 8px; height: 12px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,0.8); }
+        .bar-fill { height: 100%; border-radius: 8px; transition: width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .bar-current { background: #64748b; }
+        .bar-new { background: linear-gradient(90deg, #fbbf24, #f59e0b); box-shadow: 0 0 10px rgba(251,191,36,0.6); }
+        
+        .breakdown-box { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; font-family: 'Inter', sans-serif; transition: 0.3s; }
+        .breakdown-box:hover { background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15); transform: translateX(5px); }
+        .bd-val { font-size: 16px; font-weight: 900; color: #e2e8f0; }
+        
+        /* 🚨 赤字アラートと緑字プロモ */
+        .alert-box { background: rgba(159, 18, 57, 0.2); border: 1px solid rgba(225, 29, 72, 0.4); padding: 12px 18px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .promo-box { background: rgba(6, 78, 59, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); padding: 12px 18px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
       `}} />
+
+      {/* 🌫️ 1. ジェネレーティブUI（深海の波紋） */}
+      <div className="abyss-fog"></div>
+      {/* 🧭 9. イマーシブ背景（羅針盤透かし） */}
+      <div className="compass-watermark"></div>
 
       <div className="container">
         <div className="header-top">
-          <button className="btn-back" onClick={() => router.push("/")}>← ホームに戻る</button>
-          <h1 className="page-title">🆚 通信費 見直しシミュレーター</h1>
+          <button className="btn-back" onClick={() => router.push("/")}>← 港へ戻る (Home)</button>
+          <h1 className="page-title">カリブの海賊: 通信費シミュレーター</h1>
         </div>
 
+        {/* 📱 8. バーティカルUI（可変グリッド） */}
         <div className="sim-layout">
-          {/* 🗣️ 左側：ヒアリング入力エリア */}
+          
+          {/* 🏴‍☠️ 左側パネル：海図（ヒアリング） */}
           <div className="glass-panel">
-            <h2 className="panel-title">🗣️ 現在のご利用状況</h2>
+            <h2 className="panel-title">🗺️ 現在の航路（ご利用状況）</h2>
 
             <div className="input-group">
               <label className="input-label">建物のタイプ</label>
@@ -247,7 +287,7 @@ export default function Simulator() {
                   <option value="sb_air">SoftBank Air</option>
                   <option value="docomo_hikari">ドコモ光</option>
                   <option value="au_hikari">auひかり</option>
-                  <option value="home_router">その他ホームルーター</option>
+                  <option value="home_router">ホームルーター</option>
                   <option value="other">その他・未契約</option>
                 </select>
               </div>
@@ -266,16 +306,18 @@ export default function Simulator() {
               </div>
             </div>
 
-            <div className="input-group">
-              <div className="input-label">
+            <div className="input-group" style={{ marginBottom: "20px" }}>
+              <div className="input-label" style={{alignItems:"center"}}>
                 <span>現在のネット代</span>
-                <input type="number" value={currentNet} style={{width:"80px", border:"none", background:"none", textAlign:"right", fontWeight:900, color:"#ec4899"}} onChange={(e) => setCurrentNet(e.target.value)} />
-                <span className="val-display">円</span>
+                <div style={{display:"flex", alignItems:"center", gap:"5px"}}>
+                  <input type="number" value={currentNet} style={{width:"80px", border:"none", background:"none", textAlign:"right", fontWeight:900, color:"#fde047", fontSize:"18px", outline:"none", textShadow:"0 0 10px rgba(253,224,71,0.5)"}} onChange={(e) => setCurrentNet(e.target.value)} />
+                  <span className="val-display" style={{fontSize:"14px", color:"#94a3b8"}}>円</span>
+                </div>
               </div>
               <input type="range" min="0" max="10000" step="100" className="range-slider" value={Number(currentNet) || 0} onChange={(e) => setCurrentNet(e.target.value)} />
             </div>
 
-            <h2 className="panel-title" style={{ marginTop: "10px" }}>🎯 ご提案プラン</h2>
+            <h2 className="panel-title" style={{ marginTop: "10px" }}>⚓ 新たな航路（ご提案プラン）</h2>
 
             <div className="input-group">
               <label className="input-label">提案回線</label>
@@ -286,38 +328,31 @@ export default function Simulator() {
               </select>
             </div>
 
-            {/* ✅ 初期費用・解約金の入力エリアを追加！ */}
-            <div className="input-group" style={{marginTop:"5px", background:"rgba(255,255,255,0.4)", padding:"12px", borderRadius:"12px", border:"1px solid #cbd5e1"}}>
-              <label className="input-label" style={{marginBottom:"8px"}}>💳 乗り換えにかかる初期費用等 (初年度コストに加算)</label>
+            {/* 初期費用（Bento UI風レイアウト） */}
+            <div className="input-group" style={{background:"rgba(0,0,0,0.3)", padding:"16px", borderRadius:"16px", border:"1px solid rgba(255,255,255,0.05)"}}>
+              <label className="input-label" style={{marginBottom:"12px"}}>💳 乗り換えにかかる初期費用等</label>
               <div style={{ display: "flex", gap: "10px" }}>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:"11px", color:"#64748b", marginBottom:"4px"}}>事務手数料</div>
-                  <div style={{display:"flex", alignItems:"center", gap:"4px"}}>
-                    <input type="number" className="sim-select" style={{padding:"8px"}} value={initialFee} onChange={(e)=>setInitialFee(e.target.value)} />
-                    <span style={{fontSize:"12px"}}>円</span>
-                  </div>
+                  <div style={{fontSize:"11px", color:"#64748b", marginBottom:"6px"}}>事務手数料</div>
+                  <input type="number" className="sim-input" style={{padding:"10px", fontSize:"14px"}} value={initialFee} onChange={(e)=>setInitialFee(e.target.value)} />
                 </div>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:"11px", color:"#64748b", marginBottom:"4px"}}>工事費</div>
-                  <div style={{display:"flex", alignItems:"center", gap:"4px"}}>
-                    <input type="number" className="sim-select" style={{padding:"8px"}} value={constructionFee} onChange={(e)=>setConstructionFee(e.target.value)} />
-                    <span style={{fontSize:"12px"}}>円</span>
-                  </div>
+                  <div style={{fontSize:"11px", color:"#64748b", marginBottom:"6px"}}>工事費</div>
+                  <input type="number" className="sim-input" style={{padding:"10px", fontSize:"14px"}} value={constructionFee} onChange={(e)=>setConstructionFee(e.target.value)} />
                 </div>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:"11px", color:"#64748b", marginBottom:"4px"}}>解約金(現回線)</div>
-                  <div style={{display:"flex", alignItems:"center", gap:"4px"}}>
-                    <input type="number" className="sim-select" style={{padding:"8px", borderColor:"#fca5a5"}} value={cancellationFee} onChange={(e)=>setCancellationFee(e.target.value)} />
-                    <span style={{fontSize:"12px"}}>円</span>
-                  </div>
+                  <div style={{fontSize:"11px", color:"#64748b", marginBottom:"6px"}}>現回線の解約金</div>
+                  {/* ✨ ここが修正箇所！ Number() をかませて確実に数字として比較する */}
+                  <input type="number" className="sim-input" style={{padding:"10px", fontSize:"14px", borderColor: Number(cancellationFee) > 0 ? "#fca5a5" : ""}} value={cancellationFee} onChange={(e)=>setCancellationFee(e.target.value)} />
                 </div>
               </div>
             </div>
 
-            <div className="option-box" onClick={() => setAddPhone(!addPhone)} style={{marginTop:"5px"}}>
+            {/* 🔘 6. Action-First（操作性の高いトグル群） */}
+            <div className="option-box" onClick={() => setAddPhone(!addPhone)}>
               <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                <span style={{ fontWeight: 800 }}>📞 ひかり電話を付帯する</span>
-                <span style={{ fontSize: "11px", color: "#64748b" }}>セット割条件などに（+550円/月）</span>
+                <span style={{ fontWeight: 800, color:"#e2e8f0" }}>📞 ひかり電話を付帯する</span>
+                <span style={{ fontSize: "11px", color: "#94a3b8" }}>セット割の条件などに（+550円/月）</span>
               </div>
               <label className="switch" onClick={(e) => e.stopPropagation()}>
                 <input type="checkbox" checked={addPhone} onChange={() => setAddPhone(!addPhone)} />
@@ -325,125 +360,120 @@ export default function Simulator() {
               </label>
             </div>
 
-            {/* ✅ フレッツ光を選んだ時だけ出現する「実質無料案内」のトグル */}
             {targetCarrier.startsWith("flets") && (
-              <div className="option-box" style={{ background: "rgba(220, 252, 231, 0.6)", borderColor: "#86efac" }} onClick={() => setApplyFletsFree(!applyFletsFree)}>
+              <div className="option-box" style={{ background: "rgba(6, 78, 59, 0.3)", borderColor: "rgba(16, 185, 129, 0.4)" }} onClick={() => setApplyFletsFree(!applyFletsFree)}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                  <span style={{ fontWeight: 900, color: "#166534" }}>🎁 フレッツ光 半年間「実質無料(全額負担)」を案内</span>
-                  <span style={{ fontSize: "11px", color: "#15803d" }}>※CB枠を使って月額料金＋初期費用等をすべてカバーします</span>
+                  <span style={{ fontWeight: 900, color: "#34d399" }}>🎁 究極魔法：半年間「全額実質無料」</span>
+                  <span style={{ fontSize: "11px", color: "#a7f3d0" }}>CB枠を使って初期負担を完全に相殺します</span>
                 </div>
                 <label className="switch" onClick={(e) => e.stopPropagation()}>
                   <input type="checkbox" checked={applyFletsFree} onChange={() => setApplyFletsFree(!applyFletsFree)} />
-                  <span className="slider" style={{ backgroundColor: applyFletsFree ? "#16a34a" : "#cbd5e1" }}></span>
+                  <span className="slider" style={{ backgroundColor: applyFletsFree ? "#10b981" : "rgba(255,255,255,0.1)", borderColor: applyFletsFree ? "#34d399" : "" }}></span>
                 </label>
               </div>
             )}
 
-            {/* ✅ フレッツ光実質無料ONのときだけ表示される、必要な【合算CB額】のアラート */}
             {targetCarrier.startsWith("flets") && applyFletsFree && (
-              <div style={{ background: "#fef2f2", borderLeft: "4px solid #e11d48", padding: "12px", borderRadius: "8px", fontSize: "13px", color: "#9f1239", fontWeight: 800, lineHeight: 1.6 }}>
-                💡 お客様負担を「0円」にするには、<br/>
+              <div style={{ background: "rgba(159, 18, 57, 0.2)", borderLeft: "4px solid #e11d48", padding: "16px", borderRadius: "8px", fontSize: "13px", color: "#fda4af", fontWeight: 800, lineHeight: 1.6 }}>
+                💡 お客様負担を「0円」にするための生贄（条件）<br/>
                 ・半年分の月額費用【{results.fletsHalfYearCost.toLocaleString()}円】<br/>
                 ・初期費用/工事費/解約金【{results.firstYearExtraCosts.toLocaleString()}円】<br/>
-                👉 <span style={{fontSize:"16px", fontWeight:900, textDecoration:"underline"}}>合計【{results.requiredCbForFlets.toLocaleString()}円】</span> を下のキャッシュバック額として設定してください。
+                👉 <span style={{fontSize:"16px", fontWeight:900, color:"#fff"}}>合計【{results.requiredCbForFlets.toLocaleString()}円】</span> を下のキャッシュバック額にセットせよ。
               </div>
             )}
 
             <div className="option-box active-promo">
               <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                <span style={{ fontWeight: 800, color: "#d97706" }}>💰 キャッシュバック（還元額）設定</span>
-                <span style={{ fontSize: "11px", color: "#b45309" }}>自由に金額を変更できます</span>
+                <span style={{ fontWeight: 800, color: "#fde047" }}>💰 財宝（キャッシュバック）設定</span>
+                <span style={{ fontSize: "11px", color: "#fbbf24" }}>自由に金額を変更できます</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                <input 
-                  type="number" 
-                  className="cb-input" 
-                  value={cbAmount} 
-                  onChange={(e) => setCbAmount(e.target.value)} 
-                />
-                <span style={{ fontWeight: 900, color: "#d97706" }}>円</span>
+                <input type="number" className="cb-input" value={cbAmount} onChange={(e) => setCbAmount(e.target.value)} />
+                <span style={{ fontWeight: 900, color: "#fbbf24" }}>円</span>
               </div>
             </div>
           </div>
 
-          {/* ✨ 右側：結果 */}
+          {/* ✨ 右側：発見された財宝（結果）パネル */}
           <div className="glass-panel">
-            <h2 className="panel-title">✨ シミュレーション結果</h2>
+            <h2 className="panel-title">💎 発見された財宝（シミュレーション結果）</h2>
+            
             <div className="result-hero">
-              <div style={{ fontSize: "14px", color: "#94a3b8" }}>初年度トータル節約額</div>
+              <div style={{ fontSize: "14px", color: "#cbd5e1", fontWeight: 800, letterSpacing:"1px", textTransform:"uppercase" }}>初年度トータル節約額</div>
               <div className={`hero-amount ${results.annualSavings < 0 ? "negative" : ""}`}>
-                {results.annualSavings >= 0 ? "+" : ""}{Math.floor(results.annualSavings).toLocaleString()} <span style={{fontSize:"24px"}}>円</span>
+                {results.annualSavings >= 0 ? "+" : ""}{Math.floor(results.annualSavings).toLocaleString()} <span style={{fontSize:"24px", letterSpacing:"0"}}>円</span>
               </div>
-              <div style={{ fontSize: "12px", color: "#94a3b8" }}>※初年度の特典・初期費用すべてを含む</div>
+              <div style={{ fontSize: "11px", color: "#94a3b8" }}>※初年度の特典・初期費用すべてを含む</div>
             </div>
 
-            <div className="comparison-row" style={{marginTop:"15px"}}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", fontWeight: 800, marginBottom: "8px" }}>
-                <span>現状維持</span>
-                <span style={{ marginLeft: "auto" }}>{results.currentAnnual.toLocaleString()} 円</span>
+            <div style={{marginTop:"20px", display:"flex", flexDirection:"column", gap:"15px", fontFamily:"'Inter', sans-serif"}}>
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", fontWeight: 800, marginBottom: "6px", color:"#cbd5e1" }}>
+                  <span>現状維持</span>
+                  <span>{results.currentAnnual.toLocaleString()} 円</span>
+                </div>
+                <div className="bar-wrap">
+                  <div className="bar-fill bar-current" style={{ width: `${currentChartWidth}%` }}></div>
+                </div>
               </div>
-              <div className="bar-wrap">
-                <div className="bar-fill bar-current" style={{ width: `${currentChartWidth}%` }}></div>
+
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", fontWeight: 800, marginBottom: "6px", color:"#fbbf24" }}>
+                  <span>乗り換え後（初期費用含む）</span>
+                  <span>{results.newAnnualTotal.toLocaleString()} 円</span>
+                </div>
+                <div className="bar-wrap">
+                  <div className="bar-fill bar-new" style={{ width: `${newChartWidth}%` }}></div>
+                </div>
               </div>
             </div>
 
-            <div className="comparison-row">
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", fontWeight: 800, marginBottom: "8px" }}>
-                <span>乗り換え後（初期費用含む）</span>
-                <span style={{ marginLeft: "auto" }}>{results.newAnnualTotal.toLocaleString()} 円</span>
-              </div>
-              <div className="bar-wrap">
-                <div className="bar-fill bar-new" style={{ width: `${newChartWidth}%` }}></div>
-              </div>
-            </div>
-
-            <h3 style={{ fontSize: "14px", fontWeight: 900, borderLeft: "4px solid #ec4899", paddingLeft: "8px", marginTop: "20px", marginBottom: "12px" }}>
-              お支払い目安（月額）
+            <h3 style={{ fontSize: "15px", fontWeight: 900, color:"#fde047", borderLeft: "4px solid #f59e0b", paddingLeft: "10px", marginTop: "25px", marginBottom: "15px", letterSpacing:"1px" }}>
+              月額・お支払い内訳
             </h3>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {/* 🗃️ 2. Bento UI（計算結果のモジュール群） */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               <div className="breakdown-box">
-                <span>ネット基本料金</span>
+                <span style={{color:"#94a3b8", fontSize:"13px", fontWeight:800}}>ネット基本料金</span>
                 <span className="bd-val">{results.baseFee.toLocaleString()} 円</span>
               </div>
               {addPhone && (
                 <div className="breakdown-box">
-                  <span>ひかり電話</span>
+                  <span style={{color:"#94a3b8", fontSize:"13px", fontWeight:800}}>ひかり電話</span>
                   <span className="bd-val">+{results.phoneFee.toLocaleString()} 円</span>
                 </div>
               )}
               {results.setDiscount.isApplied && (
-                <div className="breakdown-box" style={{ background: "rgba(224,242,254,0.5)", borderColor: "#bae6fd" }}>
-                  <span style={{color:"#0ea5e9"}}>📱 スマホセット割</span>
-                  <span className="bd-val" style={{color:"#0ea5e9"}}>-{results.setDiscount.amount.toLocaleString()} 円</span>
+                <div className="promo-box">
+                  <span style={{color:"#34d399", fontSize:"13px", fontWeight:900}}>📱 スマホセット割</span>
+                  <span className="bd-val" style={{color:"#34d399"}}>-{results.setDiscount.amount.toLocaleString()} 円</span>
                 </div>
               )}
               
-              {/* ✅ 初期費用等のアラート表示 */}
               {results.firstYearExtraCosts > 0 && (
-                <div className="breakdown-box" style={{ background: "rgba(254,226,226,0.5)", borderColor: "#fca5a5", padding: "8px 15px" }}>
-                  <span style={{color:"#be123c", fontWeight:800, fontSize:"12px"}}>⚠️ 乗り換え時のみ発生する費用（初期/工事/解約等）</span>
-                  <span className="bd-val" style={{color:"#be123c", fontSize:"14px"}}>+{results.firstYearExtraCosts.toLocaleString()} 円</span>
+                <div className="alert-box">
+                  <span style={{color:"#fb7185", fontWeight:800, fontSize:"12px"}}>⚠️ 乗り換え時のみ発生（初期/工事/解約等）</span>
+                  <span className="bd-val" style={{color:"#fb7185", fontSize:"15px"}}>+{results.firstYearExtraCosts.toLocaleString()} 円</span>
                 </div>
               )}
 
-              <div className="breakdown-box" style={{ background: "#fff", border: "2px solid #e2e8f0" }}>
-                <span style={{ fontWeight: 800 }}>月々の実質お支払い</span>
-                <span className="bd-val" style={{ fontSize: "20px", color: "#ec4899" }}>
-                  {results.newMonthly.toLocaleString()} 円
+              <div className="breakdown-box" style={{ background: "rgba(15,23,42,0.8)", border: "1px solid rgba(251,191,36,0.5)", marginTop: "5px", padding: "20px" }}>
+                <span style={{ fontWeight: 900, color:"#fde047", fontSize:"14px" }}>月々の実質お支払い</span>
+                <span className="bd-val" style={{ fontSize: "24px", color: "#fbbf24", textShadow:"0 0 10px rgba(251,191,36,0.4)" }}>
+                  {results.newMonthly.toLocaleString()} <span style={{fontSize:"14px"}}>円</span>
                 </span>
               </div>
 
               {results.officialPromo.promoValue > 0 && (
-                <div style={{ textAlign: "right", fontSize: "13px", fontWeight: 900, color: "#ec4899" }}>
+                <div style={{ textAlign: "right", fontSize: "12px", fontWeight: 900, color: "#38bdf8", marginTop:"5px" }}>
                   {results.officialPromo.promoText}
                 </div>
               )}
               
-              {/* フレッツ光 実質無料の案内表示 */}
               {targetCarrier.startsWith("flets") && applyFletsFree && (
-                <div style={{ textAlign: "right", fontSize: "13px", fontWeight: 900, color: "#16a34a", marginTop: "5px" }}>
-                  🎁 還元額より、初期負担＋半年間実質無料！
+                <div style={{ textAlign: "right", fontSize: "12px", fontWeight: 900, color: "#34d399", marginTop: "2px" }}>
+                  🎁 還元額より、初期負担＋半年間実質無料を補填！
                 </div>
               )}
             </div>
