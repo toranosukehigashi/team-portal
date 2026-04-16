@@ -68,7 +68,6 @@ export default function BulkRegister() {
     showToast(!isDarkMode ? "🌙 ダークモードに切り替えました" : "☀️ ライトモードに切り替えました", true);
   };
 
-  // ✅ 修正ポイント：入力時のバグを解消
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const target = e.target as HTMLInputElement;
     const { id, value, type, name, checked } = target;
@@ -265,6 +264,7 @@ export default function BulkRegister() {
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
 
+          /* 🎨 HOME画面と完全一致するテーマ変数 */
           .theme-light {
             --bg-gradient: linear-gradient(180deg, #7dd3fc 0%, #e0f2fe 100%);
             --text-main: #1e293b;
@@ -318,7 +318,7 @@ export default function BulkRegister() {
           .star { position: absolute; border-radius: 50%; background: var(--star-color); box-shadow: 0 0 10px var(--star-color); animation: twinkle 4s infinite ease-in-out; transition: background 0.5s, box-shadow 0.5s; }
           @keyframes twinkle { 0% { opacity: 0.1; transform: scale(0.5) translateY(0); } 50% { opacity: 1; transform: scale(1.2) translateY(-20px); } 100% { opacity: 0.1; transform: scale(0.5) translateY(0); } }
 
-          /* SVGアニメーション背景 */
+          /* 🌟 SVGアニメーション背景 */
           .magic-svg-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.7; }
           .magic-path { fill: none; stroke: var(--svg-color); stroke-width: 3; stroke-dasharray: 3000; stroke-dashoffset: 3000; animation: drawMagic 10s ease-in-out infinite alternate; transition: stroke 0.5s; }
           @keyframes drawMagic { 0% { stroke-dashoffset: 3000; } 100% { stroke-dashoffset: 0; } }
@@ -344,27 +344,33 @@ export default function BulkRegister() {
           .side-link:hover { border-color: var(--card-hover-border); transform: translateX(8px); }
           .side-link.current-page { background: linear-gradient(135deg, #0284c7, #38bdf8); color: #fff; border: none; box-shadow: 0 6px 15px rgba(2, 132, 199, 0.3); pointer-events: none; }
 
-          /* トップナビゲーション */
-          .glass-nav { position: relative; z-index: 10; display: flex; align-items: center; justify-content: space-between; padding: 12px; margin-bottom: 24px; margin-left: 60px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 12px; box-shadow: var(--card-shadow); max-width: 1200px; margin-right: auto; }
-          .nav-left { display: flex; gap: 12px; }
-          .glass-nav-link { text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; background: var(--input-bg); color: var(--text-sub); border: 1px solid var(--card-border); transition: 0.2s; }
-          .glass-nav-link:hover { color: var(--accent-color); border-color: var(--card-hover-border); }
-          .glass-nav-active { padding: 10px 20px; border-radius: 8px; font-weight: 700; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); }
+          /* 🎈 トップナビゲーション（中央配置に修正） */
+          .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 30px; }
+          .glass-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 50px; box-shadow: var(--card-shadow); max-width: 800px; width: 100%; }
           
-          /* 環境トグル */
-          .env-toggle-container { display: inline-flex; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 4px; box-shadow: var(--card-shadow); }
-          .env-label { padding: 8px 24px; font-size: 13px; font-weight: 700; border-radius: 16px; cursor: pointer; color: var(--text-sub); transition: 0.3s; }
-          input[name="environment"]:checked + .test-label { background: var(--card-hover-bg); color: #0ea5e9; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-          input[name="environment"]:checked + .prod-label { background: var(--card-hover-bg); color: #e11d48; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+          .nav-left { display: flex; gap: 12px; align-items: center; }
+          .glass-nav-link { text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 800; background: var(--input-bg); color: var(--text-sub); border: 1px solid var(--card-border); transition: 0.2s; font-size: 14px; }
+          .glass-nav-link:hover { color: var(--accent-color); border-color: var(--card-hover-border); }
+          .glass-nav-active { padding: 10px 20px; border-radius: 30px; font-weight: 900; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); font-size: 14px; }
+          
+          /* 🔧 環境トグル (Test / Prod) - 超・明確化 */
+          .env-toggle-container { display: flex; border-radius: 30px; padding: 4px; background: var(--input-bg); border: 1px solid var(--card-border); }
+          .env-label { padding: 10px 20px; font-size: 13px; font-weight: 900; border-radius: 26px; cursor: pointer; color: var(--text-sub); transition: 0.3s; text-align: center; }
+          
+          /* Test 選択時 */
+          input[name="environment"]:checked + .test-label { background: var(--card-hover-bg); color: #0ea5e9; border: 1px solid #38bdf8; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.2); }
+          
+          /* Prod 選択時 (警告の赤) */
+          input[name="environment"]:checked + .prod-label { background: #fee2e2; color: #e11d48; border: 1px solid #f43f5e; box-shadow: 0 4px 10px rgba(225, 29, 72, 0.3); }
 
           /* テーマ切り替えボタン */
-          .theme-toggle-btn { background: var(--input-bg); border: 1px solid var(--card-border); padding: 8px 15px; border-radius: 20px; cursor: pointer; transition: 0.3s; font-size: 14px; color: var(--text-main); font-weight: 800; }
+          .theme-toggle-btn { background: var(--input-bg); border: 1px solid var(--card-border); padding: 10px 20px; border-radius: 30px; cursor: pointer; transition: 0.3s; font-size: 14px; color: var(--text-main); font-weight: 800; }
           .theme-toggle-btn:hover { border-color: var(--card-hover-border); transform: scale(1.05); }
 
           /* 🌟 レイアウト：左の注意事項 ＋ 右の入力フォーム */
           .main-layout {
             display: grid;
-            grid-template-columns: 300px 1fr;
+            grid-template-columns: 320px 1fr;
             gap: 30px;
             max-width: 1200px;
             margin: 0 auto 50px auto;
@@ -372,14 +378,10 @@ export default function BulkRegister() {
           @media (max-width: 950px) { .main-layout { grid-template-columns: 1fr; } }
 
           /* ℹ️ 左側：注意事項パネル */
-          .info-sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-          }
+          .info-sidebar { display: flex; flex-direction: column; gap: 20px; }
           .info-panel {
             background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border);
-            border-radius: 16px; padding: 24px; box-shadow: var(--card-shadow);
+            border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow);
           }
           .info-title { font-size: 15px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
           .info-list { padding-left: 20px; margin: 0; color: var(--text-main); font-size: 13px; line-height: 1.8; }
@@ -391,7 +393,7 @@ export default function BulkRegister() {
           /* パネルとBento UI（傾き廃止） */
           .glass-panel { 
             background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); 
-            border-radius: 16px; padding: 24px; box-shadow: var(--card-shadow); 
+            border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow); 
             transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s; 
           }
           .glass-panel:hover { border-color: var(--card-hover-border); transform: translateY(-2px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
@@ -403,7 +405,7 @@ export default function BulkRegister() {
           .input-group { display: flex; flex-direction: column; }
           .input-group label { font-size: 12px; font-weight: 800; color: var(--text-sub); margin-bottom: 6px; border-left: 3px solid var(--accent-color); padding-left: 8px; }
           
-          .input-control { width: 100%; padding: 10px 14px; border: 1px solid var(--input-border); border-radius: 8px; font-size: 13px; background: var(--input-bg); color: var(--text-main); transition: 0.3s; font-weight: 700; outline: none; }
+          .input-control { width: 100%; padding: 12px 14px; border: 1px solid var(--input-border); border-radius: 10px; font-size: 13px; background: var(--input-bg); color: var(--text-main); transition: 0.3s; font-weight: 700; outline: none; }
           .input-control:focus { border-color: var(--card-hover-border); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); background: var(--card-hover-bg); }
           .input-control option { background: #0f172a; color: #fff; }
           .theme-light .input-control option { background: #fff; color: #1e293b; }
@@ -411,11 +413,11 @@ export default function BulkRegister() {
           .paste-area { width: 100%; height: 100px; padding: 14px; border: 2px dashed var(--card-hover-border); border-radius: 12px; background: var(--input-bg); color: var(--text-main); margin-bottom: 16px; outline: none; transition: 0.3s; font-family: monospace; resize: vertical; }
           .paste-area:focus { background: var(--card-hover-bg); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
           
-          .btn-primary { width: 100%; padding: 12px; background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #fff; border: none; border-radius: 8px; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: 14px; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(2, 132, 199, 0.3); }
+          .btn-primary { width: 100%; padding: 14px; background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #fff; border: none; border-radius: 10px; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: 14px; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(2, 132, 199, 0.3); }
           .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(2, 132, 199, 0.5); }
           
-          .save-footer { display: flex; gap: 16px; position: fixed; bottom: 0; left: 0; width: 100%; padding: 16px 40px; background: var(--card-bg); backdrop-filter: blur(12px); border-top: 1px solid var(--card-border); z-index: 50; }
-          .btn-footer { flex: 1; padding: 14px; border-radius: 12px; font-weight: 800; border: none; color: #fff; cursor: pointer; transition: 0.3s; font-size: 14px; letter-spacing: 1px; }
+          .save-footer { display: flex; gap: 16px; position: fixed; bottom: 0; left: 0; width: 100%; padding: 16px 40px; background: var(--card-bg); backdrop-filter: blur(12px); border-top: 1px solid var(--card-border); z-index: 50; justify-content: center; }
+          .btn-footer { max-width: 400px; width: 100%; padding: 16px; border-radius: 30px; font-weight: 900; border: none; color: #fff; cursor: pointer; transition: 0.3s; font-size: 15px; letter-spacing: 1px; }
           .btn-footer-oct { background: #8b5cf6; box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3); }
           .btn-footer-oct:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(139, 92, 246, 0.5); }
           .btn-footer-save { background: #10b981; box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3); }
@@ -435,7 +437,7 @@ export default function BulkRegister() {
           .fade-up-element.visible { opacity: 1; transform: translateY(0); }
         `}} />
 
-        {/* 🌟 SVG魔法の軌跡（色はテーマ変数で自動変更） */}
+        {/* 🌟 SVG魔法の軌跡 */}
         <svg className="magic-svg-bg" viewBox="0 0 100 100" preserveAspectRatio="none">
           <path className="magic-path" d="M -10,30 Q 30,80 50,50 T 110,40" />
           <path className="magic-path" d="M -10,70 Q 40,20 70,60 T 110,80" style={{animationDelay: "4s", opacity: 0.5}} />
@@ -464,15 +466,19 @@ export default function BulkRegister() {
           </div>
         </div>
 
-        {/* 🎈 ナビゲーション & テーマ切り替え */}
-        <div className="glass-nav">
-          <div className="nav-left">
-            <a href="/" className="glass-nav-link">← 司令室に戻る</a>
-            <div className="glass-nav-active">📦 一括登録（自己クロ）</div>
+        {/* 🎈 ナビゲーション & テーマ切り替え（中央配置） */}
+        <div className="glass-nav-wrapper fade-up-element" style={{ "--delay": "0s" } as any}>
+          <div className="glass-nav">
+            <div className="nav-left">
+              <a href="/" className="glass-nav-link">← 司令室</a>
+              <div className="glass-nav-active">📦 一括登録</div>
+            </div>
+            
+            {/* ☀️/🌙 テーマ切り替えボタン */}
+            <button className="theme-toggle-btn" onClick={toggleTheme}>
+              {isDarkMode ? "🎇 NIGHT" : "☀️ DAY"}
+            </button>
           </div>
-          <button className="theme-toggle-btn" onClick={toggleTheme}>
-            {isDarkMode ? "🎇 NIGHT" : "☀️ DAY"}
-          </button>
         </div>
 
         {/* 🌟 メインレイアウト（左：注意事項 / 右：入力フォーム） */}
@@ -480,12 +486,22 @@ export default function BulkRegister() {
           
           {/* ℹ️ 左カラム：注意事項・備考パネル */}
           <aside className="info-sidebar">
-            {/* テスト環境/本番環境のトグルを左上に移動してスッキリと */}
-            <div className="env-toggle-container" style={{ margin: "0 auto 10px auto" }}>
-              <input type="radio" id="envTest" name="environment" value="test" checked={env === "test"} onChange={(e) => setEnv(e.target.value)} hidden />
-              <label htmlFor="envTest" className="env-label test-label">🧪 Test</label>
-              <input type="radio" id="envProd" name="environment" value="prod" checked={env === "prod"} onChange={(e) => setEnv(e.target.value)} hidden />
-              <label htmlFor="envProd" className="env-label prod-label">🚀 Production</label>
+            
+            {/* 🔧 環境トグル (Test / Prod) - 目立つように改善 */}
+            <div className="info-panel fade-up-element" style={{ padding: "16px", textAlign: "center", borderTop: env === "prod" ? "4px solid #e11d48" : "4px solid #38bdf8" }}>
+              <div style={{ fontSize: "13px", fontWeight: 900, marginBottom: "10px", color: "var(--title-color)" }}>🚀 送信先環境の選択</div>
+              <div className="env-toggle-container">
+                <input type="radio" id="envTest" name="environment" value="test" checked={env === "test"} onChange={(e) => setEnv(e.target.value)} hidden />
+                <label htmlFor="envTest" className="env-label test-label">🧪 練習用 (Test)</label>
+                
+                <input type="radio" id="envProd" name="environment" value="prod" checked={env === "prod"} onChange={(e) => setEnv(e.target.value)} hidden />
+                <label htmlFor="envProd" className="env-label prod-label">🚨 本番用 (Prod)</label>
+              </div>
+              {env === "prod" && (
+                <div style={{ marginTop: "10px", fontSize: "12px", color: "#e11d48", fontWeight: 800 }}>
+                  ※本番シートへ直接書き込まれます。ご注意ください。
+                </div>
+              )}
             </div>
 
             <div className="info-panel fade-up-element">
@@ -497,7 +513,8 @@ export default function BulkRegister() {
                 <li>赤枠でハイライトされた項目は必須入力です。</li>
               </ul>
             </div>
-            <div className="info-panel fade-up-element" style={{ transitionDelay: "0.1s" }}>
+            
+            <div className="info-panel fade-up-element">
               <h3 className="info-title">🛠️ 運用ステータス</h3>
               <ul className="info-list">
                 <li>GAS連携：正常（稼働中）</li>
@@ -516,7 +533,7 @@ export default function BulkRegister() {
               <button className="btn-primary" onClick={() => doParse(rawText)}>✨ 自動振り分けを実行</button>
             </section>
 
-            <section className="glass-panel fade-up-element" style={{ transitionDelay: "0.1s" }}>
+            <section className="glass-panel fade-up-element">
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px", borderBottom: "2px dashed var(--card-border)", paddingBottom: "15px" }}>
                 <div style={{ fontWeight: 900, fontSize: "15px", color: "var(--title-color)" }}>2. 基本情報（B〜P列）</div>
                 <div style={{ display: "flex", gap: "8px" }}>
@@ -550,7 +567,7 @@ export default function BulkRegister() {
               </div>
             </section>
 
-            <details className="fade-up-element" style={{ transitionDelay: "0.2s" }}>
+            <details className="fade-up-element">
               <summary>➕ 追加情報・オプションを展開</summary>
               <section className="glass-panel" style={{ marginTop: "15px" }}>
                 <div className="form-grid-3">
