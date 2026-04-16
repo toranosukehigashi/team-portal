@@ -12,13 +12,13 @@ const DAY_SCENES = [
   "https://images.unsplash.com/photo-1506260408121-e353d10b87c7?q=80&w=2000&auto=format&fit=crop", // 壮大な森林と山
 ];
 
-// 🌌 ナイト・フライトルート（Macスクリーンセーバー級の極上夜景！）
+// 🌌 ナイト・フライトルート（ソアリン仕様：超高高度からの雄大な夜景・自然！）
 const NIGHT_SCENES = [
-  "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=2000&auto=format&fit=crop", // ニューヨーク・マンハッタンの夜景
-  "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=2000&auto=format&fit=crop", // 東京の煌めく大都市夜景
-  "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=2000&auto=format&fit=crop", // ドバイの空中都市夜景
-  "https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?q=80&w=2000&auto=format&fit=crop", // 香港のサイバーパンク夜景
-  "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?q=80&w=2000&auto=format&fit=crop", // ロサンゼルス・ハイウェイの光の帯
+  "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2000&auto=format&fit=crop", // 宇宙から見た夜の地球（壮大なスケール）
+  "https://images.unsplash.com/photo-1531366936337-77b5c330c5fc?q=80&w=2000&auto=format&fit=crop", // 雪山の上空に輝く巨大なオーロラ
+  "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?q=80&w=2000&auto=format&fit=crop", // 雲海を抜けた先にある大都市（シカゴ）の空中パノラマ夜景
+  "https://images.unsplash.com/photo-1464802686167-b939a6910659?q=80&w=2000&auto=format&fit=crop", // 満天の星空と雄大な山脈
+  "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=2000&auto=format&fit=crop", // ドバイの超高層ビル群を見下ろす夜間飛行
 ];
 
 export default function Home() {
