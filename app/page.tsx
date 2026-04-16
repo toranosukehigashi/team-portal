@@ -157,7 +157,6 @@ export default function Home() {
   };
 
   return (
-    // 🌙 ダークモード時は theme-dark クラスが付与されます
     <main className={`app-wrapper ${showWarpExit ? "animate-warp-arrival" : ""} ${isDarkMode ? "theme-dark" : ""}`}>
       <style dangerouslySetInnerHTML={{ __html: `
         .app-wrapper * { box-sizing: border-box; }
@@ -437,8 +436,9 @@ export default function Home() {
           </div>
         </div>
 
-        {/* 🗂️ ツールリンクグリッド */}
+        {/* 🗂️ ツールリンクグリッド (順番変更済) */}
         <div className="grid-layout">
+          {/* 1. 本日の進捗・KPI */}
           <section className="category-card" onClick={() => setIsKpiOpen(true)}>
             <h2 className="category-title">📊 本日の進捗・KPI</h2>
             <p className="category-desc">チーム全体の獲得状況。クリックでメンバー別の詳細やランキングを確認できます。</p>
@@ -448,49 +448,58 @@ export default function Home() {
             </div>
           </section>
 
-          <section className="category-card" onClick={() => goToPage("/simulator")}>
-            <span className="badge-new" style={{ position: "absolute", top: "15px", right: "15px", background: "#f59e0b", color: "#fff", fontSize: "10px", fontWeight: 800, padding: "4px 8px", borderRadius: "20px" }}>NEW</span>
-            <h2 className="category-title">🆚 通信費 見直しシミュレーター</h2>
-            <p className="category-desc">現在の利用状況をヒアリングし、乗り換え時のおトク額（実質無料など）を即座に算出します。</p>
+          {/* 2. データ一括登録システム */}
+          <section className="category-card" onClick={() => goToPage("/bulk-register")}>
+            <h2 className="category-title">📦 データ一括登録システム</h2>
+            <p className="category-desc">複数の顧客データを一括で処理し、データベースへ高速登録します。</p>
           </section>
 
-          <section className="category-card" onClick={() => goToPage("/trouble-nav")}>
-            <span className="badge-new" style={{ position: "absolute", top: "15px", right: "15px", background: "#8b5cf6", color: "#fff", fontSize: "10px", fontWeight: 800, padding: "4px 8px", borderRadius: "20px" }}>NEW</span>
-            <h2 className="category-title">🛠️ トラブル解決ナビゲーター</h2>
-            <p className="category-desc">SWエラーやメアド重複など、複雑なイレギュラー対応の手順を対話形式でご案内します。</p>
+          {/* 3. ネットトス連携ツール */}
+          <section className="category-card" onClick={() => goToPage("/net-toss")}>
+            <h2 className="category-title">🌐 ネットトス連携ツール</h2>
+            <p className="category-desc">ネット回線のトスアップ用データを生成し、指定のシートへ送信します。</p>
           </section>
 
+          {/* 4. 自己クロ連携ツール */}
+          <section className="category-card" onClick={() => goToPage("/self-close")}>
+            <h2 className="category-title">🤝 自己クロ連携ツール</h2>
+            <p className="category-desc">サイバーUI仕様の入力フォーム。成約後の情報をシームレスに連携します。</p>
+          </section>
+          
+          {/* 5. SMS（kraken）作成 */}
+          <section className="category-card" onClick={() => goToPage("/sms-kraken")}>
+            <h2 className="category-title">📱 SMS（kraken）作成</h2>
+            <p className="category-desc">Kraken連携を用いたSMS送信・履歴管理・テンプレート展開を行います。</p>
+          </section>
+          
+          {/* 6. メールテンプレート */}
+          <section className="category-card" onClick={() => goToPage("/email-template")}>
+            <h2 className="category-title">✉️ メールテンプレート</h2>
+            <p className="category-desc">用途に応じたメール文面を素早く作成し、ワンクリックでコピーします。</p>
+          </section>
+
+          {/* 7. Kraken マニュアル */}
           <section className="category-card" onClick={() => goToPage("/procedure-wizard")}>
             <span className="badge-new" style={{ position: "absolute", top: "15px", right: "15px", background: "#8b5cf6", color: "#fff", fontSize: "10px", fontWeight: 800, padding: "4px 8px", borderRadius: "20px" }}>NEW</span>
             <h2 className="category-title">🐙 Kraken マニュアル</h2>
             <p className="category-desc">プラン変更や住所変更など、各手続きに必要な情報を入力し、Kraken提出用フォーマットを自動生成します。</p>
           </section>
 
-          <section className="category-card" onClick={() => goToPage("/bulk-register")}>
-            <h2 className="category-title">📦 一括登録システム</h2>
-            <p className="category-desc">複数の顧客データを一括で処理し、データベースへ高速登録します。</p>
-          </section>
-          
-          <section className="category-card" onClick={() => goToPage("/self-close")}>
-            <h2 className="category-title">🤝 自己クロ連携ツール</h2>
-            <p className="category-desc">サイバーUI仕様の入力フォーム。成約後の情報をシームレスに連携します。</p>
-          </section>
-          
-          <section className="category-card" onClick={() => goToPage("/net-toss")}>
-            <h2 className="category-title">🌐 ネットトス連携ツール</h2>
-            <p className="category-desc">ネット回線のトスアップ用データを生成し、指定のシートへ送信します。</p>
-          </section>
-          
-          <section className="category-card" onClick={() => goToPage("/sms-kraken")}>
-            <h2 className="category-title">📱 SMS (Kraken)</h2>
-            <p className="category-desc">Kraken連携を用いたSMS送信・履歴管理・テンプレート展開を行います。</p>
-          </section>
-          
-          <section className="category-card" onClick={() => goToPage("/email-template")}>
-            <h2 className="category-title">✉️ メールテンプレート</h2>
-            <p className="category-desc">用途に応じたメール文面を素早く作成し、ワンクリックでコピーします。</p>
+          {/* 8. 通信費 見直しシミュレーター */}
+          <section className="category-card" onClick={() => goToPage("/simulator")}>
+            <span className="badge-new" style={{ position: "absolute", top: "15px", right: "15px", background: "#f59e0b", color: "#fff", fontSize: "10px", fontWeight: 800, padding: "4px 8px", borderRadius: "20px" }}>NEW</span>
+            <h2 className="category-title">🆚 通信費 見直しシミュレーター</h2>
+            <p className="category-desc">現在の利用状況をヒアリングし、乗り換え時のおトク額（実質無料など）を即座に算出します。</p>
           </section>
 
+          {/* 9. トラブル解決ナビゲーター */}
+          <section className="category-card" onClick={() => goToPage("/trouble-nav")}>
+            <span className="badge-new" style={{ position: "absolute", top: "15px", right: "15px", background: "#8b5cf6", color: "#fff", fontSize: "10px", fontWeight: 800, padding: "4px 8px", borderRadius: "20px" }}>NEW</span>
+            <h2 className="category-title">🛠️ トラブル解決ナビゲーター</h2>
+            <p className="category-desc">SWエラーやメアド重複など、複雑なイレギュラー対応の手順を対話形式でご案内します。</p>
+          </section>
+
+          {/* 10. クイック一時メモ */}
           <section className="category-card" onClick={() => setIsMemoOpen(true)}>
             <h2 className="category-title">📝 クイック一時メモ</h2>
             <p className="category-desc">通話中などに一時的に情報を置いておく、ブラウザ自動保存のスクラッチパッド。</p>
