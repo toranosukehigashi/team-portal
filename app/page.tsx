@@ -74,19 +74,29 @@ export default function ThemeParkEntrance() {
   // ☀️ テーマ管理
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  const [showArrivalFlash, setShowArrivalFlash] = useState(false);
+  // 🍎 Mac風ウェルカム画面のステート
+  const [showMacWelcome, setShowMacWelcome] = useState(false);
+  
   const [newsText, setNewsText] = useState("【お知らせ】本日はお疲れ様です！Team Portalへようこそ！");
   const [isEditingNews, setIsEditingNews] = useState(false);
   const [tempNews, setTempNews] = useState("");
 
   useEffect(() => {
     const savedUser = localStorage.getItem("team_portal_user");
-    if (savedUser) { setUserName(savedUser); if (savedUser.toLowerCase().trim().includes("toranosuke.higashi")) setIsAdmin(true); }
+    if (savedUser) { 
+      setUserName(savedUser); 
+      if (savedUser.toLowerCase().trim().includes("toranosuke.higashi")) setIsAdmin(true); 
+    }
     
+    // ✨ ログイン直後のみ、Mac風ウェルカム画面を発動！
     if (sessionStorage.getItem("just_logged_in") === "true") {
-      setShowArrivalFlash(true);
+      setShowMacWelcome(true);
       sessionStorage.removeItem("just_logged_in");
-      setTimeout(() => setShowArrivalFlash(false), 2000);
+      
+      // アニメーションが完全に終わる約3.5秒後にDOMから削除
+      setTimeout(() => {
+        setShowMacWelcome(false);
+      }, 3500);
     }
 
     const savedMemo = localStorage.getItem("team_portal_quick_memo"); if (savedMemo) setMemoText(savedMemo);
@@ -136,7 +146,7 @@ export default function ThemeParkEntrance() {
     try { await navigator.clipboard.writeText(`${hours}:${minutes} 退勤いたします`); showToast(`✨ 退勤メッセージをコピーしました！お疲れ様でした！`); } catch (err) { alert("コピーに失敗しました"); }
   };
 
-  // 📝 クリップボード管理ツール（ブックマークコード等のコピー処理）
+  // 📝 クリップボード管理ツール
   const copyScriptCode = async (title: string, code: string) => {
     try {
       await navigator.clipboard.writeText(code);
@@ -175,7 +185,14 @@ export default function ThemeParkEntrance() {
 
   return (
     <>
-      {showArrivalFlash && <div className="arrival-flash"></div>}
+      {/* 🍎 Mac風「ようこそ」アニメーション・オーバーレイ */}
+      {showMacWelcome && (
+        <div className="mac-welcome-overlay">
+          <div className="mac-welcome-text">
+            Welcome, <span style={{fontWeight: 600}}>{userName}</span>.
+          </div>
+        </div>
+      )}
 
       <div className={`entrance-bg ${isDarkMode ? "theme-dark" : "theme-light"}`}>
         <PixieDust />
@@ -185,6 +202,37 @@ export default function ThemeParkEntrance() {
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
 
+          /* 🍎 新規追加：Mac風の極上ウェルカムアニメーション */
+          .mac-welcome-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000000; /* 漆黒の背景で没入感を出す */
+            z-index: 9999; display: flex; align-items: center; justify-content: center;
+            /* 2.5秒後にフワッと消え、その後DOMからも消える */
+            animation: macFadeOut 1s cubic-bezier(0.8, 0, 0.2, 1) 2.5s forwards;
+          }
+
+          .mac-welcome-text {
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+            font-size: clamp(2rem, 4vw, 4rem); /* 画面サイズに合わせて可変 */
+            font-weight: 300; letter-spacing: 0.1em; color: #ffffff;
+            opacity: 0; transform: translateY(15px); filter: blur(10px);
+            /* テキストが浮かび上がり、そして消える一連の動き */
+            animation: macTextFlow 2s cubic-bezier(0.4, 0, 0.2, 1) 0.4s forwards;
+          }
+
+          @keyframes macTextFlow {
+            0% { opacity: 0; transform: translateY(15px); filter: blur(10px); }
+            20% { opacity: 1; transform: translateY(0); filter: blur(0); }
+            80% { opacity: 1; transform: translateY(0); filter: blur(0); }
+            100% { opacity: 0; transform: translateY(-15px); filter: blur(10px); }
+          }
+
+          @keyframes macFadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; }
+          }
+
+          /* --- 以降は既存のテーマ設定 --- */
           .theme-light {
             --bg-gradient: linear-gradient(180deg, #7dd3fc 0%, #e0f2fe 100%);
             --text-main: #1e293b;
@@ -222,14 +270,6 @@ export default function ThemeParkEntrance() {
           }
 
           .app-wrapper { min-height: 100vh; padding: 20px; font-family: 'Inter', 'Noto Sans JP', sans-serif; overflow-x: hidden; position: relative; color: var(--text-main); transition: color 0.5s; }
-
-          /* 🎇 到着アニメーション */
-          .arrival-flash {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #fff; z-index: 9999; pointer-events: none;
-            animation: flashFadeOut 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-          }
-          @keyframes flashFadeOut { 0% { opacity: 1; filter: blur(10px); transform: scale(1.05); } 100% { opacity: 0; filter: blur(0); transform: scale(1); } }
 
           .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; transition: background 0.8s ease; }
           .entrance-bg.theme-light { background: var(--bg-gradient); }
@@ -281,12 +321,11 @@ export default function ThemeParkEntrance() {
           .btn-logout { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
           .btn-logout:hover { background: rgba(239, 68, 68, 0.2); }
 
-          /* 📢 インフォメーション（流れるティッカー完全復活！） */
+          /* 📢 インフォメーション（流れるティッカー） */
           .news-ticker-wrapper { display: flex; align-items: center; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; margin-bottom: 50px; padding: 12px 25px; box-shadow: var(--card-shadow); backdrop-filter: blur(20px); transition: 0.5s; }
           .news-badge { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-weight: 900; font-size: 13px; padding: 8px 18px; border-radius: 12px; white-space: nowrap; margin-right: 25px; animation: pulseGold 2s infinite; box-shadow: 0 0 15px rgba(245,158,11,0.4); letter-spacing: 2px; }
           @keyframes pulseGold { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
           
-          /* ここが重要！横スクロールの設定 */
           .news-scroll-container { flex: 1; overflow: hidden; white-space: nowrap; position: relative; display: flex; align-items: center; }
           .news-text { display: inline-block; padding-left: 100%; animation: marquee 30s linear infinite; font-weight: 800; color: var(--text-main); font-size: 16px; letter-spacing: 1px; }
           @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
@@ -384,7 +423,7 @@ export default function ThemeParkEntrance() {
             </div>
           </div>
 
-          {/* 📢 インフォメーション（流れるティッカー完全復活！） */}
+          {/* 📢 インフォメーション（流れるティッカー） */}
           <div className="news-ticker-wrapper fade-up-element" style={{ "--delay": "0.1s" } as any}>
             <div className="news-badge">📢 インフォメーション</div>
             <div className="news-scroll-container"><div className="news-text">{newsText}</div></div>
@@ -400,9 +439,10 @@ export default function ThemeParkEntrance() {
 
           <div className="main-layout">
             
-            {/* ℹ️ 左カラム：クリップボードBOX */}
+            {/* ℹ️ 左カラム：設定パネル */}
             <aside className="info-sidebar">
-              {/* 📋 新機能：CallTree・ブックマーク管理BOX */}
+              
+              {/* 📋 CallTree・ブックマーク管理BOX */}
               <div className="info-panel fade-up-element" style={{ transitionDelay: "0.2s" }}>
                 <h3 className="info-title">📋 CallTree & ブックマーク管理</h3>
                 <div style={{ fontSize: "12px", color: "var(--text-sub)", fontWeight: 800, marginBottom: "15px", lineHeight: 1.5 }}>
