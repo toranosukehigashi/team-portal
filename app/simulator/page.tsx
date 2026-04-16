@@ -1,10 +1,38 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+
+// ✨ 背景の光の粒（アンバーテーマに合わせたカームデザイン）
+const FlowParticles = () => {
+  const [particles, setParticles] = useState<{ id: number; left: string; top: string; delay: string; size: string }[]>([]);
+  useEffect(() => {
+    const generatedParticles = Array.from({ length: 40 }).map((_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}vw`,
+      top: `${Math.random() * 100}vh`,
+      delay: `${Math.random() * 5}s`,
+      size: `${Math.random() * 3 + 1}px`
+    }));
+    setParticles(generatedParticles);
+  }, []);
+  return (
+    <div className="particles-container">
+      {particles.map(p => (
+        <div key={p.id} className="particle" style={{ left: p.left, top: p.top, width: p.size, height: p.size, animationDelay: p.delay }} />
+      ))}
+    </div>
+  );
+};
 
 export default function Simulator() {
   const router = useRouter();
+
+  // 🌟 メニューとテーマ状態
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [toast, setToast] = useState({ show: false, msg: "" });
 
   // 🌟 入力状態の管理
   const [housingType, setHousingType] = useState<"family" | "mansion">("family");
@@ -39,6 +67,25 @@ export default function Simulator() {
     flets_ms_p1: { name: "フレッツ光 MS P1", family: 4000, mansion: 4000, phone: 550 },
     flets_ms_mini: { name: "フレッツ光 MS ミニ", family: 4500, mansion: 4500, phone: 550 },
     flets_fm_1g: { name: "フレッツ光 FM 1G", family: 6050, mansion: 6050, phone: 550 },
+  };
+
+  useEffect(() => {
+    setIsReady(true);
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("visible"); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+    showToast(!isDarkMode ? "🌙 ダークモードに切り替えました" : "☀️ ライトモードに切り替えました");
+  };
+
+  const showToast = (msg: string) => {
+    setToast({ show: true, msg });
+    setTimeout(() => setToast({ show: false, msg: "" }), 3000);
   };
 
   // 🎯 提案可能プランのフィルタリング
@@ -128,136 +175,234 @@ export default function Simulator() {
   const newChartWidth = results.currentAnnual > 0 ? Math.max(0, Math.min(100, Math.floor((results.newAnnualTotal / results.currentAnnual) * 100))) : 0;
 
   return (
-    <div className="pirates-theme">
-      {/* ✨ 究極魔法のCSS（9つのデザイン技術を投入） */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        .pirates-theme * { box-sizing: border-box; }
-        
-        /* 🌊 1. ジェネレーティブUI & カームデザイン (深海の波紋と霧) */
-        .pirates-theme { 
-          font-family: 'Georgia', 'Noto Serif JP', serif; 
-          min-height: 100vh; 
-          background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
-          color: #e2e8f0; padding: 40px 20px; overflow-x: hidden; position: relative; z-index: 1;
-        }
-        .abyss-fog {
-          position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.15; mix-blend-mode: screen;
-          background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="f"><feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="3" result="noise" /><feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.5 0" /></filter><rect width="100%" height="100%" filter="url(%23f)" /></svg>');
-          animation: driftFog 60s linear infinite;
-        }
-        @keyframes driftFog { 0% { transform: scale(1.1) translateX(0); } 100% { transform: scale(1.1) translateX(-20%); } }
+    <>
+      <div className={`entrance-bg ${isDarkMode ? "theme-dark" : "theme-light"}`}>
+        <FlowParticles />
+      </div>
 
-        /* 🧭 9. イマーシブ要素（背景の巨大な羅針盤の透かし） */
-        .compass-watermark {
-          position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-          width: 80vh; height: 80vh; border: 2px dashed rgba(251, 191, 36, 0.05); border-radius: 50%; z-index: -1; pointer-events: none;
-          display: flex; align-items: center; justify-content: center; animation: slowSpin 120s linear infinite;
-        }
-        .compass-watermark::before, .compass-watermark::after { content: ''; position: absolute; background: rgba(251, 191, 36, 0.03); }
-        .compass-watermark::before { width: 2px; height: 100%; } .compass-watermark::after { width: 100%; height: 2px; }
-        @keyframes slowSpin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+      <main className={`app-wrapper ${isReady ? "ready" : ""} ${isDarkMode ? "theme-dark" : "theme-light"}`}>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .app-wrapper * { box-sizing: border-box; }
 
-        .container { max-width: 1200px; margin: 0 auto; position: relative; }
-        
-        .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; }
-        .btn-back { background: rgba(15,23,42,0.8); border: 1px solid rgba(251, 191, 36, 0.3); padding: 12px 24px; border-radius: 30px; font-weight: 800; color: #fbbf24; cursor: pointer; transition: 0.3s; backdrop-filter: blur(10px); font-family: 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        .btn-back:hover { background: rgba(251, 191, 36, 0.1); border-color: #fbbf24; transform: translateX(-5px); box-shadow: 0 0 20px rgba(251, 191, 36, 0.3); }
+          /* 🎨 新しい洗練されたカラーパレット：アンバー（琥珀）＆サンセット */
+          .theme-light {
+            --bg-gradient: linear-gradient(135deg, #fffbeb 0%, #ffedd5 50%, #fef2f2 100%);
+            --text-main: #334155;
+            --text-sub: #64748b;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(255, 255, 255, 1);
+            --card-hover-border: #f59e0b;
+            --card-hover-bg: rgba(255, 255, 255, 0.95);
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.04);
+            --title-color: #d97706;
+            --accent-color: #ea580c;
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --input-border: rgba(253, 186, 116, 0.5);
+            --svg-color: rgba(245, 158, 11, 0.2);
+            --particle-color: #fcd34d;
+            --error-bg: #fff1f2;
+            --error-border: #e11d48;
+          }
+          
+          .theme-dark {
+            --bg-gradient: radial-gradient(ellipse at top left, #451a03 0%, #0f172a 100%);
+            --text-main: #f8fafc;
+            --text-sub: #cbd5e1;
+            --card-bg: rgba(30, 20, 15, 0.65);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --card-hover-border: #fbbf24;
+            --card-hover-bg: rgba(60, 30, 15, 0.85);
+            --card-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            --title-color: #fcd34d; 
+            --accent-color: #fbbf24;
+            --input-bg: rgba(0, 0, 0, 0.4);
+            --input-border: rgba(245, 158, 11, 0.3);
+            --svg-color: rgba(251, 191, 36, 0.15);
+            --particle-color: #fef3c7;
+            --error-bg: rgba(225, 29, 72, 0.2);
+            --error-border: #fb7185;
+          }
 
-        /* 👑 5. ダイナミック・タイポグラフィ（黄金の輝き） */
-        .page-title { 
-          font-size: 32px; font-weight: 900; margin: 0; letter-spacing: 3px;
-          background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-          background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-          animation: goldShine 4s linear infinite; filter: drop-shadow(0 4px 10px rgba(251,191,36,0.3));
-        }
-        @keyframes goldShine { to { background-position: 200% center; } }
+          .app-wrapper { 
+            min-height: 100vh; padding: 20px 40px 100px 40px; 
+            font-family: 'Inter', 'Noto Sans JP', sans-serif; 
+            color: var(--text-main); font-size: 13px; 
+            transition: color 0.5s; overflow-x: hidden; position: relative;
+          }
 
-        /* 📱 8. バーティカルUI対応（レスポンシブなBentoグリッド） */
-        .sim-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; perspective: 1000px; }
-        @media (max-width: 950px) { .sim-layout { grid-template-columns: 1fr; } }
+          .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; transition: background 0.8s ease; }
+          .entrance-bg.theme-light { background: var(--bg-gradient); }
+          .entrance-bg.theme-dark { background: var(--bg-gradient); }
 
-        /* 🏴‍☠️ 4. マイクロインタラクション＆深度（宝の地図パネル） */
-        .glass-panel { 
-          background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(25px); 
-          border: 1px solid rgba(255,255,255,0.05); border-top: 1px solid rgba(251, 191, 36, 0.3); border-bottom: 1px solid rgba(251, 191, 36, 0.1);
-          border-radius: 24px; padding: 35px; box-shadow: 0 25px 50px rgba(0,0,0,0.7), inset 0 0 30px rgba(0,0,0,0.4); 
-          display: flex; flex-direction: column; gap: 24px; transform-style: preserve-3d; transition: transform 0.4s ease, box-shadow 0.4s ease;
-        }
-        .glass-panel:hover { transform: translateY(-5px) rotateX(1deg); box-shadow: 0 30px 60px rgba(0,0,0,0.9), inset 0 0 40px rgba(251,191,36,0.05); }
-        
-        .panel-title { font-size: 20px; font-weight: 900; color: #fbbf24; margin: 0; display: flex; align-items: center; gap: 12px; border-bottom: 1px dashed rgba(251, 191, 36, 0.3); padding-bottom: 15px; letter-spacing: 1px; text-shadow: 0 2px 5px rgba(0,0,0,0.8); transform: translateZ(20px); }
+          .particles-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
+          .particle { position: absolute; border-radius: 50%; background: var(--particle-color); box-shadow: 0 0 10px var(--particle-color); animation: flowUp 8s infinite ease-in-out; transition: background 0.5s, box-shadow 0.5s; }
+          @keyframes flowUp { 0% { opacity: 0; transform: translateY(20px) scale(0.5); } 50% { opacity: 0.8; transform: translateY(-50px) scale(1.2); } 100% { opacity: 0; transform: translateY(-100px) scale(0.5); } }
 
-        /* 🗃️ 2. Bento UI（入力項目群） */
-        .input-group { display: flex; flex-direction: column; gap: 10px; transform: translateZ(10px); }
-        .input-label { display: flex; justify-content: space-between; font-weight: 800; color: #94a3b8; font-size: 13px; font-family: 'Inter', sans-serif; letter-spacing: 0.5px; }
-        .val-display { color: #fde047; font-size: 16px; font-weight: 900; text-shadow: 0 0 10px rgba(253,224,71,0.4); }
-        
-        .tab-group { display: flex; gap: 8px; background: rgba(0,0,0,0.4); padding: 6px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
-        .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.3s; background: transparent; color: #64748b; font-family: 'Inter', sans-serif; }
-        .tab-btn.active { background: rgba(251, 191, 36, 0.15); color: #fde047; border: 1px solid rgba(251, 191, 36, 0.4); box-shadow: 0 0 15px rgba(251,191,36,0.2); }
+          /* 🌟 SVGデータフロー背景（海賊からアナリティクスへ） */
+          .data-svg-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.8; }
+          .data-path { fill: none; stroke: var(--svg-color); stroke-width: 2; stroke-dasharray: 1500; stroke-dashoffset: 1500; animation: drawDataFlow 15s linear infinite; transition: stroke 0.5s; }
+          @keyframes drawDataFlow { 0% { stroke-dashoffset: 1500; } 100% { stroke-dashoffset: -1500; } }
 
-        .sim-select, .sim-input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.5); font-size: 15px; font-weight: 800; color: #fff; outline: none; transition: 0.3s; cursor: pointer; font-family: 'Inter', sans-serif; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); }
-        .sim-select:focus, .sim-input:focus { border-color: #fbbf24; box-shadow: 0 0 0 3px rgba(251,191,36,0.15), inset 0 2px 5px rgba(0,0,0,0.5); background: rgba(0,0,0,0.7); }
-        .sim-select option { background: #0f172a; color: #fff; }
+          /* 🍔 ハンバーガーボタン */
+          .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 1001; background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; box-shadow: var(--card-shadow); transition: 0.3s; }
+          .hamburger-btn:hover { background: var(--card-hover-bg); transform: scale(1.05); }
+          .hamburger-line { width: 22px; height: 3px; background: var(--text-sub); border-radius: 3px; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+          .hamburger-btn.open .line1 { transform: translateY(8px) rotate(45deg); background: var(--accent-color); }
+          .hamburger-btn.open .line2 { opacity: 0; transform: translateX(-10px); }
+          .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: var(--accent-color); }
 
-        .range-slider { -webkit-appearance: none; width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 5px; outline: none; transition: 0.2s; }
-        .range-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #fbbf24; cursor: pointer; box-shadow: 0 0 10px rgba(251,191,36,0.6); }
+          /* 🌌 メニューオーバーレイ */
+          .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
+          .menu-overlay.open { opacity: 1; pointer-events: auto; }
 
-        /* 🔘 6. Action-First（重要オプションとトグル） */
-        .option-box { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.3); padding: 16px 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.3s; transform: translateZ(15px); font-family: 'Inter', sans-serif; }
-        .option-box:hover { background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15); }
-        
-        .active-promo { background: radial-gradient(circle at right, rgba(251,191,36,0.1) 0%, rgba(0,0,0,0.5) 100%); border: 1px solid rgba(251,191,36,0.4); box-shadow: inset 0 0 20px rgba(251,191,36,0.05); cursor: default; }
-        .cb-input { background: rgba(0,0,0,0.8); border: 2px solid #fbbf24; border-radius: 10px; padding: 10px 15px; width: 140px; font-weight: 900; font-size: 18px; color: #fde047; text-align: right; outline: none; transition: 0.3s; box-shadow: 0 0 15px rgba(251,191,36,0.1); }
-        .cb-input:focus { box-shadow: 0 0 20px rgba(251,191,36,0.4), inset 0 0 10px rgba(251,191,36,0.2); }
-        
-        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); transition: .4s; border-radius: 34px; border: 1px solid rgba(255,255,255,0.2); box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); }
-        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: #94a3b8; transition: .4s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
-        input:checked + .slider { background-color: rgba(251,191,36,0.2); border-color: #fbbf24; }
-        input:checked + .slider:before { transform: translateX(22px); background-color: #fbbf24; box-shadow: 0 0 10px #fbbf24; }
+          /* 🗄️ サイドメニュー */
+          .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+          .side-menu.open { left: 0; }
+          .menu-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--card-border); letter-spacing: 1px; }
 
-        /* 💎 お宝発見エリア（右側パネル） */
-        .result-hero { background: radial-gradient(ellipse at center, rgba(251,191,36,0.15) 0%, rgba(0,0,0,0.6) 100%); border: 1px solid rgba(251,191,36,0.3); color: #fff; padding: 35px 20px; border-radius: 20px; text-align: center; position: relative; overflow: hidden; box-shadow: inset 0 0 40px rgba(0,0,0,0.8); transform: translateZ(30px); }
-        
-        /* 息づく黄金の数字 */
-        .hero-amount { font-size: 56px; font-weight: 900; line-height: 1; margin: 15px 0; font-family: 'Inter', sans-serif; letter-spacing: -2px; background: linear-gradient(to bottom, #fef08a, #f59e0b, #b45309); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 5px 15px rgba(245,158,11,0.5)); animation: pulseTreasure 2s infinite alternate; }
-        .hero-amount.negative { background: linear-gradient(to bottom, #fca5a5, #ef4444, #9f1239); -webkit-text-fill-color: transparent; filter: drop-shadow(0 5px 15px rgba(225,29,72,0.5)); }
-        @keyframes pulseTreasure { 0% { transform: scale(1); filter: drop-shadow(0 5px 15px rgba(245,158,11,0.4)); } 100% { transform: scale(1.05); filter: drop-shadow(0 10px 25px rgba(245,158,11,0.8)); } }
-        
-        /* Bento UI: 内訳ボックス */
-        .bar-wrap { width: 100%; background: rgba(0,0,0,0.5); border-radius: 8px; height: 12px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,0.8); }
-        .bar-fill { height: 100%; border-radius: 8px; transition: width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
-        .bar-current { background: #64748b; }
-        .bar-new { background: linear-gradient(90deg, #fbbf24, #f59e0b); box-shadow: 0 0 10px rgba(251,191,36,0.6); }
-        
-        .breakdown-box { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; font-family: 'Inter', sans-serif; transition: 0.3s; }
-        .breakdown-box:hover { background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15); transform: translateX(5px); }
-        .bd-val { font-size: 16px; font-weight: 900; color: #e2e8f0; }
-        
-        /* 🚨 赤字アラートと緑字プロモ */
-        .alert-box { background: rgba(159, 18, 57, 0.2); border: 1px solid rgba(225, 29, 72, 0.4); padding: 12px 18px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .promo-box { background: rgba(6, 78, 59, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); padding: 12px 18px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
-      `}} />
+          .side-link { text-decoration: none; padding: 14px 20px; border-radius: 14px; background: var(--input-bg); color: var(--text-main); font-weight: 800; font-size: 14px; border: 1px solid var(--card-border); transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
+          .side-link:hover { border-color: var(--card-hover-border); transform: translateX(8px); color: var(--accent-color); }
+          .side-link.current-page { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; box-shadow: 0 6px 15px rgba(245, 158, 11, 0.3); pointer-events: none; }
 
-      {/* 🌫️ 1. ジェネレーティブUI（深海の波紋） */}
-      <div className="abyss-fog"></div>
-      {/* 🧭 9. イマーシブ背景（羅針盤透かし） */}
-      <div className="compass-watermark"></div>
+          /* 🎈 ナビゲーション（中央配置） */
+          .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 30px; }
+          .glass-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 50px; box-shadow: var(--card-shadow); max-width: 800px; width: 100%; }
+          
+          .nav-left { display: flex; gap: 12px; align-items: center; }
+          .glass-nav-link { text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 800; background: var(--input-bg); color: var(--text-sub); border: 1px solid var(--card-border); transition: 0.2s; font-size: 14px; }
+          .glass-nav-link:hover { color: var(--accent-color); border-color: var(--card-hover-border); }
+          .glass-nav-active { padding: 10px 20px; border-radius: 30px; font-weight: 900; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); font-size: 14px; }
 
-      <div className="container">
-        <div className="header-top">
-          <button className="btn-back" onClick={() => router.push("/")}>← 港へ戻る (Home)</button>
-          <h1 className="page-title">カリブの海賊: 通信費シミュレーター</h1>
+          /* テーマ切り替えボタン */
+          .theme-toggle-btn { background: var(--input-bg); border: 1px solid var(--card-border); padding: 10px 20px; border-radius: 30px; cursor: pointer; transition: 0.3s; font-size: 14px; color: var(--text-main); font-weight: 800; }
+          .theme-toggle-btn:hover { border-color: var(--card-hover-border); transform: scale(1.05); }
+
+          /* 🌟 レイアウト：Bento UI可変グリッド */
+          .sim-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; max-width: 1200px; margin: 0 auto; perspective: 1000px; }
+          @media (max-width: 950px) { .sim-layout { grid-template-columns: 1fr; } }
+
+          /* 🗃️ Bento UI（パネル） */
+          .glass-panel { 
+            background: var(--card-bg); backdrop-filter: blur(25px); 
+            border: 1px solid var(--card-border); border-radius: 24px; padding: 35px; 
+            box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 24px; 
+            transform-style: preserve-3d; transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.2s;
+          }
+          .glass-panel:hover { transform: translateY(-5px); box-shadow: 0 30px 60px rgba(0,0,0,0.1); border-color: var(--card-hover-border); }
+          .theme-dark .glass-panel:hover { box-shadow: 0 30px 60px rgba(0,0,0,0.8); }
+          
+          .panel-title { font-size: 18px; font-weight: 900; color: var(--title-color); margin: 0; display: flex; align-items: center; gap: 12px; border-bottom: 2px dashed var(--card-border); padding-bottom: 15px; letter-spacing: 1px; transform: translateZ(20px); }
+
+          /* 入力項目群 */
+          .input-group { display: flex; flex-direction: column; gap: 10px; transform: translateZ(10px); }
+          .input-label { display: flex; justify-content: space-between; font-weight: 800; color: var(--text-sub); font-size: 13px; letter-spacing: 0.5px; border-left: 3px solid var(--accent-color); padding-left: 8px; }
+          .val-display { color: var(--accent-color); font-size: 16px; font-weight: 900; }
+          
+          .tab-group { display: flex; gap: 8px; background: var(--input-bg); padding: 6px; border-radius: 12px; border: 1px solid var(--input-border); }
+          .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.3s; background: transparent; color: var(--text-sub); }
+          .tab-btn.active { background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); box-shadow: 0 4px 10px rgba(245,158,11,0.2); }
+
+          .sim-select, .sim-input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--input-border); background: var(--input-bg); font-size: 14px; font-weight: 800; color: var(--text-main); outline: none; transition: 0.3s; cursor: pointer; }
+          .sim-select:focus, .sim-input:focus { border-color: var(--card-hover-border); box-shadow: 0 0 0 4px rgba(245,158,11,0.2); background: var(--card-hover-bg); }
+          .sim-select option { background: #fffbeb; color: #334155; }
+          .theme-dark .sim-select option { background: #0f172a; color: #f8fafc; }
+
+          .range-slider { -webkit-appearance: none; width: 100%; height: 8px; background: var(--input-border); border-radius: 5px; outline: none; transition: 0.2s; }
+          .range-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--accent-color); cursor: pointer; box-shadow: 0 4px 10px rgba(245,158,11,0.4); }
+
+          /* 🔘 6. Action-First（重要オプションとトグル） */
+          .option-box { display: flex; align-items: center; justify-content: space-between; background: var(--input-bg); padding: 16px 20px; border-radius: 16px; border: 1px solid var(--input-border); cursor: pointer; transition: 0.3s; transform: translateZ(15px); }
+          .option-box:hover { background: var(--card-hover-bg); border-color: var(--card-hover-border); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+          
+          .active-promo { background: radial-gradient(circle at right, rgba(245,158,11,0.1) 0%, var(--input-bg) 100%); border: 1px solid var(--card-hover-border); cursor: default; }
+          .cb-input { background: var(--card-bg); border: 2px solid var(--card-hover-border); border-radius: 10px; padding: 10px 15px; width: 140px; font-weight: 900; font-size: 18px; color: var(--accent-color); text-align: right; outline: none; transition: 0.3s; }
+          .cb-input:focus { box-shadow: 0 0 0 4px rgba(245,158,11,0.2); background: var(--card-hover-bg); }
+          
+          .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+          .switch input { opacity: 0; width: 0; height: 0; }
+          .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--input-border); transition: .4s; border-radius: 34px; border: 1px solid var(--card-border); }
+          .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: var(--text-sub); transition: .4s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+          input:checked + .slider { background-color: rgba(245,158,11,0.2); border-color: var(--card-hover-border); }
+          input:checked + .slider:before { transform: translateX(22px); background-color: var(--accent-color); box-shadow: 0 0 10px var(--accent-color); }
+
+          /* 💎 データアナリティクス・結果エリア */
+          .result-hero { background: radial-gradient(ellipse at center, rgba(245,158,11,0.15) 0%, var(--input-bg) 100%); border: 1px solid var(--card-hover-border); padding: 35px 20px; border-radius: 20px; text-align: center; position: relative; overflow: hidden; transform: translateZ(30px); }
+          
+          .hero-amount { font-size: 56px; font-weight: 900; line-height: 1; margin: 15px 0; letter-spacing: -2px; color: var(--title-color); filter: drop-shadow(0 4px 10px rgba(245,158,11,0.2)); animation: pulseTreasure 2s infinite alternate; }
+          .hero-amount.negative { color: #e11d48; filter: drop-shadow(0 4px 10px rgba(225,29,72,0.2)); }
+          @keyframes pulseTreasure { 0% { transform: scale(1); filter: drop-shadow(0 4px 10px rgba(245,158,11,0.2)); } 100% { transform: scale(1.02); filter: drop-shadow(0 8px 20px rgba(245,158,11,0.4)); } }
+          
+          /* Bento UI: 内訳ボックス */
+          .bar-wrap { width: 100%; background: var(--input-border); border-radius: 8px; height: 12px; border: 1px solid var(--card-border); overflow: hidden; }
+          .bar-fill { height: 100%; border-radius: 8px; transition: width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
+          .bar-current { background: var(--text-sub); }
+          .bar-new { background: linear-gradient(90deg, #fbbf24, #ea580c); }
+          
+          .breakdown-box { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 12px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
+          .breakdown-box:hover { background: var(--card-hover-bg); border-color: var(--card-hover-border); transform: translateX(5px); }
+          .bd-val { font-size: 16px; font-weight: 900; color: var(--text-main); }
+          
+          /* 🚨 アラートとプロモ */
+          .alert-box { background: rgba(225, 29, 72, 0.1); border: 1px solid rgba(225, 29, 72, 0.3); padding: 12px 18px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
+          .promo-box { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 12px 18px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
+
+          #toast { visibility: hidden; position: fixed; bottom: 40px; right: 40px; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); padding: 16px 24px; border-radius: 12px; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 200; opacity: 0; transition: 0.4s; backdrop-filter: blur(10px); }
+          #toast.show { visibility: visible; opacity: 1; transform: translateY(-10px); }
+
+          /* 🪄 スクロール連動 */
+          .fade-up-element { opacity: 0; transform: translateY(40px); transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+          .fade-up-element.visible { opacity: 1; transform: translateY(0); }
+        `}} />
+
+        {/* 🌟 SVGデータフロー背景 */}
+        <svg className="data-svg-bg" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path className="data-path" d="M -10,20 L 30,20 L 40,50 L 80,50 L 110,20" />
+          <path className="data-path" d="M -10,80 L 40,80 L 60,30 L 90,30 L 110,80" style={{animationDelay: "3s", opacity: 0.5}} />
+        </svg>
+
+        {/* 🍔 ハンバーガーボタン */}
+        <div className={`hamburger-btn ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+          <div className="hamburger-line line1"></div>
+          <div className="hamburger-line line2"></div>
+          <div className="hamburger-line line3"></div>
+        </div>
+
+        {/* 🌌 メニュー展開時の背景オーバーレイ */}
+        <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
+
+        {/* 🗄️ サイドメニュー（全ツール網羅） */}
+        <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
+          <div className="menu-title">🧭 TOOL MENU</div>
+          <a href="/kpi-detail" className="side-link">📊 獲得進捗・KPI</a>
+          <a href="/bulk-register" className="side-link">📦 データ一括登録</a>
+          <a href="/net-toss" className="side-link">🌐 ネットトス連携</a>
+          <a href="/self-close" className="side-link">🤝 自己クロ連携</a>
+          <a href="/sms-kraken" className="side-link">📱 SMS (Kraken)送信</a>
+          <a href="/email-template" className="side-link">✉️ メールテンプレート</a>
+          <a href="/procedure-wizard" className="side-link">🗺️ Kraken 手順辞書</a>
+          <a href="/simulator" className="side-link current-page">🆚 料金シミュレーター</a>
+          <a href="/trouble-nav" className="side-link">⚡ トラブル解決ナビ</a>
+        </div>
+
+        {/* 🎈 ナビゲーション & テーマ切り替え */}
+        <div className="glass-nav-wrapper fade-up-element" style={{ "--delay": "0s" } as any}>
+          <div className="glass-nav">
+            <div className="nav-left">
+              <a href="/" className="glass-nav-link">← 司令室に戻る</a>
+              <div className="glass-nav-active">🆚 料金シミュレーター</div>
+            </div>
+            <button className="theme-toggle-btn" onClick={toggleTheme}>
+              {isDarkMode ? "🎇 NIGHT" : "☀️ DAY"}
+            </button>
+          </div>
         </div>
 
         {/* 📱 8. バーティカルUI（可変グリッド） */}
         <div className="sim-layout">
           
-          {/* 🏴‍☠️ 左側パネル：海図（ヒアリング） */}
-          <div className="glass-panel">
-            <h2 className="panel-title">🗺️ 現在の航路（ご利用状況）</h2>
+          {/* 🏴‍☠️ 左側パネル：ヒアリング（入力） */}
+          <div className="glass-panel fade-up-element">
+            <h2 className="panel-title">🗺️ 現在のご利用状況</h2>
 
             <div className="input-group">
               <label className="input-label">建物のタイプ</label>
@@ -268,7 +413,7 @@ export default function Simulator() {
             </div>
 
             <div className="input-group">
-              <label className="input-label">📱 ご利用中のスマホキャリア</label>
+              <label className="input-label">📱 スマホキャリア</label>
               <select className="sim-select" value={mobileCarrier} onChange={(e) => setMobileCarrier(e.target.value)}>
                 <option value="sb">ソフトバンク</option>
                 <option value="ymobile">ワイモバイル</option>
@@ -310,14 +455,14 @@ export default function Simulator() {
               <div className="input-label" style={{alignItems:"center"}}>
                 <span>現在のネット代</span>
                 <div style={{display:"flex", alignItems:"center", gap:"5px"}}>
-                  <input type="number" value={currentNet} style={{width:"80px", border:"none", background:"none", textAlign:"right", fontWeight:900, color:"#fde047", fontSize:"18px", outline:"none", textShadow:"0 0 10px rgba(253,224,71,0.5)"}} onChange={(e) => setCurrentNet(e.target.value)} />
-                  <span className="val-display" style={{fontSize:"14px", color:"#94a3b8"}}>円</span>
+                  <input type="number" value={currentNet} style={{width:"80px", border:"none", background:"none", textAlign:"right", fontWeight:900, color:"var(--accent-color)", fontSize:"18px", outline:"none"}} onChange={(e) => setCurrentNet(e.target.value)} />
+                  <span className="val-display" style={{fontSize:"14px", color:"var(--text-sub)"}}>円</span>
                 </div>
               </div>
               <input type="range" min="0" max="10000" step="100" className="range-slider" value={Number(currentNet) || 0} onChange={(e) => setCurrentNet(e.target.value)} />
             </div>
 
-            <h2 className="panel-title" style={{ marginTop: "10px" }}>⚓ 新たな航路（ご提案プラン）</h2>
+            <h2 className="panel-title" style={{ marginTop: "10px" }}>⚓ ご提案プラン</h2>
 
             <div className="input-group">
               <label className="input-label">提案回線</label>
@@ -328,21 +473,20 @@ export default function Simulator() {
               </select>
             </div>
 
-            {/* 初期費用（Bento UI風レイアウト） */}
-            <div className="input-group" style={{background:"rgba(0,0,0,0.3)", padding:"16px", borderRadius:"16px", border:"1px solid rgba(255,255,255,0.05)"}}>
+            {/* 初期費用（Bento UIレイアウト） */}
+            <div className="input-group" style={{background:"var(--input-bg)", padding:"16px", borderRadius:"16px", border:"1px solid var(--input-border)"}}>
               <label className="input-label" style={{marginBottom:"12px"}}>💳 乗り換えにかかる初期費用等</label>
               <div style={{ display: "flex", gap: "10px" }}>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:"11px", color:"#64748b", marginBottom:"6px"}}>事務手数料</div>
+                  <div style={{fontSize:"11px", color:"var(--text-sub)", marginBottom:"6px"}}>事務手数料</div>
                   <input type="number" className="sim-input" style={{padding:"10px", fontSize:"14px"}} value={initialFee} onChange={(e)=>setInitialFee(e.target.value)} />
                 </div>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:"11px", color:"#64748b", marginBottom:"6px"}}>工事費</div>
+                  <div style={{fontSize:"11px", color:"var(--text-sub)", marginBottom:"6px"}}>工事費</div>
                   <input type="number" className="sim-input" style={{padding:"10px", fontSize:"14px"}} value={constructionFee} onChange={(e)=>setConstructionFee(e.target.value)} />
                 </div>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:"11px", color:"#64748b", marginBottom:"6px"}}>現回線の解約金</div>
-                  {/* ✨ ここが修正箇所！ Number() をかませて確実に数字として比較する */}
+                  <div style={{fontSize:"11px", color:"var(--text-sub)", marginBottom:"6px"}}>現回線の解約金</div>
                   <input type="number" className="sim-input" style={{padding:"10px", fontSize:"14px", borderColor: Number(cancellationFee) > 0 ? "#fca5a5" : ""}} value={cancellationFee} onChange={(e)=>setCancellationFee(e.target.value)} />
                 </div>
               </div>
@@ -351,8 +495,8 @@ export default function Simulator() {
             {/* 🔘 6. Action-First（操作性の高いトグル群） */}
             <div className="option-box" onClick={() => setAddPhone(!addPhone)}>
               <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                <span style={{ fontWeight: 800, color:"#e2e8f0" }}>📞 ひかり電話を付帯する</span>
-                <span style={{ fontSize: "11px", color: "#94a3b8" }}>セット割の条件などに（+550円/月）</span>
+                <span style={{ fontWeight: 800, color:"var(--text-main)" }}>📞 ひかり電話を付帯する</span>
+                <span style={{ fontSize: "11px", color: "var(--text-sub)" }}>セット割の条件などに（+550円/月）</span>
               </div>
               <label className="switch" onClick={(e) => e.stopPropagation()}>
                 <input type="checkbox" checked={addPhone} onChange={() => setAddPhone(!addPhone)} />
@@ -361,54 +505,54 @@ export default function Simulator() {
             </div>
 
             {targetCarrier.startsWith("flets") && (
-              <div className="option-box" style={{ background: "rgba(6, 78, 59, 0.3)", borderColor: "rgba(16, 185, 129, 0.4)" }} onClick={() => setApplyFletsFree(!applyFletsFree)}>
+              <div className="option-box" style={{ background: "rgba(16, 185, 129, 0.1)", borderColor: "rgba(16, 185, 129, 0.4)" }} onClick={() => setApplyFletsFree(!applyFletsFree)}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                  <span style={{ fontWeight: 900, color: "#34d399" }}>🎁 究極魔法：半年間「全額実質無料」</span>
-                  <span style={{ fontSize: "11px", color: "#a7f3d0" }}>CB枠を使って初期負担を完全に相殺します</span>
+                  <span style={{ fontWeight: 900, color: "#10b981" }}>🎁 究極魔法：半年間「全額実質無料」</span>
+                  <span style={{ fontSize: "11px", color: "var(--text-sub)" }}>CB枠を使って初期負担を完全に相殺します</span>
                 </div>
                 <label className="switch" onClick={(e) => e.stopPropagation()}>
                   <input type="checkbox" checked={applyFletsFree} onChange={() => setApplyFletsFree(!applyFletsFree)} />
-                  <span className="slider" style={{ backgroundColor: applyFletsFree ? "#10b981" : "rgba(255,255,255,0.1)", borderColor: applyFletsFree ? "#34d399" : "" }}></span>
+                  <span className="slider" style={{ backgroundColor: applyFletsFree ? "#10b981" : "var(--input-border)", borderColor: applyFletsFree ? "#34d399" : "" }}></span>
                 </label>
               </div>
             )}
 
             {targetCarrier.startsWith("flets") && applyFletsFree && (
-              <div style={{ background: "rgba(159, 18, 57, 0.2)", borderLeft: "4px solid #e11d48", padding: "16px", borderRadius: "8px", fontSize: "13px", color: "#fda4af", fontWeight: 800, lineHeight: 1.6 }}>
-                💡 お客様負担を「0円」にするための生贄（条件）<br/>
+              <div style={{ background: "rgba(225, 29, 72, 0.1)", borderLeft: "4px solid #e11d48", padding: "16px", borderRadius: "8px", fontSize: "13px", color: "#e11d48", fontWeight: 800, lineHeight: 1.6 }}>
+                💡 お客様負担を「0円」にするための条件<br/>
                 ・半年分の月額費用【{results.fletsHalfYearCost.toLocaleString()}円】<br/>
                 ・初期費用/工事費/解約金【{results.firstYearExtraCosts.toLocaleString()}円】<br/>
-                👉 <span style={{fontSize:"16px", fontWeight:900, color:"#fff"}}>合計【{results.requiredCbForFlets.toLocaleString()}円】</span> を下のキャッシュバック額にセットせよ。
+                👉 <span style={{fontSize:"16px", fontWeight:900, color:"var(--text-main)"}}>合計【{results.requiredCbForFlets.toLocaleString()}円】</span> を下のキャッシュバック額にセットせよ。
               </div>
             )}
 
             <div className="option-box active-promo">
               <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                <span style={{ fontWeight: 800, color: "#fde047" }}>💰 財宝（キャッシュバック）設定</span>
-                <span style={{ fontSize: "11px", color: "#fbbf24" }}>自由に金額を変更できます</span>
+                <span style={{ fontWeight: 800, color: "var(--title-color)" }}>💰 還元（キャッシュバック）設定</span>
+                <span style={{ fontSize: "11px", color: "var(--accent-color)" }}>自由に金額を変更できます</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
                 <input type="number" className="cb-input" value={cbAmount} onChange={(e) => setCbAmount(e.target.value)} />
-                <span style={{ fontWeight: 900, color: "#fbbf24" }}>円</span>
+                <span style={{ fontWeight: 900, color: "var(--accent-color)" }}>円</span>
               </div>
             </div>
           </div>
 
-          {/* ✨ 右側：発見された財宝（結果）パネル */}
-          <div className="glass-panel">
-            <h2 className="panel-title">💎 発見された財宝（シミュレーション結果）</h2>
+          {/* ✨ 右側：データアナリティクス（結果）パネル */}
+          <div className="glass-panel fade-up-element" style={{ transitionDelay: "0.2s" }}>
+            <h2 className="panel-title">💎 シミュレーション結果</h2>
             
             <div className="result-hero">
-              <div style={{ fontSize: "14px", color: "#cbd5e1", fontWeight: 800, letterSpacing:"1px", textTransform:"uppercase" }}>初年度トータル節約額</div>
+              <div style={{ fontSize: "14px", color: "var(--text-sub)", fontWeight: 800, letterSpacing:"1px", textTransform:"uppercase" }}>初年度トータル節約額</div>
               <div className={`hero-amount ${results.annualSavings < 0 ? "negative" : ""}`}>
                 {results.annualSavings >= 0 ? "+" : ""}{Math.floor(results.annualSavings).toLocaleString()} <span style={{fontSize:"24px", letterSpacing:"0"}}>円</span>
               </div>
-              <div style={{ fontSize: "11px", color: "#94a3b8" }}>※初年度の特典・初期費用すべてを含む</div>
+              <div style={{ fontSize: "11px", color: "var(--text-sub)" }}>※初年度の特典・初期費用すべてを含む</div>
             </div>
 
             <div style={{marginTop:"20px", display:"flex", flexDirection:"column", gap:"15px", fontFamily:"'Inter', sans-serif"}}>
               <div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", fontWeight: 800, marginBottom: "6px", color:"#cbd5e1" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", fontWeight: 800, marginBottom: "6px", color:"var(--text-sub)" }}>
                   <span>現状維持</span>
                   <span>{results.currentAnnual.toLocaleString()} 円</span>
                 </div>
@@ -418,7 +562,7 @@ export default function Simulator() {
               </div>
 
               <div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", fontWeight: 800, marginBottom: "6px", color:"#fbbf24" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", fontWeight: 800, marginBottom: "6px", color:"var(--accent-color)" }}>
                   <span>乗り換え後（初期費用含む）</span>
                   <span>{results.newAnnualTotal.toLocaleString()} 円</span>
                 </div>
@@ -428,58 +572,61 @@ export default function Simulator() {
               </div>
             </div>
 
-            <h3 style={{ fontSize: "15px", fontWeight: 900, color:"#fde047", borderLeft: "4px solid #f59e0b", paddingLeft: "10px", marginTop: "25px", marginBottom: "15px", letterSpacing:"1px" }}>
+            <h3 style={{ fontSize: "15px", fontWeight: 900, color:"var(--title-color)", borderLeft: "4px solid var(--accent-color)", paddingLeft: "10px", marginTop: "25px", marginBottom: "15px", letterSpacing:"1px" }}>
               月額・お支払い内訳
             </h3>
 
             {/* 🗃️ 2. Bento UI（計算結果のモジュール群） */}
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               <div className="breakdown-box">
-                <span style={{color:"#94a3b8", fontSize:"13px", fontWeight:800}}>ネット基本料金</span>
+                <span style={{color:"var(--text-sub)", fontSize:"13px", fontWeight:800}}>ネット基本料金</span>
                 <span className="bd-val">{results.baseFee.toLocaleString()} 円</span>
               </div>
               {addPhone && (
                 <div className="breakdown-box">
-                  <span style={{color:"#94a3b8", fontSize:"13px", fontWeight:800}}>ひかり電話</span>
+                  <span style={{color:"var(--text-sub)", fontSize:"13px", fontWeight:800}}>ひかり電話</span>
                   <span className="bd-val">+{results.phoneFee.toLocaleString()} 円</span>
                 </div>
               )}
               {results.setDiscount.isApplied && (
                 <div className="promo-box">
-                  <span style={{color:"#34d399", fontSize:"13px", fontWeight:900}}>📱 スマホセット割</span>
-                  <span className="bd-val" style={{color:"#34d399"}}>-{results.setDiscount.amount.toLocaleString()} 円</span>
+                  <span style={{color:"#10b981", fontSize:"13px", fontWeight:900}}>📱 スマホセット割</span>
+                  <span className="bd-val" style={{color:"#10b981"}}>-{results.setDiscount.amount.toLocaleString()} 円</span>
                 </div>
               )}
               
               {results.firstYearExtraCosts > 0 && (
                 <div className="alert-box">
-                  <span style={{color:"#fb7185", fontWeight:800, fontSize:"12px"}}>⚠️ 乗り換え時のみ発生（初期/工事/解約等）</span>
-                  <span className="bd-val" style={{color:"#fb7185", fontSize:"15px"}}>+{results.firstYearExtraCosts.toLocaleString()} 円</span>
+                  <span style={{color:"#e11d48", fontWeight:800, fontSize:"12px"}}>⚠️ 乗り換え時のみ発生（初期/工事/解約等）</span>
+                  <span className="bd-val" style={{color:"#e11d48", fontSize:"15px"}}>+{results.firstYearExtraCosts.toLocaleString()} 円</span>
                 </div>
               )}
 
-              <div className="breakdown-box" style={{ background: "rgba(15,23,42,0.8)", border: "1px solid rgba(251,191,36,0.5)", marginTop: "5px", padding: "20px" }}>
-                <span style={{ fontWeight: 900, color:"#fde047", fontSize:"14px" }}>月々の実質お支払い</span>
-                <span className="bd-val" style={{ fontSize: "24px", color: "#fbbf24", textShadow:"0 0 10px rgba(251,191,36,0.4)" }}>
+              <div className="breakdown-box" style={{ background: "var(--input-bg)", border: "2px solid var(--card-hover-border)", marginTop: "5px", padding: "20px" }}>
+                <span style={{ fontWeight: 900, color:"var(--title-color)", fontSize:"14px" }}>月々の実質お支払い</span>
+                <span className="bd-val" style={{ fontSize: "24px", color: "var(--accent-color)" }}>
                   {results.newMonthly.toLocaleString()} <span style={{fontSize:"14px"}}>円</span>
                 </span>
               </div>
 
               {results.officialPromo.promoValue > 0 && (
-                <div style={{ textAlign: "right", fontSize: "12px", fontWeight: 900, color: "#38bdf8", marginTop:"5px" }}>
+                <div style={{ textAlign: "right", fontSize: "12px", fontWeight: 900, color: "#0ea5e9", marginTop:"5px" }}>
                   {results.officialPromo.promoText}
                 </div>
               )}
               
               {targetCarrier.startsWith("flets") && applyFletsFree && (
-                <div style={{ textAlign: "right", fontSize: "12px", fontWeight: 900, color: "#34d399", marginTop: "2px" }}>
+                <div style={{ textAlign: "right", fontSize: "12px", fontWeight: 900, color: "#10b981", marginTop: "2px" }}>
                   🎁 還元額より、初期負担＋半年間実質無料を補填！
                 </div>
               )}
             </div>
           </div>
         </div>
-      </div>
-    </div>
+
+        {/* 🍞 通知 */}
+        <div id="toast" className={toast.show ? "show" : ""}>{toast.msg}</div>
+      </main>
+    </>
   );
 }
