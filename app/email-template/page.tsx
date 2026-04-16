@@ -3,36 +3,23 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-// 🌟 高度技術①＆⑦：ジェネレーティブUI ＆ カームデザイン (メアリー・ブレア風のパステル図形)
-const PastelShapes = () => {
-  const [shapes, setShapes] = useState<{ id: number; type: string; left: string; top: string; delay: string; duration: string; color: string; size: string }[]>([]);
-  
+// ✨ 背景の光の粒（ビジネスライクなデータパーティクルへ変更）
+const FlowParticles = () => {
+  const [particles, setParticles] = useState<{ id: number; left: string; top: string; delay: string; size: string }[]>([]);
   useEffect(() => {
-    const types = ['shape-circle', 'shape-triangle', 'shape-diamond', 'shape-flower'];
-    const colors = ['#fbcfe8', '#bae6fd', '#a7f3d0', '#fef08a', '#e9d5ff']; // 優しいパステルパレット
-    const newShapes = Array.from({ length: 35 }).map((_, i) => ({
+    const generatedParticles = Array.from({ length: 40 }).map((_, i) => ({
       id: i,
-      type: types[Math.floor(Math.random() * types.length)],
       left: `${Math.random() * 100}vw`,
       top: `${Math.random() * 100}vh`,
       delay: `${Math.random() * 5}s`,
-      duration: `${Math.random() * 15 + 15}s`, // ゆっくりと平和に動く
-      color: colors[Math.floor(Math.random() * colors.length)],
-      size: `${Math.random() * 50 + 30}px`
+      size: `${Math.random() * 3 + 1}px`
     }));
-    setShapes(newShapes);
+    setParticles(generatedParticles);
   }, []);
-
   return (
-    <div className="pastel-shapes-container">
-      {shapes.map(s => (
-        <div 
-          key={s.id} className={`mary-shape ${s.type}`} 
-          style={{ 
-            left: s.left, top: s.top, width: s.size, height: s.size, 
-            backgroundColor: s.color, animationDelay: s.delay, animationDuration: s.duration 
-          }} 
-        />
+    <div className="particles-container">
+      {particles.map(p => (
+        <div key={p.id} className="particle" style={{ left: p.left, top: p.top, width: p.size, height: p.size, animationDelay: p.delay }} />
       ))}
     </div>
   );
@@ -40,21 +27,37 @@ const PastelShapes = () => {
 
 export default function EmailTemplate() {
   const router = useRouter();
-  const [isReady, setIsReady] = useState(false);
 
-  // ⚙️ システム状態管理
-  const [toast, setToast] = useState({ show: false, msg: "", isBlue: false });
+  // 🌟 状態管理
+  const [toast, setToast] = useState({ show: false, msg: "", isError: false });
   const [preview, setPreview] = useState("");
   const [form, setForm] = useState({ name1: "", date: "", listKey: "", name2: "", area: "" });
+  
+  // 🍔 メニュー開閉状態
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+
+  // ☀️ テーマ管理
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     setIsReady(true);
+    // 🪄 スクロール連動トリガー
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("visible"); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
   }, []);
 
-  const showToast = (msg: string, isBlue = false) => {
-    setToast({ show: true, msg, isBlue });
-    setTimeout(() => setToast({ show: false, msg: "", isBlue: false }), 3000);
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+    showToast(!isDarkMode ? "🌙 ダークモードに切り替えました" : "☀️ ライトモードに切り替えました");
+  };
+
+  const showToast = (msg: string, isError = false) => {
+    setToast({ show: true, msg, isError });
+    setTimeout(() => setToast({ show: false, msg: "", isError: false }), 3000);
   };
 
   const handleChange = (e: any) => {
@@ -90,7 +93,7 @@ export default function EmailTemplate() {
       dateVal = `${d.getMonth() + 1}/${d.getDate()}`;
     }
 
-    if (!form.listKey) { showToast("⚠️ リストを選択してください！", false); return; }
+    if (!form.listKey) { showToast("⚠️ リストを選択してください！", true); return; }
 
     const urlMap: { [key: string]: string } = {
       "シンプル": "https://docs.google.com/forms/d/e/1FAIpQLScruqFuNqvbiaBQ-1gmHZCE9Gb5Q-OqrmRJM0HPXlSkITcg9g/viewform",
@@ -110,7 +113,7 @@ export default function EmailTemplate() {
                  "============================<br>TGオクトパスエナジー株式会社<br>TEL：0120-975-230<br>https://octopusenergy.co.jp/about-us<br>============================";
 
     setPreview(html.replace(/<br>/g, "\n").replace(/<[^>]+>/g, ""));
-    if (execRichCopy(html)) showToast(`✨ ${form.listKey} の重説メールをコピーしました！`);
+    if (execRichCopy(html)) showToast(`✉️ ${form.listKey} の重説メールをコピーしました！`);
   };
 
   const PRICING_DB: Record<string, any> = {
@@ -162,264 +165,311 @@ export default function EmailTemplate() {
     ].join("<br>");
 
     setPreview(html.replace(/<br>/g, "\n").replace(/<[^>]+>/g, ""));
-    if (execRichCopy(html)) showToast(`💎 ${form.area} の魔法の単価表をコピーしました！`, true);
+    if (execRichCopy(html)) showToast(`📊 ${form.area} の単価表をコピーしました！`);
   };
 
   const clearAll = () => {
     if (!confirm("入力をリセットしますか？")) return;
     setForm({ name1: "", date: "", listKey: "", name2: "", area: "" });
     setPreview("");
-    showToast("🗑️ 魔法をリセットしました");
+    showToast("🗑️ 入力内容をリセットしました");
   };
 
   return (
-    <div className={`small-world-theme ${isReady ? "ready" : ""}`}>
-      <style dangerouslySetInnerHTML={{ __html: `
-        .small-world-theme * { box-sizing: border-box; }
-        
-        .small-world-theme { 
-          font-family: 'M PLUS Rounded 1c', 'Nunito', 'Varela Round', sans-serif;
-          padding: 20px 40px 100px 40px; min-height: 100vh; 
-          background: linear-gradient(135deg, #fdf4ff 0%, #e0e7ff 50%, #fef08a 100%); 
-          background-attachment: fixed; color: #334155; overflow-x: hidden; position: relative; z-index: 1;
-        }
-        
-        .pastel-shapes-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: -3; overflow: hidden; opacity: 0.7; }
-        .mary-shape { position: absolute; animation: floatShape linear infinite alternate; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.05)); }
-        .shape-circle { border-radius: 50%; }
-        .shape-triangle { clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
-        .shape-diamond { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
-        .shape-flower { clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
-        @keyframes floatShape { 0% { transform: translateY(0) rotate(0deg); } 100% { transform: translateY(-100px) rotate(180deg); } }
-
-        /* 🕰️ 修正版：イマーシブな太陽/時計塔のアニメーション SVG */
-        .clock-tower-bg { 
-          position: fixed; 
-          top: 50%; left: 50%; 
-          width: 70vh; height: 70vh; 
-          opacity: 0.6; /* 薄すぎたのを修正し、しっかり見えるように */
-          z-index: -1;  /* コンテンツの後ろ、背景の図形より前 */
-          pointer-events: none; 
-          filter: drop-shadow(0 15px 30px rgba(0,0,0,0.1));
-          transform-origin: center center;
-          /* 時計の振り子のように、分かりやすく大きく左右に揺れるアニメーション */
-          animation: gentleRock 6s ease-in-out infinite alternate; 
-        }
-        @keyframes gentleRock { 
-          0% { transform: translate(-50%, -50%) rotate(-10deg); } 
-          100% { transform: translate(-50%, -50%) rotate(10deg); } 
-        }
-
-        .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 1001; background: rgba(255,255,255,0.8); backdrop-filter: blur(15px); border: 2px solid #fbcfe8; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; box-shadow: 0 5px 15px rgba(244, 114, 182, 0.2); transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .hamburger-btn:hover { background: #fff; box-shadow: 0 8px 25px rgba(244, 114, 182, 0.4); transform: scale(1.1); }
-        .hamburger-line { width: 22px; height: 3px; background: #db2777; border-radius: 3px; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
-        .hamburger-btn.open .line1 { transform: translateY(8px) rotate(45deg); background: #2563eb; }
-        .hamburger-btn.open .line2 { opacity: 0; transform: translateX(-10px); }
-        .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: #2563eb; }
-
-        .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 255, 255, 0.3); backdrop-filter: blur(8px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
-        .menu-overlay.open { opacity: 1; pointer-events: auto; }
-
-        .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(30px); border-right: 2px dashed #fbcfe8; z-index: 1000; box-shadow: 20px 0 50px rgba(0,0,0,0.05); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
-        .side-menu.open { left: 0; }
-        .menu-title { font-size: 14px; font-weight: 900; color: #db2777; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 3px dotted #fbcfe8; letter-spacing: 2px; }
-
-        .side-link { text-decoration: none; padding: 14px 20px; border-radius: 20px; background: rgba(255, 255, 255, 0.9); color: #475569; font-weight: 800; font-size: 14px; border: 2px solid #f1f5f9; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
-        .side-link:hover { background: #fff; border-color: #bae6fd; color: #0284c7; transform: translateX(8px) scale(1.02); box-shadow: 0 8px 20px rgba(2, 132, 199, 0.15); }
-        .side-link.current-page { background: linear-gradient(135deg, #fbcfe8, #a7f3d0); color: #0f172a; border: none; box-shadow: 0 8px 25px rgba(167, 243, 208, 0.5); pointer-events: none; }
-
-        .glass-nav { position: relative; z-index: 10; display: flex; gap: 12px; padding: 12px; margin-bottom: 30px; margin-left: 60px; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); border: 2px solid #fff; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .glass-nav-link { text-decoration: none; padding: 10px 24px; border-radius: 18px; font-weight: 800; background: transparent; color: #64748b; transition: 0.3s; }
-        .glass-nav-link:hover { background: rgba(255,255,255,0.9); color: #0284c7; box-shadow: 0 4px 10px rgba(2,132,199,0.1); }
-        .glass-nav-active { padding: 10px 24px; border-radius: 18px; font-weight: 900; background: #fff; color: #db2777; box-shadow: 0 4px 15px rgba(219, 39, 119, 0.15); border: 2px solid #fbcfe8; }
-        
-        .page-title { 
-          text-align: center; font-size: 38px; font-weight: 900; margin-bottom: 40px; letter-spacing: 3px; color: #fff; 
-          text-shadow: 2px 2px 0 #f472b6, 4px 4px 0 #38bdf8, 6px 6px 0 #a7f3d0, 0 10px 20px rgba(0,0,0,0.1);
-          animation: gentleBounce 2s infinite alternate ease-in-out;
-        }
-        @keyframes gentleBounce { to { transform: translateY(-8px); } }
-
-        .glass-panel { 
-          background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(25px); 
-          border: 3px solid #fff; border-radius: 40px; padding: 40px; margin-bottom: 30px; 
-          box-shadow: 0 20px 50px rgba(0,0,0,0.05), inset 0 0 30px rgba(255,255,255,0.8); 
-          max-width: 950px; margin-left: auto; margin-right: auto; position: relative;
-        }
-        
-        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 40px; }
-        @media (max-width: 800px) { .form-grid { grid-template-columns: 1fr; } }
-
-        .form-card { 
-          background: rgba(255, 255, 255, 0.85); border-radius: 30px; padding: 30px; 
-          border: 2px solid #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.03); 
-          transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .form-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
-        .form-card.pink-card { border-top: 8px solid #fbcfe8; }
-        .form-card.blue-card { border-top: 8px solid #bae6fd; }
-
-        .card-header { font-size: 20px; font-weight: 900; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
-        .pink-card .card-header { color: #db2777; }
-        .blue-card .card-header { color: #0284c7; }
-        
-        .input-group { display: flex; flex-direction: column; margin-bottom: 24px; }
-        .input-group label { font-size: 13px; font-weight: 800; color: #64748b; margin-bottom: 8px; padding-left: 8px; }
-        .input-control { 
-          width: 100%; padding: 15px 20px; border: 2px solid #e2e8f0; border-radius: 20px; 
-          font-size: 15px; font-weight: 800; background: rgba(255, 255, 255, 0.9); color: #1e293b; 
-          outline: none; transition: 0.3s; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02); font-family: 'M PLUS Rounded 1c', sans-serif;
-        }
-        .pink-card .input-control:focus { border-color: #f472b6; background: #fff; box-shadow: 0 0 0 5px rgba(244, 114, 182, 0.2); }
-        .blue-card .input-control:focus { border-color: #38bdf8; background: #fff; box-shadow: 0 0 0 5px rgba(56, 189, 248, 0.2); }
-
-        .btn-copy { 
-          width: 100%; padding: 18px; border: none; border-radius: 30px; font-weight: 900; font-size: 16px; 
-          cursor: pointer; transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); color: #fff; margin-top: 15px; 
-          letter-spacing: 1px; display: flex; justify-content: center; align-items: center; gap: 8px;
-        }
-        .btn-pink { background: linear-gradient(135deg, #f472b6, #e11d48); box-shadow: 0 8px 20px rgba(225, 29, 72, 0.3); }
-        .btn-pink:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 12px 25px rgba(225, 29, 72, 0.5); }
-        .btn-blue { background: linear-gradient(135deg, #38bdf8, #0284c7); box-shadow: 0 8px 20px rgba(2, 132, 199, 0.3); }
-        .btn-blue:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 12px 25px rgba(2, 132, 199, 0.5); }
-
-        .preview-area { 
-          width: 100%; height: 220px; padding: 25px; 
-          background: #1e1b4b; color: #e9d5ff; 
-          border-radius: 24px; font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.7; 
-          border: 4px solid #c084fc; outline: none; resize: vertical; 
-          box-shadow: inset 0 10px 20px rgba(0,0,0,0.5), 0 10px 30px rgba(192,132,252,0.2); 
-        }
-        
-        .btn-clear { 
-          display: block; width: 220px; margin: 0 auto; padding: 15px; 
-          background: #fff; color: #94a3b8; border: 3px solid #e2e8f0; border-radius: 30px; 
-          font-weight: 900; cursor: pointer; transition: 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
-        }
-        .btn-clear:hover { background: #fef2f2; color: #e11d48; border-color: #fecdd3; transform: translateY(-2px); }
-
-        #toast { 
-          visibility: hidden; position: fixed; bottom: 40px; right: 40px; padding: 18px 28px; border-radius: 20px; 
-          font-weight: 900; font-size: 15px; box-shadow: 0 15px 40px rgba(0,0,0,0.3); z-index: 2000; opacity: 0; 
-          color: #fff; background: #e11d48; border: 2px solid #fda4af; 
-          transform: translateY(50px) scale(0.9); transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); 
-        }
-        #toast.show { visibility: visible; opacity: 1; transform: translateY(0) scale(1); }
-        #toast.blue { background: #0284c7; border-color: #7dd3fc; }
-      `}} />
-
-      {/* 🎪 イマーシブ背景 (パステル図形) */}
-      <PastelShapes />
-      
-      {/* 🕰️ 修正版：イマーシブな太陽（顔付き）SVG */}
-      <svg className="clock-tower-bg" viewBox="0 0 200 200">
-        {/* 太陽の光 / 時計の装飾 */}
-        <path d="M100,5 L110,25 L135,15 L135,40 L160,40 L150,60 L175,70 L155,90 L175,110 L150,120 L160,145 L135,140 L135,165 L110,155 L100,180 L90,155 L65,165 L65,140 L40,145 L50,120 L25,110 L45,90 L25,70 L50,60 L40,40 L65,40 L65,15 L90,25 Z" fill="#fde047" opacity="0.8"/>
-        {/* メインの顔 */}
-        <circle cx="100" cy="95" r="55" fill="#fff" stroke="#fbcfe8" strokeWidth="6" />
-        {/* ほっぺ */}
-        <circle cx="65" cy="100" r="10" fill="#fce7f3" />
-        <circle cx="135" cy="100" r="10" fill="#fce7f3" />
-        {/* 優しい目 */}
-        <path d="M 70 80 Q 80 70 90 80" fill="none" stroke="#db2777" strokeWidth="4" strokeLinecap="round" />
-        <path d="M 110 80 Q 120 70 130 80" fill="none" stroke="#db2777" strokeWidth="4" strokeLinecap="round" />
-        {/* ニッコリ口 */}
-        <path d="M 75 110 Q 100 135 125 110" fill="none" stroke="#db2777" strokeWidth="5" strokeLinecap="round" />
-      </svg>
-
-      {/* 🍔 ハンバーガーボタン */}
-      <div className={`hamburger-btn ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
-        <div className="hamburger-line line1"></div>
-        <div className="hamburger-line line2"></div>
-        <div className="hamburger-line line3"></div>
+    <>
+      <div className={`entrance-bg ${isDarkMode ? "theme-dark" : "theme-light"}`}>
+        <FlowParticles />
       </div>
 
-      {/* 🌌 メニュー展開時の背景オーバーレイ */}
-      <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
+      <main className={`app-wrapper ${isReady ? "ready" : ""} ${isDarkMode ? "theme-dark" : "theme-light"}`}>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .app-wrapper * { box-sizing: border-box; }
 
-      {/* 🗄️ サイドメニュー */}
-      <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
-        <div className="menu-title">🧭 ATTRACTION MENU</div>
-        <a href="/bulk-register" className="side-link">📦 一括登録（自己クロ）</a>
-        <a href="/net-toss" className="side-link">🌐 ネットトス連携</a>
-        <a href="/self-close" className="side-link">🌲 自己クロ連携</a>
-        <a href="/sms-kraken" className="side-link">📱 SMS (Kraken)</a>
-        <div className="side-link current-page">✨ メールテンプレート</div>
-      </div>
+          /* 🎨 新しい洗練されたカラーパレット：アンバー（琥珀）＆サンセット */
+          .theme-light {
+            --bg-gradient: linear-gradient(135deg, #fffbeb 0%, #ffedd5 50%, #fef2f2 100%); /* アンバーからピーチ */
+            --text-main: #334155;
+            --text-sub: #64748b;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(255, 255, 255, 1);
+            --card-hover-border: #f59e0b; /* アンバー500 */
+            --card-hover-bg: rgba(255, 255, 255, 0.95);
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.04);
+            --title-color: #d97706; /* アンバー600 */
+            --accent-color: #ea580c; /* オレンジ600 */
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --input-border: rgba(253, 186, 116, 0.5); /* オレンジ調のボーダー */
+            --svg-color: rgba(245, 158, 11, 0.2);
+            --particle-color: #fcd34d; /* ゴールドのパーティクル */
+            --error-bg: #fff1f2;
+            --error-border: #e11d48;
+          }
+          
+          .theme-dark {
+            --bg-gradient: radial-gradient(ellipse at top left, #451a03 0%, #0f172a 100%); /* ディープブラウン〜ミッドナイト */
+            --text-main: #f8fafc;
+            --text-sub: #cbd5e1;
+            --card-bg: rgba(30, 20, 15, 0.65); /* 暗いアンバーグラス */
+            --card-border: rgba(255, 255, 255, 0.1);
+            --card-hover-border: #fbbf24; /* 発光するアンバー */
+            --card-hover-bg: rgba(60, 30, 15, 0.85);
+            --card-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            --title-color: #fcd34d; 
+            --accent-color: #fbbf24;
+            --input-bg: rgba(0, 0, 0, 0.4);
+            --input-border: rgba(245, 158, 11, 0.3);
+            --svg-color: rgba(251, 191, 36, 0.15);
+            --particle-color: #fef3c7;
+            --error-bg: rgba(225, 29, 72, 0.2);
+            --error-border: #fb7185;
+          }
 
-      {/* 🎈 トップナビゲーション */}
-      <div className="glass-nav">
-        <a href="/" className="glass-nav-link">← パーク入口へ戻る</a>
-        <div className="glass-nav-active">✨ メールテンプレート</div>
-      </div>
+          .app-wrapper { 
+            min-height: 100vh; padding: 20px 40px 100px 40px; 
+            font-family: 'Inter', 'Noto Sans JP', sans-serif; 
+            color: var(--text-main); font-size: 13px; 
+            transition: color 0.5s; overflow-x: hidden; position: relative;
+          }
 
-      <h1 className="page-title">IT'S A SMALL WORLD</h1>
+          .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; transition: background 0.8s ease; }
+          .entrance-bg.theme-light { background: var(--bg-gradient); }
+          .entrance-bg.theme-dark { background: var(--bg-gradient); }
 
-      <div className="glass-panel">
-        
-        <div className="form-grid">
-          {/* 🎀 重説メールセクション (ピンク) */}
-          <div className="form-card pink-card">
-            <h4 className="card-header">💌 重要事項説明</h4>
-            <div className="input-group">
-              <label>👤 お客様名</label>
-              <input className="input-control" type="text" id="name1" placeholder="例：山田 太郎" value={form.name1} onChange={handleChange} />
-            </div>
-            <div className="input-group">
-              <label>📅 開始日</label>
-              <input className="input-control" type="date" id="date" value={form.date} onChange={handleChange} />
-            </div>
-            <div className="input-group">
-              <label>🔑 リスト選択</label>
-              <select className="input-control" id="listKey" value={form.listKey} onChange={handleChange}>
-                <option value="">-- お選びください --</option>
-                <option value="シンプル">シンプル</option>
-                <option value="ガスセット">ガスセット</option>
-                <option value="LL">LL</option>
-                <option value="グリーン">グリーン</option>
-                <option value="タクト">タクト</option>
-                <option value="空室通電">空室通電</option>
-              </select>
-            </div>
-            <button className="btn-copy btn-pink" onClick={copyTemplate}>✨ 重説メールをコピー</button>
-          </div>
+          .particles-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
+          .particle { position: absolute; border-radius: 50%; background: var(--particle-color); box-shadow: 0 0 10px var(--particle-color); animation: flowUp 8s infinite ease-in-out; transition: background 0.5s, box-shadow 0.5s; }
+          @keyframes flowUp { 0% { opacity: 0; transform: translateY(20px) scale(0.5); } 50% { opacity: 0.8; transform: translateY(-50px) scale(1.2); } 100% { opacity: 0; transform: translateY(-100px) scale(0.5); } }
 
-          {/* 💧 料金単価表セクション (ブルー) */}
-          <div className="form-card blue-card">
-            <h4 className="card-header">💎 料金単価表</h4>
-            <div className="input-group">
-              <label>👤 お客様名</label>
-              <input className="input-control" type="text" id="name2" placeholder="例：鈴木 一郎" value={form.name2} onChange={handleChange} />
+          /* 🌟 SVGデータフロー背景 */
+          .data-svg-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.8; }
+          .data-path { fill: none; stroke: var(--svg-color); stroke-width: 2; stroke-dasharray: 1500; stroke-dashoffset: 1500; animation: drawDataFlow 15s linear infinite; transition: stroke 0.5s; }
+          @keyframes drawDataFlow { 0% { stroke-dashoffset: 1500; } 100% { stroke-dashoffset: -1500; } }
+
+          /* 🍔 ハンバーガーボタン */
+          .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 1001; background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; box-shadow: var(--card-shadow); transition: 0.3s; }
+          .hamburger-btn:hover { background: var(--card-hover-bg); transform: scale(1.05); }
+          .hamburger-line { width: 22px; height: 3px; background: var(--text-sub); border-radius: 3px; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+          .hamburger-btn.open .line1 { transform: translateY(8px) rotate(45deg); background: var(--accent-color); }
+          .hamburger-btn.open .line2 { opacity: 0; transform: translateX(-10px); }
+          .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: var(--accent-color); }
+
+          /* 🌌 メニューオーバーレイ */
+          .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
+          .menu-overlay.open { opacity: 1; pointer-events: auto; }
+
+          /* 🗄️ サイドメニュー */
+          .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+          .side-menu.open { left: 0; }
+          .menu-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--card-border); letter-spacing: 1px; }
+
+          .side-link { text-decoration: none; padding: 14px 20px; border-radius: 14px; background: var(--input-bg); color: var(--text-main); font-weight: 800; font-size: 14px; border: 1px solid var(--card-border); transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
+          .side-link:hover { border-color: var(--card-hover-border); transform: translateX(8px); color: var(--accent-color); }
+          .side-link.current-page { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; box-shadow: 0 6px 15px rgba(245, 158, 11, 0.3); pointer-events: none; }
+
+          /* 🎈 ナビゲーション（中央配置） */
+          .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 30px; }
+          .glass-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 50px; box-shadow: var(--card-shadow); max-width: 800px; width: 100%; }
+          
+          .nav-left { display: flex; gap: 12px; align-items: center; }
+          .glass-nav-link { text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 800; background: var(--input-bg); color: var(--text-sub); border: 1px solid var(--card-border); transition: 0.2s; font-size: 14px; }
+          .glass-nav-link:hover { color: var(--accent-color); border-color: var(--card-hover-border); }
+          .glass-nav-active { padding: 10px 20px; border-radius: 30px; font-weight: 900; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); font-size: 14px; }
+
+          /* テーマ切り替えボタン */
+          .theme-toggle-btn { background: var(--input-bg); border: 1px solid var(--card-border); padding: 10px 20px; border-radius: 30px; cursor: pointer; transition: 0.3s; font-size: 14px; color: var(--text-main); font-weight: 800; }
+          .theme-toggle-btn:hover { border-color: var(--card-hover-border); transform: scale(1.05); }
+
+          /* 🌟 レイアウト：左の注意事項 ＋ 右のメインフォーム */
+          .main-layout { display: grid; grid-template-columns: 320px 1fr; gap: 30px; max-width: 1200px; margin: 0 auto 50px auto; }
+          @media (max-width: 950px) { .main-layout { grid-template-columns: 1fr; } }
+
+          /* ℹ️ 左側：注意事項パネル */
+          .info-sidebar { display: flex; flex-direction: column; gap: 20px; }
+          .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow); }
+          .info-title { font-size: 15px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
+          .info-list { padding-left: 20px; margin: 0; color: var(--text-main); font-size: 13px; line-height: 1.8; }
+          .info-list li { margin-bottom: 8px; }
+
+          /* 📝 右側：メインフォームエリア */
+          .form-main-area { display: flex; flex-direction: column; gap: 24px; }
+
+          /* Bento UIカード */
+          .glass-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 30px; box-shadow: var(--card-shadow); transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s; position: relative; overflow: hidden; }
+          .glass-panel:hover { border-color: var(--card-hover-border); transform: translateY(-2px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+          .glass-panel::before { content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: linear-gradient(180deg, #f59e0b, #ea580c); opacity: 0.8; }
+
+          .section-title { font-weight: 900; font-size: 18px; color: var(--title-color); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+
+          .form-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px 20px; }
+          @media (max-width: 800px) { .form-grid-2 { grid-template-columns: 1fr; } }
+          
+          .input-group { display: flex; flex-direction: column; margin-bottom: 15px; }
+          .input-group label { font-size: 13px; font-weight: 800; color: var(--text-sub); margin-bottom: 8px; border-left: 3px solid var(--accent-color); padding-left: 8px; }
+          
+          .input-control { width: 100%; padding: 14px 16px; border: 1px solid var(--input-border); border-radius: 12px; font-size: 14px; background: var(--input-bg); color: var(--text-main); transition: 0.3s; font-weight: 700; outline: none; }
+          .input-control:focus { border-color: var(--card-hover-border); box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2); background: var(--card-hover-bg); }
+          .input-control option { background: #fffbeb; color: #334155; }
+          .theme-dark .input-control option { background: #0f172a; color: #f8fafc; }
+
+          /* アンバーのボタン */
+          .btn-primary { width: 100%; padding: 14px; background: linear-gradient(135deg, #f59e0b, #ea580c); color: #fff; border: none; border-radius: 12px; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: 15px; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(234, 88, 12, 0.3); display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
+          .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(234, 88, 12, 0.5); }
+
+          .preview-area { width: 100%; height: 220px; padding: 20px; background: var(--input-bg); color: var(--text-main); border-radius: 12px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; border: 2px dashed var(--accent-color); outline: none; resize: vertical; box-shadow: inset 0 4px 10px rgba(0,0,0,0.05); }
+          
+          /* 固定フッター */
+          .footer-bar { position: fixed; bottom: 0; left: 0; width: 100%; padding: 16px 40px; background: var(--card-bg); backdrop-filter: blur(12px); border-top: 1px solid var(--card-border); display: flex; gap: 16px; z-index: 100; justify-content: center; }
+          .btn-footer { max-width: 300px; width: 100%; padding: 16px; border-radius: 30px; font-weight: 900; font-size: 15px; border: none; cursor: pointer; transition: 0.3s; letter-spacing: 1px; color: #fff; }
+          .btn-clear { background: var(--input-bg); color: var(--text-sub); border: 2px solid var(--card-border); }
+          .btn-clear:hover { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+
+          /* トースト通知 */
+          #toast { visibility: hidden; position: fixed; bottom: 100px; right: 40px; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); padding: 16px 24px; border-radius: 12px; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 200; opacity: 0; transition: 0.4s; backdrop-filter: blur(10px); }
+          #toast.show { visibility: visible; opacity: 1; transform: translateY(-10px); }
+          #toast.error { background: #fee2e2; color: #e11d48; border-color: #f43f5e; box-shadow: 0 10px 30px rgba(225, 29, 72, 0.2); }
+          .theme-dark #toast.error { background: rgba(225, 29, 72, 0.2); border-color: #fb7185; }
+
+          /* 🪄 スクロール連動 */
+          .fade-up-element { opacity: 0; transform: translateY(40px); transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+          .fade-up-element.visible { opacity: 1; transform: translateY(0); }
+        `}} />
+
+        {/* 🌟 SVGデータフロー背景（ティンカーベルを廃止し、直線的でクールなデータフローへ） */}
+        <svg className="data-svg-bg" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path className="data-path" d="M -10,20 L 30,20 L 40,50 L 80,50 L 110,20" />
+          <path className="data-path" d="M -10,80 L 40,80 L 60,30 L 90,30 L 110,80" style={{animationDelay: "3s", opacity: 0.5}} />
+        </svg>
+
+        {/* 🍔 ハンバーガーボタン */}
+        <div className={`hamburger-btn ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+          <div className="hamburger-line line1"></div>
+          <div className="hamburger-line line2"></div>
+          <div className="hamburger-line line3"></div>
+        </div>
+
+        {/* 🌌 メニュー展開時の背景オーバーレイ */}
+        <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
+
+        {/* 🗄️ サイドメニュー（全ツール網羅） */}
+        <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
+          <div className="menu-title">🧭 TOOL MENU</div>
+          <a href="/kpi-detail" className="side-link">📊 獲得進捗・KPI</a>
+          <a href="/bulk-register" className="side-link">📦 データ一括登録</a>
+          <a href="/net-toss" className="side-link">🌐 ネットトス連携</a>
+          <a href="/self-close" className="side-link">🤝 自己クロ連携</a>
+          <a href="/sms-kraken" className="side-link">📱 SMS (Kraken)送信</a>
+          <a href="/email-template" className="side-link current-page">✉️ メールテンプレート</a>
+          <a href="/procedure-wizard" className="side-link">🗺️ Kraken 手順辞書</a>
+          <a href="/simulator" className="side-link">🆚 料金シミュレーター</a>
+          <a href="/trouble-nav" className="side-link">⚡ トラブル解決ナビ</a>
+        </div>
+
+        {/* 🎈 ナビゲーション & テーマ切り替え */}
+        <div className="glass-nav-wrapper fade-up-element" style={{ "--delay": "0s" } as any}>
+          <div className="glass-nav">
+            <div className="nav-left">
+              <a href="/" className="glass-nav-link">← 司令室に戻る</a>
+              <div className="glass-nav-active">✉️ メールテンプレート</div>
             </div>
-            <div className="input-group">
-              <label>📍 エリア選択</label>
-              <select className="input-control" id="area" value={form.area} onChange={handleChange}>
-                <option value="">-- お選びください --</option>
-                {Object.keys(PRICING_DB).map(a => (
-                  <option key={a} value={a}>{a}</option>
-                ))}
-              </select>
-            </div>
-            <div style={{ minHeight: "84px" }}></div> {/* 高さを揃えるためのスペーサー */}
-            <button className="btn-copy btn-blue" onClick={copyRate}>🌍 単価表をコピー</button>
+            <button className="theme-toggle-btn" onClick={toggleTheme}>
+              {isDarkMode ? "🎇 NIGHT" : "☀️ DAY"}
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* 📜 プレビューエリア */}
-      {preview && (
-        <div className="glass-panel" style={{ background: "transparent", border: "none", boxShadow: "none", padding: "0" }}>
-          <div style={{ fontSize: "16px", fontWeight: 900, color: "#a855f7", marginBottom: "15px", paddingLeft: "10px" }}>
-            {`> MAGIC SCROLL (PREVIEW)`}
+        {/* 🌟 メインレイアウト（左：注意事項 / 右：入力フォーム） */}
+        <div className="main-layout">
+          
+          {/* ℹ️ 左カラム：注意事項・備考パネル */}
+          <aside className="info-sidebar">
+            <div className="info-panel fade-up-element">
+              <h3 className="info-title">📌 使用時の注意事項</h3>
+              <ul className="info-list">
+                <li>重説メールは「リスト選択」が必須です。選択に応じて自動的にURLが切り替わります。</li>
+                <li>料金単価表は「エリア選択」が必須です。最新の単価が自動で計算・反映されます。</li>
+                <li>生成されたテキストは、クリップボードに「リッチテキスト（太字などの装飾付き）」でコピーされます。そのままGmail等に貼り付けて送信してください。</li>
+              </ul>
+            </div>
+            
+            <div className="info-panel fade-up-element" style={{ transitionDelay: "0.1s" }}>
+              <h3 className="info-title">🛠️ 運用ステータス</h3>
+              <ul className="info-list">
+                <li>リッチテキストコピー：有効</li>
+                <li>単価DB（v3.1）：最新</li>
+              </ul>
+            </div>
+          </aside>
+
+          {/* 📝 右カラム：メインフォームエリア */}
+          <div className="form-main-area">
+            
+            {/* 🎀 重説メールセクション */}
+            <section className="glass-panel fade-up-element">
+              <h4 className="section-title">✉️ 重要事項説明メール作成</h4>
+              <div className="form-grid-2">
+                <div className="input-group">
+                  <label>👤 お客様名</label>
+                  <input className="input-control" type="text" id="name1" placeholder="例：山田 太郎" value={form.name1} onChange={handleChange} />
+                </div>
+                <div className="input-group">
+                  <label>📅 開始日</label>
+                  <input className="input-control" type="date" id="date" value={form.date} onChange={handleChange} />
+                </div>
+                <div className="input-group" style={{ gridColumn: "span 2" }}>
+                  <label>🔑 リスト選択（必須）</label>
+                  <select className="input-control" id="listKey" value={form.listKey} onChange={handleChange}>
+                    <option value="">-- お選びください --</option>
+                    <option value="シンプル">シンプル</option>
+                    <option value="ガスセット">ガスセット</option>
+                    <option value="LL">LL</option>
+                    <option value="グリーン">グリーン</option>
+                    <option value="タクト">タクト</option>
+                    <option value="空室通電">空室通電</option>
+                  </select>
+                </div>
+              </div>
+              <button className="btn-primary" onClick={copyTemplate}>📋 重説メールをコピー</button>
+            </section>
+
+            {/* 💎 料金単価表セクション */}
+            <section className="glass-panel fade-up-element" style={{ transitionDelay: "0.1s" }}>
+              <h4 className="section-title">📊 料金単価表 作成</h4>
+              <div className="form-grid-2">
+                <div className="input-group">
+                  <label>👤 お客様名</label>
+                  <input className="input-control" type="text" id="name2" placeholder="例：鈴木 一郎" value={form.name2} onChange={handleChange} />
+                </div>
+                <div className="input-group">
+                  <label>📍 エリア選択（必須）</label>
+                  <select className="input-control" id="area" value={form.area} onChange={handleChange}>
+                    <option value="">-- お選びください --</option>
+                    {Object.keys(PRICING_DB).map(a => (
+                      <option key={a} value={a}>{a}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <button className="btn-primary" onClick={copyRate}>📋 単価表をコピー</button>
+            </section>
+
+            {/* 👀 プレビューエリア */}
+            {preview && (
+              <section className="glass-panel fade-up-element" style={{ transitionDelay: "0.2s" }}>
+                <div style={{ fontWeight: 900, fontSize: "15px", color: "var(--accent-color)", marginBottom: "15px" }}>{`> SYSTEM.PREVIEW // コピー内容確認`}</div>
+                <textarea className="preview-area" value={preview} readOnly />
+              </section>
+            )}
+
           </div>
-          <textarea className="preview-area" value={preview} readOnly />
         </div>
-      )}
 
-      <button className="btn-clear" onClick={clearAll}>🗑️ 魔法をリセット</button>
+        {/* 🛠️ フッター操作 */}
+        <div className="footer-bar">
+          <button className="btn-footer btn-clear" onClick={clearAll}>🗑️ フォームをリセット</button>
+        </div>
 
-      {/* 🍞 トースト通知 */}
-      <div id="toast" className={`${toast.show ? "show" : ""} ${toast.isBlue ? "blue" : ""}`}>{toast.msg}</div>
-    </div>
+        {/* 🍞 通知 */}
+        <div id="toast" className={`${toast.show ? "show" : ""} ${toast.isError ? "error" : ""}`}>{toast.msg}</div>
+      </main>
+    </>
   );
 }
