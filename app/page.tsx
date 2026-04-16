@@ -41,7 +41,7 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children }:
   );
 };
 
-// ✨ 背景のパーティクル（星屑のデザインは維持）
+// ✨ 背景のパーティクル
 const PixieDust = () => {
   const [stars, setStars] = useState<{ id: number; left: string; top: string; delay: string; size: string }[]>([]);
   useEffect(() => {
@@ -134,6 +134,16 @@ export default function ThemeParkEntrance() {
   const handleClockOut = async () => {
     const now = new Date(); const hours = String(now.getHours()).padStart(2, "0"); const minutes = String(now.getMinutes()).padStart(2, "0");
     try { await navigator.clipboard.writeText(`${hours}:${minutes} 退勤いたします`); showToast(`✨ 退勤メッセージをコピーしました！お疲れ様でした！`); } catch (err) { alert("コピーに失敗しました"); }
+  };
+
+  // 📝 クリップボード管理ツール（ブックマークコード等のコピー処理）
+  const copyScriptCode = async (title: string, code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      showToast(`📋 ${title}のコードをコピーしました！`);
+    } catch (err) {
+      alert("コピーに失敗しました");
+    }
   };
 
   const calculateDeadlines = (dateStr: string) => {
@@ -263,35 +273,52 @@ export default function ThemeParkEntrance() {
           .btn-logout { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
           .btn-logout:hover { background: rgba(239, 68, 68, 0.2); }
 
-          .news-ticker-wrapper { display: flex; align-items: center; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; margin-bottom: 60px; padding: 12px 25px; box-shadow: var(--card-shadow); backdrop-filter: blur(20px); transition: 0.5s; }
+          /* 🌟 レイアウト：左のインフォ ＋ 右のグリッド */
+          .main-layout { display: grid; grid-template-columns: 320px 1fr; gap: 30px; margin-bottom: 50px; }
+          @media (max-width: 950px) { .main-layout { grid-template-columns: 1fr; } }
+
+          /* ℹ️ 左側：インフォ・設定パネル */
+          .info-sidebar { display: flex; flex-direction: column; gap: 20px; }
+          .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow); }
+          .info-title { font-size: 15px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
+
+          /* 📋 クリップボードツール */
+          .script-box { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 12px; padding: 12px; margin-bottom: 10px; transition: 0.3s; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+          .script-box:hover { border-color: var(--card-hover-border); transform: translateX(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+          .script-title { font-weight: 900; font-size: 13px; color: var(--text-main); }
+          .script-icon { font-size: 16px; opacity: 0.7; }
+
+          .news-ticker-wrapper { display: flex; align-items: center; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 12px 25px; box-shadow: var(--card-shadow); backdrop-filter: blur(20px); transition: 0.5s; }
           .news-badge { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-weight: 900; font-size: 13px; padding: 8px 18px; border-radius: 12px; white-space: nowrap; margin-right: 25px; animation: pulseGold 2s infinite; box-shadow: 0 0 15px rgba(245,158,11,0.4); letter-spacing: 2px; }
           @keyframes pulseGold { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
           .news-scroll-container { flex: 1; overflow: hidden; white-space: nowrap; position: relative; display: flex; align-items: center; }
           .news-text { display: inline-block; padding-left: 100%; animation: marquee 30s linear infinite; font-weight: 800; color: var(--text-main); font-size: 16px; letter-spacing: 1px; }
           @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
-          .attraction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; perspective: 1200px; }
+          /* 🎡 右側：アトラクショングリッド */
+          .attraction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; perspective: 1200px; }
           .fade-up-element { opacity: 0; transform: translateY(60px) scale(0.9); transition: all 1s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: var(--delay); }
           .fade-up-element.visible { opacity: 1; transform: translateY(0) scale(1); }
           
           .magic-card-wrapper.visible:hover { transform: translateY(0) scale(1.02); z-index: 10; }
 
-          .magic-card { background: var(--card-bg); backdrop-filter: blur(25px); border: 2px solid var(--card-border); border-radius: 28px; padding: 35px 30px; cursor: pointer; position: relative; overflow: hidden; transition: 0.4s ease-out; box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 15px; transform-style: preserve-3d; }
+          .magic-card { background: var(--card-bg); backdrop-filter: blur(25px); border: 2px solid var(--card-border); border-radius: 28px; padding: 30px; cursor: pointer; position: relative; overflow: hidden; transition: 0.4s ease-out; box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 15px; transform-style: preserve-3d; height: 100%; }
           .magic-card-wrapper:hover .magic-card { background: var(--card-hover-bg); border-color: var(--card-hover-border); box-shadow: 0 20px 50px rgba(0,0,0,0.15); }
 
           .card-glare { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, transparent 60%); pointer-events: none; z-index: 1; mix-blend-mode: overlay; transition: 0.5s; }
           .theme-dark .card-glare { background: radial-gradient(circle at center, rgba(255,255,255,0.15) 0%, transparent 60%); }
           
-          .card-content-3d { z-index: 2; position: relative; transform: translateZ(50px); transform-style: preserve-3d; }
+          .card-content-3d { z-index: 2; position: relative; transform: translateZ(50px); transform-style: preserve-3d; display: flex; flex-direction: column; height: 100%; }
           
           .attraction-name { font-size: 11px; color: var(--accent-color); font-weight: 900; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px; }
           .card-title { font-size: 20px; font-weight: 900; color: var(--title-color); margin: 0; line-height: 1.4; letter-spacing: 1px; transition: color 0.3s; }
-          .card-desc { font-size: 14px; color: var(--text-sub); margin: 10px 0 0 0; line-height: 1.6; font-weight: 700; transform: translateZ(20px); transition: color 0.3s; }
+          .card-desc { font-size: 14px; color: var(--text-sub); margin: 10px 0 0 0; line-height: 1.6; font-weight: 700; transform: translateZ(20px); transition: color 0.3s; flex: 1; }
           .card-custom-inner { margin-top: 15px; transform: translateZ(30px); }
           
           .badge-new { position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; font-size: 11px; font-weight: 900; padding: 6px 14px; border-radius: 20px; z-index: 3; box-shadow: 0 5px 15px rgba(225,29,72,0.5); letter-spacing: 2px; }
 
           .kpi-widget { background: var(--kpi-bg); padding: 15px; border-radius: 16px; border: 1px solid var(--card-border); transition: 0.5s; }
+          .kpi-numbers { display: flex; align-items: baseline; gap: 5px; margin-bottom: 8px; }
           .kpi-current { font-size: 28px; font-weight: 900; color: #38bdf8; }
           .kpi-target { font-size: 14px; font-weight: 800; color: var(--text-sub); }
           .kpi-bar-bg { width: 100%; height: 10px; background: rgba(0,0,0,0.1); border-radius: 5px; overflow: hidden; margin-top: 10px; }
@@ -346,47 +373,72 @@ export default function ThemeParkEntrance() {
             </div>
           </div>
 
-          <div className="news-ticker-wrapper fade-up-element" style={{ "--delay": "0.1s" } as any}>
-            <div className="news-badge">📢 インフォメーション</div>
-            <div className="news-scroll-container"><div className="news-text">{newsText}</div></div>
-            {isAdmin && <button style={{background: "var(--card-bg)", border:"1px solid var(--card-border)", color:"var(--text-main)", fontSize:"12px", fontWeight:900, padding:"6px 12px", borderRadius:"8px", cursor:"pointer", marginLeft:"15px"}} onClick={() => { setTempNews(newsText); setIsEditingNews(!isEditingNews); }}>✏️ 編集</button>}
-          </div>
-
-          {isAdmin && isEditingNews && (
-            <div style={{display:"flex", gap:"10px", marginBottom:"40px", background:"var(--modal-bg)", padding:"20px", borderRadius:"16px", border:"2px dashed var(--card-border)", backdropFilter:"blur(15px)"}}>
-              <input type="text" className="util-input" value={tempNews} onChange={(e) => setTempNews(e.target.value)} />
-              <button style={{background:"linear-gradient(135deg, #0ea5e9, #4f46e5)", color:"#fff", border:"none", padding:"0 25px", borderRadius:"10px", fontWeight:900, cursor:"pointer", boxShadow:"0 4px 15px rgba(2,132,199,0.3)"}} onClick={handleSaveNews}>保存</button>
-            </div>
-          )}
-
-          {/* 🎡 アトラクション グリッド（文言をビジネスライクに修正） */}
-          <div className="attraction-grid">
-            <MagicCard delay={0.1} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="チームの獲得進捗や個人のランキング状況をリアルタイムに確認できます。" onClick={() => router.push("/kpi-detail")}>
-              <div className="kpi-widget">
-                <div className="kpi-numbers"><span className="kpi-current">{mockKpi.current}</span><span className="kpi-target">/ {mockKpi.target}件</span></div>
-                <div className="kpi-bar-bg"><div className="kpi-bar-fill" style={{ width: `${progressPercent}%` }}></div></div>
+          <div className="main-layout">
+            
+            {/* ℹ️ 左カラム：お知らせ＆クリップボード */}
+            <aside className="info-sidebar">
+              <div className="news-ticker-wrapper fade-up-element" style={{ marginBottom: 0, padding: "20px", flexDirection: "column", alignItems: "flex-start", gap: "10px" }}>
+                <div className="news-badge" style={{ margin: "0 0 10px 0" }}>📢 インフォメーション</div>
+                <div style={{ fontWeight: 800, color: "var(--text-main)", fontSize: "14px", lineHeight: 1.5 }}>{newsText}</div>
+                {isAdmin && <button style={{background: "var(--input-bg)", border:"1px solid var(--card-border)", color:"var(--text-main)", fontSize:"12px", fontWeight:900, padding:"6px 12px", borderRadius:"8px", cursor:"pointer", marginTop: "10px"}} onClick={() => { setTempNews(newsText); setIsEditingNews(!isEditingNews); }}>✏️ 編集</button>}
               </div>
-            </MagicCard>
 
-            <MagicCard delay={0.2} attraction="BULK REGISTER" title="📦 データ一括登録" desc="複数の顧客データを一括で処理し、データベースへ高速転送します。" onClick={() => router.push("/bulk-register")} />
-            
-            <MagicCard delay={0.3} attraction="NET TOSS" title="🌐 ネットトス連携" desc="ネット回線のトスアップ用データを生成し、指定のシートへ送信します。" onClick={() => router.push("/net-toss")} />
-            
-            <MagicCard delay={0.4} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="成約後の情報を専用フォームからシームレスに連携します。" onClick={() => router.push("/self-close")} />
-            
-            <MagicCard delay={0.5} attraction="SMS KRAKEN" title="📱 SMS (Kraken) 送信" desc="Kraken連携を用いたSMS送信・履歴管理・テンプレート展開を行います。" onClick={() => router.push("/sms-kraken")} />
-            
-            <MagicCard delay={0.6} attraction="EMAIL TEMPLATE" title="✉️ メールテンプレート" desc="用途に応じたメール文面を素早く作成し、ワンクリックでコピーします。" onClick={() => router.push("/email-template")} />
-            
-            <MagicCard delay={0.7} attraction="KRAKEN PROCEDURE" title="🗺️ Kraken 手順辞書" badge="NEW" desc="プラン変更や住所変更など、各手続きに必要な情報を入力し、提出用フォーマットを自動生成します。" onClick={() => router.push("/procedure-wizard")} />
-            
-            <MagicCard delay={0.8} attraction="COST SIMULATOR" title="🆚 料金シミュレーター" badge="NEW" desc="現在の利用状況をヒアリングし、乗り換え時の節約額を即座に算出します。" onClick={() => router.push("/simulator")} />
-            
-            <MagicCard delay={0.9} attraction="TROUBLE NAVI" title="⚡ トラブル解決ナビ" badge="NEW" desc="SWエラーやメアド重複など、複雑なイレギュラー対応の手順をご案内します。" onClick={() => router.push("/trouble-nav")} />
+              {isAdmin && isEditingNews && (
+                <div style={{display:"flex", gap:"10px", background:"var(--modal-bg)", padding:"20px", borderRadius:"16px", border:"2px dashed var(--card-border)", backdropFilter:"blur(15px)"}}>
+                  <input type="text" className="util-input" value={tempNews} onChange={(e) => setTempNews(e.target.value)} />
+                  <button style={{background:"linear-gradient(135deg, #0ea5e9, #4f46e5)", color:"#fff", border:"none", padding:"0 25px", borderRadius:"10px", fontWeight:900, cursor:"pointer", boxShadow:"0 4px 15px rgba(2,132,199,0.3)"}} onClick={handleSaveNews}>保存</button>
+                </div>
+              )}
 
-            <MagicCard delay={1.0} attraction="QUICK MEMO" title="🍯 クイックメモ" desc="通話中などに一時的に情報を置いておく、ブラウザ自動保存のメモパッド。" onClick={() => setIsMemoOpen(true)}>
-              {memoText && <div className="util-result" style={{marginTop:0, padding:"12px"}}>{memoText}</div>}
-            </MagicCard>
+              {/* 📋 新機能：CallTree・ブックマーク管理BOX */}
+              <div className="info-panel fade-up-element" style={{ transitionDelay: "0.1s" }}>
+                <h3 className="info-title">📋 CallTree & ブックマーク管理</h3>
+                <div style={{ fontSize: "12px", color: "var(--text-sub)", fontWeight: 800, marginBottom: "15px" }}>クリックでコードをコピーし、ブックマークバーのURLに貼り付けてください。</div>
+                
+                <div className="script-box" onClick={() => copyScriptCode("データ一括取得（Warp）", "javascript:(function(){/* ここに一括取得のスクリプトを記述 */ alert('Warpデータを取得しました');})();")}>
+                  <span className="script-title">📦 データ一括取得（Warp）</span>
+                  <span className="script-icon">📄</span>
+                </div>
+                
+                <div className="script-box" onClick={() => copyScriptCode("電話番号一括コピー", "javascript:(function(){/* ここに電話番号抽出のスクリプトを記述 */ alert('電話番号を抽出しました');})();")}>
+                  <span className="script-title">📞 電話番号一括コピー</span>
+                  <span className="script-icon">📄</span>
+                </div>
+                
+                <div className="script-box" onClick={() => copyScriptCode("ネットトス自動入力", "javascript:(function(){/* ここに自動入力のスクリプトを記述 */ alert('自動入力しました');})();")}>
+                  <span className="script-title">🌐 ネットトス自動入力</span>
+                  <span className="script-icon">📄</span>
+                </div>
+              </div>
+            </aside>
+
+            {/* 🎡 右カラム：アトラクション グリッド（トラブルナビ削除済） */}
+            <div className="attraction-grid">
+              <MagicCard delay={0.1} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="チームの獲得進捗や個人のランキング状況をリアルタイムに確認できます。" onClick={() => router.push("/kpi-detail")}>
+                <div className="kpi-widget">
+                  <div className="kpi-numbers"><span className="kpi-current">{mockKpi.current}</span><span className="kpi-target">/ {mockKpi.target}件</span></div>
+                  <div className="kpi-bar-bg"><div className="kpi-bar-fill" style={{ width: `${progressPercent}%` }}></div></div>
+                </div>
+              </MagicCard>
+
+              <MagicCard delay={0.2} attraction="BULK REGISTER" title="📦 データ一括登録" desc="複数の顧客データを一括で処理し、データベースへ高速転送します。" onClick={() => router.push("/bulk-register")} />
+              
+              <MagicCard delay={0.3} attraction="NET TOSS" title="🌐 ネットトス連携" desc="ネット回線のトスアップ用データを生成し、指定のシートへ送信します。" onClick={() => router.push("/net-toss")} />
+              
+              <MagicCard delay={0.4} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="成約後の情報を専用フォームからシームレスに連携します。" onClick={() => router.push("/self-close")} />
+              
+              <MagicCard delay={0.5} attraction="SMS KRAKEN" title="📱 SMS (Kraken) 送信" desc="Kraken連携を用いたSMS送信・履歴管理・テンプレート展開を行います。" onClick={() => router.push("/sms-kraken")} />
+              
+              <MagicCard delay={0.6} attraction="EMAIL TEMPLATE" title="✉️ メールテンプレート" desc="用途に応じたメール文面を素早く作成し、ワンクリックでコピーします。" onClick={() => router.push("/email-template")} />
+              
+              <MagicCard delay={0.7} attraction="KRAKEN PROCEDURE" title="🗺️ Kraken 手順辞書" badge="NEW" desc="プラン変更や住所変更など、各手続きに必要な情報を入力し、提出用フォーマットを自動生成します。" onClick={() => router.push("/procedure-wizard")} />
+              
+              <MagicCard delay={0.8} attraction="COST SIMULATOR" title="🆚 料金シミュレーター" badge="NEW" desc="現在の利用状況をヒアリングし、乗り換え時の節約額を即座に算出します。" onClick={() => router.push("/simulator")} />
+
+              <MagicCard delay={0.9} attraction="QUICK MEMO" title="🍯 クイックメモ" desc="通話中などに一時的に情報を置いておく、ブラウザ自動保存のメモパッド。" onClick={() => setIsMemoOpen(true)}>
+                {memoText && <div className="util-result" style={{marginTop:0, padding:"12px"}}>{memoText}</div>}
+              </MagicCard>
+            </div>
           </div>
         </div>
 
