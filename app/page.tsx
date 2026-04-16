@@ -3,7 +3,40 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// 🌟 3Dパララックスカード
+// 🌟 魔法のカスタムカーソル（ホバー時に色が反転して大きくなる！）
+const CustomCursor = () => {
+  const cursorRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    // 🖱 スマホ等タッチデバイスでは発動させない
+    if (window.matchMedia("(pointer: coarse)").matches) return;
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (cursorRef.current) {
+        cursorRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
+      }
+    };
+    const onMouseOver = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // ボタンやリンク、カードに重なった時にクラスを付与
+      if (target.closest('button') || target.closest('a') || target.closest('.magic-card') || target.closest('.script-box') || target.closest('summary') || target.closest('input')) {
+        cursorRef.current?.classList.add('hover');
+      } else {
+        cursorRef.current?.classList.remove('hover');
+      }
+    };
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseover', onMouseOver);
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseover', onMouseOver);
+    };
+  }, []);
+
+  return <div ref={cursorRef} className="custom-cursor hide-on-mobile" />;
+};
+
+// 🌟 3Dパララックス ＆ クリップパスマスク・カード
 const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children }: any) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
@@ -13,7 +46,7 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children }:
     const rect = cardRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
     const y = e.clientY - rect.top - rect.height / 2;
-    setTilt({ x: -(y / 20), y: x / 20 });
+    setTilt({ x: -(y / 25), y: x / 25 }); // 傾きを少し滑らかに調整
   };
   const handleMouseLeave = () => setTilt({ x: 0, y: 0 });
 
@@ -27,7 +60,9 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children }:
       onClick={onClick}
     >
       <div className="magic-card" style={{ transform: `perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)` }}>
-        <div className="card-glare" style={{ transform: `translate(${tilt.y * 3}px, ${-tilt.x * 3}px)` }} />
+        <div className="card-glare" style={{ transform: `translate(${tilt.y * 4}px, ${-tilt.x * 4}px)` }} />
+        {/* ✨ クリップパスによるホバー時の波エフェクト */}
+        <div className="card-wave-bg"></div>
         
         <div className="card-content-3d">
           {badge && <span className="badge-new">{badge}</span>}
@@ -41,11 +76,11 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children }:
   );
 };
 
-// ✨ 背景のパーティクル
+// ✨ 背景のパーティクル（Generative UI）
 const PixieDust = () => {
   const [stars, setStars] = useState<{ id: number; left: string; top: string; delay: string; size: string }[]>([]);
   useEffect(() => {
-    const generatedStars = Array.from({ length: 60 }).map((_, i) => ({
+    const generatedStars = Array.from({ length: 50 }).map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}vw`,
       top: `${Math.random() * 100}vh`,
@@ -70,33 +105,21 @@ export default function ThemeParkEntrance() {
   const [userName, setUserName] = useState<string>("Guest");
   const [isAdmin, setIsAdmin] = useState(false);
   const [isReady, setIsReady] = useState(false);
-  
-  // ☀️ テーマ管理
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // 🍎 Mac風ウェルカム画面のステート
-  const [showMacWelcome, setShowMacWelcome] = useState(false);
-  
+  const [showArrivalFlash, setShowArrivalFlash] = useState(false);
   const [newsText, setNewsText] = useState("【お知らせ】本日はお疲れ様です！Team Portalへようこそ！");
   const [isEditingNews, setIsEditingNews] = useState(false);
   const [tempNews, setTempNews] = useState("");
 
   useEffect(() => {
     const savedUser = localStorage.getItem("team_portal_user");
-    if (savedUser) { 
-      setUserName(savedUser); 
-      if (savedUser.toLowerCase().trim().includes("toranosuke.higashi")) setIsAdmin(true); 
-    }
+    if (savedUser) { setUserName(savedUser); if (savedUser.toLowerCase().trim().includes("toranosuke.higashi")) setIsAdmin(true); }
     
-    // ✨ ログイン直後のみ、Mac風ウェルカム画面を発動！
     if (sessionStorage.getItem("just_logged_in") === "true") {
-      setShowMacWelcome(true);
+      setShowArrivalFlash(true);
       sessionStorage.removeItem("just_logged_in");
-      
-      // アニメーションが完全に終わる約3.5秒後にDOMから削除
-      setTimeout(() => {
-        setShowMacWelcome(false);
-      }, 3500);
+      setTimeout(() => setShowArrivalFlash(false), 2000);
     }
 
     const savedMemo = localStorage.getItem("team_portal_quick_memo"); if (savedMemo) setMemoText(savedMemo);
@@ -104,6 +127,7 @@ export default function ThemeParkEntrance() {
     
     setIsReady(true);
 
+    // 🪄 スクロールトリガー（Scroll-Linked）
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("visible"); });
     }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
@@ -143,17 +167,11 @@ export default function ThemeParkEntrance() {
   const handleLogout = () => { localStorage.removeItem("team_portal_user"); router.push("/login"); };
   const handleClockOut = async () => {
     const now = new Date(); const hours = String(now.getHours()).padStart(2, "0"); const minutes = String(now.getMinutes()).padStart(2, "0");
-    try { await navigator.clipboard.writeText(`${hours}:${minutes} 退勤いたします`); showToast(`✨ 退勤メッセージをコピーしました！お疲れ様でした！`); } catch (err) { alert("コピーに失敗しました"); }
+    try { await navigator.clipboard.writeText(`${hours}:${minutes} 退勤いたします`); showToast(`✨ 退勤メッセージをコピーしました！`); } catch (err) { alert("コピーに失敗しました"); }
   };
 
-  // 📝 クリップボード管理ツール
   const copyScriptCode = async (title: string, code: string) => {
-    try {
-      await navigator.clipboard.writeText(code);
-      showToast(`📋 ${title}のコードをコピーしました！`);
-    } catch (err) {
-      alert("コピーに失敗しました");
-    }
+    try { await navigator.clipboard.writeText(code); showToast(`📋 ${title}のコードをコピーしました！`); } catch (err) { alert("コピーに失敗しました"); }
   };
 
   const calculateDeadlines = (dateStr: string) => {
@@ -178,21 +196,15 @@ export default function ThemeParkEntrance() {
   const handleMemoChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => { const val = e.target.value; setMemoText(val); localStorage.setItem("team_portal_quick_memo", val); };
   const handleCopyMemo = async () => { if(memoText){ await navigator.clipboard.writeText(memoText); showToast("📋 メモをコピーしました！"); } };
   const handleClearMemo = () => { if(confirm("メモをクリアしますか？")){ setMemoText(""); localStorage.removeItem("team_portal_quick_memo"); } };
-  const copyUtilResult = async () => { if (utilResult.includes("📍")) { try { await navigator.clipboard.writeText(utilResult.replace("📍 ", "")); showToast("📋 住所をクリップボードにコピーしました！"); } catch (err) { alert("コピー失敗"); } } };
+  const copyUtilResult = async () => { if (utilResult.includes("📍")) { try { await navigator.clipboard.writeText(utilResult.replace("📍 ", "")); showToast("📋 住所をコピーしました！"); } catch (err) { alert("コピー失敗"); } } };
 
   const mockKpi = { current: 12, target: 20, members: [{ name: "山田", count: 5 }, { name: "佐藤", count: 4 }] };
   const progressPercent = Math.min(100, Math.round((mockKpi.current / mockKpi.target) * 100));
 
   return (
     <>
-      {/* 🍎 Mac風「ようこそ」アニメーション・オーバーレイ */}
-      {showMacWelcome && (
-        <div className="mac-welcome-overlay">
-          <div className="mac-welcome-text">
-            Welcome, <span style={{fontWeight: 600}}>{userName}</span>.
-          </div>
-        </div>
-      )}
+      <CustomCursor />
+      {showArrivalFlash && <div className="arrival-flash"></div>}
 
       <div className={`entrance-bg ${isDarkMode ? "theme-dark" : "theme-light"}`}>
         <PixieDust />
@@ -202,74 +214,53 @@ export default function ThemeParkEntrance() {
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
 
-          /* 🍎 新規追加：Mac風の極上ウェルカムアニメーション */
-          .mac-welcome-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #000000; /* 漆黒の背景で没入感を出す */
-            z-index: 9999; display: flex; align-items: center; justify-content: center;
-            /* 2.5秒後にフワッと消え、その後DOMからも消える */
-            animation: macFadeOut 1s cubic-bezier(0.8, 0, 0.2, 1) 2.5s forwards;
+          /* 🎯 魔法のカスタムカーソル用のスタイル (PCのみ) */
+          @media (pointer: fine) { body * { cursor: none !important; } }
+          .hide-on-mobile { display: block; }
+          @media (pointer: coarse) { .hide-on-mobile { display: none !important; } }
+          
+          .custom-cursor {
+            position: fixed; top: 0; left: 0; width: 20px; height: 20px;
+            margin-top: -10px; margin-left: -10px; border-radius: 50%;
+            background: #fff; pointer-events: none; z-index: 99999;
+            mix-blend-mode: difference; /* ✨ 色を反転させる魔法 */
+            transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), margin 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            will-change: transform;
+          }
+          .custom-cursor.hover {
+            width: 70px; height: 70px; margin-top: -35px; margin-left: -35px;
+            background: rgba(255, 255, 255, 1); mix-blend-mode: difference;
           }
 
-          .mac-welcome-text {
-            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-            font-size: clamp(2rem, 4vw, 4rem); /* 画面サイズに合わせて可変 */
-            font-weight: 300; letter-spacing: 0.1em; color: #ffffff;
-            opacity: 0; transform: translateY(15px); filter: blur(10px);
-            /* テキストが浮かび上がり、そして消える一連の動き */
-            animation: macTextFlow 2s cubic-bezier(0.4, 0, 0.2, 1) 0.4s forwards;
-          }
-
-          @keyframes macTextFlow {
-            0% { opacity: 0; transform: translateY(15px); filter: blur(10px); }
-            20% { opacity: 1; transform: translateY(0); filter: blur(0); }
-            80% { opacity: 1; transform: translateY(0); filter: blur(0); }
-            100% { opacity: 0; transform: translateY(-15px); filter: blur(10px); }
-          }
-
-          @keyframes macFadeOut {
-            0% { opacity: 1; }
-            100% { opacity: 0; visibility: hidden; }
-          }
-
-          /* --- 以降は既存のテーマ設定 --- */
+          /* 🎨 テーマ */
           .theme-light {
             --bg-gradient: linear-gradient(180deg, #7dd3fc 0%, #e0f2fe 100%);
-            --text-main: #1e293b;
-            --text-sub: #475569;
-            --card-bg: rgba(255, 255, 255, 0.7);
-            --card-border: rgba(255, 255, 255, 1);
-            --card-hover-border: #38bdf8;
-            --card-hover-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #1e293b; --text-sub: #475569;
+            --card-bg: rgba(255, 255, 255, 0.7); --card-border: rgba(255, 255, 255, 1);
+            --card-hover-border: #38bdf8; --card-hover-bg: rgba(255, 255, 255, 0.95);
             --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            --title-color: #0369a1;
-            --accent-color: #db2777;
-            --modal-bg: rgba(255, 255, 255, 0.95);
-            --kpi-bg: rgba(241, 245, 249, 0.8);
-            --input-bg: rgba(255, 255, 255, 0.8);
-            --svg-color: rgba(2, 132, 199, 0.2);
+            --title-color: #0369a1; --accent-color: #db2777;
+            --modal-bg: rgba(255, 255, 255, 0.95); --kpi-bg: rgba(241, 245, 249, 0.8);
+            --input-bg: rgba(255, 255, 255, 0.8); --svg-color: rgba(2, 132, 199, 0.2);
             --star-color: #f59e0b;
           }
           
           .theme-dark {
             --bg-gradient: radial-gradient(ellipse at bottom, #1e1b4b 0%, #020617 100%);
-            --text-main: #f8fafc;
-            --text-sub: #cbd5e1;
-            --card-bg: rgba(15, 23, 42, 0.7);
-            --card-border: rgba(255, 255, 255, 0.15);
-            --card-hover-border: #fde047;
-            --card-hover-bg: rgba(30, 41, 59, 0.9);
+            --text-main: #f8fafc; --text-sub: #cbd5e1;
+            --card-bg: rgba(15, 23, 42, 0.7); --card-border: rgba(255, 255, 255, 0.15);
+            --card-hover-border: #fde047; --card-hover-bg: rgba(30, 41, 59, 0.9);
             --card-shadow: 0 20px 50px rgba(0,0,0,0.8);
-            --title-color: #fde047;
-            --accent-color: #fde047;
-            --modal-bg: rgba(15, 23, 42, 0.9);
-            --kpi-bg: rgba(0, 0, 0, 0.4);
-            --input-bg: rgba(0, 0, 0, 0.4);
-            --svg-color: rgba(255, 255, 255, 0.4);
+            --title-color: #fde047; --accent-color: #fde047;
+            --modal-bg: rgba(15, 23, 42, 0.9); --kpi-bg: rgba(0, 0, 0, 0.4);
+            --input-bg: rgba(0, 0, 0, 0.4); --svg-color: rgba(255, 255, 255, 0.4);
             --star-color: #fef08a;
           }
 
           .app-wrapper { min-height: 100vh; padding: 20px; font-family: 'Inter', 'Noto Sans JP', sans-serif; overflow-x: hidden; position: relative; color: var(--text-main); transition: color 0.5s; }
+
+          .arrival-flash { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #fff; z-index: 9999; pointer-events: none; animation: flashFadeOut 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+          @keyframes flashFadeOut { 0% { opacity: 1; filter: blur(10px); transform: scale(1.05); } 100% { opacity: 0; filter: blur(0); transform: scale(1); } }
 
           .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; transition: background 0.8s ease; }
           .entrance-bg.theme-light { background: var(--bg-gradient); }
@@ -286,7 +277,7 @@ export default function ThemeParkEntrance() {
           .dashboard-inner { max-width: 1200px; margin: 0 auto; position: relative; z-index: 10; }
           
           .top-bar { display: flex; justify-content: flex-end; align-items: center; gap: 15px; margin-bottom: 30px; }
-          .theme-toggle-btn { background: var(--card-bg); border: 1px solid var(--card-border); padding: 10px 15px; border-radius: 20px; cursor: pointer; transition: 0.3s; font-size: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); backdrop-filter: blur(8px); color: var(--text-main); }
+          .theme-toggle-btn { background: var(--card-bg); border: 1px solid var(--card-border); padding: 10px 15px; border-radius: 20px; transition: 0.3s; font-size: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); backdrop-filter: blur(8px); color: var(--text-main); }
           .theme-toggle-btn:hover { border-color: var(--card-hover-border); transform: scale(1.1); }
 
           .user-profile { display: flex; align-items: center; gap: 12px; background: var(--card-bg); padding: 8px 25px 8px 8px; border-radius: 30px; backdrop-filter: blur(15px); border: 1px solid var(--card-border); box-shadow: 0 4px 15px rgba(0,0,0,0.1); color: var(--text-main); transition: 0.5s; }
@@ -295,6 +286,8 @@ export default function ThemeParkEntrance() {
           .user-id-text { font-size: 15px; font-weight: 900; color: var(--accent-color); letter-spacing: 1px; }
 
           .park-title-container { text-align: center; margin-bottom: 50px; position: relative; }
+          
+          /* 🌟 ダイナミックタイポグラフィ */
           .park-main-title { 
             font-size: 65px; font-weight: 900; letter-spacing: 4px; margin: 0 0 15px 0;
             background: linear-gradient(to right, #0284c7, #38bdf8, #8b5cf6, #0284c7);
@@ -310,7 +303,7 @@ export default function ThemeParkEntrance() {
           .park-sub-title { color: var(--text-sub); font-size: 18px; font-weight: 800; letter-spacing: 8px; text-transform: uppercase; }
 
           .quick-actions { display: flex; gap: 20px; justify-content: center; margin-top: 30px; }
-          .btn-qa { padding: 14px 30px; border: none; border-radius: 30px; font-size: 14px; font-weight: 900; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 2px; position: relative; overflow: hidden; }
+          .btn-qa { padding: 14px 30px; border: none; border-radius: 30px; font-size: 14px; font-weight: 900; transition: 0.3s; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 2px; position: relative; overflow: hidden; }
           .btn-qa::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: 0.5s; }
           .btn-qa:hover::before { left: 100%; }
 
@@ -321,62 +314,81 @@ export default function ThemeParkEntrance() {
           .btn-logout { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
           .btn-logout:hover { background: rgba(239, 68, 68, 0.2); }
 
-          /* 📢 インフォメーション（流れるティッカー） */
-          .news-ticker-wrapper { display: flex; align-items: center; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; margin-bottom: 50px; padding: 12px 25px; box-shadow: var(--card-shadow); backdrop-filter: blur(20px); transition: 0.5s; }
+          /* 📢 インフォメーション */
+          .news-ticker-wrapper { display: flex; align-items: center; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; margin-bottom: 40px; padding: 12px 25px; box-shadow: var(--card-shadow); backdrop-filter: blur(20px); transition: 0.5s; }
           .news-badge { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-weight: 900; font-size: 13px; padding: 8px 18px; border-radius: 12px; white-space: nowrap; margin-right: 25px; animation: pulseGold 2s infinite; box-shadow: 0 0 15px rgba(245,158,11,0.4); letter-spacing: 2px; }
           @keyframes pulseGold { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
-          
           .news-scroll-container { flex: 1; overflow: hidden; white-space: nowrap; position: relative; display: flex; align-items: center; }
           .news-text { display: inline-block; padding-left: 100%; animation: marquee 30s linear infinite; font-weight: 800; color: var(--text-main); font-size: 16px; letter-spacing: 1px; }
           @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
-          /* 🌟 レイアウト：左のインフォ ＋ 右のグリッド */
-          .main-layout { display: grid; grid-template-columns: 320px 1fr; gap: 30px; margin-bottom: 50px; }
+          /* 🌟 レイアウト（Bento UI）左幅を260pxに縮小！ */
+          .main-layout { display: grid; grid-template-columns: 260px 1fr; gap: 25px; margin-bottom: 50px; }
           @media (max-width: 950px) { .main-layout { grid-template-columns: 1fr; } }
 
-          /* ℹ️ 左側：設定パネル */
+          /* ℹ️ 左側：設定パネル（小さめ） */
           .info-sidebar { display: flex; flex-direction: column; gap: 20px; }
-          .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow); }
-          .info-title { font-size: 15px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
+          .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 18px; box-shadow: var(--card-shadow); }
+          .info-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
 
-          /* 📋 クリップボードツール */
-          .script-box { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; transition: 0.3s; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+          /* 📋 クリップボードツール（コンパクト化） */
+          .script-box { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; }
           .script-box:hover { border-color: var(--card-hover-border); transform: translateX(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-          .script-title { font-weight: 900; font-size: 13px; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
-          .script-icon { font-size: 16px; opacity: 0.7; }
+          .script-title { font-weight: 900; font-size: 11px; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
+          .script-icon { font-size: 14px; opacity: 0.7; }
 
           /* 🎡 右側：アトラクショングリッド */
-          .attraction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; perspective: 1200px; }
-          .fade-up-element { opacity: 0; transform: translateY(60px) scale(0.9); transition: all 1s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: var(--delay); }
+          .attraction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; perspective: 1200px; }
+          .fade-up-element { opacity: 0; transform: translateY(50px) scale(0.95); transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: var(--delay); }
           .fade-up-element.visible { opacity: 1; transform: translateY(0) scale(1); }
           
           .magic-card-wrapper.visible:hover { transform: translateY(0) scale(1.02); z-index: 10; }
 
-          .magic-card { background: var(--card-bg); backdrop-filter: blur(25px); border: 2px solid var(--card-border); border-radius: 28px; padding: 30px; cursor: pointer; position: relative; overflow: hidden; transition: 0.4s ease-out; box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 15px; transform-style: preserve-3d; height: 100%; }
-          .magic-card-wrapper:hover .magic-card { background: var(--card-hover-bg); border-color: var(--card-hover-border); box-shadow: 0 20px 50px rgba(0,0,0,0.15); }
+          /* ✨ 高度なホバーエフェクト ＆ マスククリップパス */
+          .magic-card { 
+            background: var(--card-bg); backdrop-filter: blur(25px); 
+            border: 1px solid var(--card-border); border-radius: 28px; padding: 25px; 
+            position: relative; overflow: hidden; transition: 0.4s ease-out; 
+            box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 12px; 
+            transform-style: preserve-3d; height: 100%; 
+          }
+          .magic-card-wrapper:hover .magic-card { 
+            background: var(--card-hover-bg); border-color: var(--card-hover-border); 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15); 
+          }
+          
+          /* ホバーで広がるグラデーション波（Clip-Path） */
+          .card-wave-bg {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 0;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(139, 92, 246, 0.15));
+            clip-path: circle(0% at 50% 100%); transition: clip-path 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+          .magic-card-wrapper:hover .card-wave-bg { clip-path: circle(150% at 50% 100%); }
+          .theme-dark .card-wave-bg { background: linear-gradient(135deg, rgba(253, 224, 71, 0.1), rgba(244, 63, 94, 0.1)); }
 
           .card-glare { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, transparent 60%); pointer-events: none; z-index: 1; mix-blend-mode: overlay; transition: 0.5s; }
           .theme-dark .card-glare { background: radial-gradient(circle at center, rgba(255,255,255,0.15) 0%, transparent 60%); }
           
-          .card-content-3d { z-index: 2; position: relative; transform: translateZ(50px); transform-style: preserve-3d; display: flex; flex-direction: column; height: 100%; }
+          /* テキスト等の深度表現 */
+          .card-content-3d { z-index: 2; position: relative; transform: translateZ(40px); transform-style: preserve-3d; display: flex; flex-direction: column; height: 100%; }
           
-          .attraction-name { font-size: 11px; color: var(--accent-color); font-weight: 900; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px; }
-          .card-title { font-size: 20px; font-weight: 900; color: var(--title-color); margin: 0; line-height: 1.4; letter-spacing: 1px; transition: color 0.3s; }
-          .card-desc { font-size: 14px; color: var(--text-sub); margin: 10px 0 0 0; line-height: 1.6; font-weight: 700; transform: translateZ(20px); transition: color 0.3s; flex: 1; }
+          .attraction-name { font-size: 11px; color: var(--accent-color); font-weight: 900; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
+          .card-title { font-size: 18px; font-weight: 900; color: var(--title-color); margin: 0; line-height: 1.4; letter-spacing: 1px; transition: color 0.3s; }
+          .card-desc { font-size: 13px; color: var(--text-sub); margin: 8px 0 0 0; line-height: 1.6; font-weight: 700; transform: translateZ(20px); transition: color 0.3s; flex: 1; }
           .card-custom-inner { margin-top: 15px; transform: translateZ(30px); }
           
-          .badge-new { position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; font-size: 11px; font-weight: 900; padding: 6px 14px; border-radius: 20px; z-index: 3; box-shadow: 0 5px 15px rgba(225,29,72,0.5); letter-spacing: 2px; }
+          .badge-new { position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; font-size: 10px; font-weight: 900; padding: 4px 12px; border-radius: 20px; z-index: 3; box-shadow: 0 5px 15px rgba(225,29,72,0.5); letter-spacing: 2px; }
 
-          .kpi-widget { background: var(--kpi-bg); padding: 15px; border-radius: 16px; border: 1px solid var(--card-border); transition: 0.5s; }
-          .kpi-numbers { display: flex; align-items: baseline; gap: 5px; margin-bottom: 8px; }
-          .kpi-current { font-size: 28px; font-weight: 900; color: #38bdf8; }
-          .kpi-target { font-size: 14px; font-weight: 800; color: var(--text-sub); }
-          .kpi-bar-bg { width: 100%; height: 10px; background: rgba(0,0,0,0.1); border-radius: 5px; overflow: hidden; margin-top: 10px; }
+          .kpi-widget { background: var(--kpi-bg); padding: 12px; border-radius: 16px; border: 1px solid var(--card-border); transition: 0.5s; }
+          .kpi-numbers { display: flex; align-items: baseline; gap: 5px; margin-bottom: 6px; }
+          .kpi-current { font-size: 24px; font-weight: 900; color: #38bdf8; }
+          .kpi-target { font-size: 13px; font-weight: 800; color: var(--text-sub); }
+          .kpi-bar-bg { width: 100%; height: 8px; background: rgba(0,0,0,0.1); border-radius: 4px; overflow: hidden; margin-top: 8px; }
           .theme-dark .kpi-bar-bg { background: rgba(255,255,255,0.1); }
-          .kpi-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #818cf8); border-radius: 5px; }
+          .kpi-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #818cf8); border-radius: 4px; }
 
           .quick-utility { position: fixed; bottom: 40px; right: 40px; z-index: 1000; }
-          .utility-fab { width: 70px; height: 70px; background: linear-gradient(135deg, #fbbf24, #d97706); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.2), inset 0 0 15px rgba(255,255,255,0.6); transition: 0.3s; font-size: 28px; border: 2px solid rgba(255,255,255,0.6); list-style: none; }
+          .utility-fab { width: 70px; height: 70px; background: linear-gradient(135deg, #fbbf24, #d97706); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(0,0,0,0.2), inset 0 0 15px rgba(255,255,255,0.6); transition: 0.3s; font-size: 28px; border: 2px solid rgba(255,255,255,0.6); list-style: none; }
           .utility-fab:hover { transform: scale(1.1) rotate(-10deg); box-shadow: 0 15px 30px rgba(245,158,11,0.4); }
           .utility-fab::-webkit-details-marker { display: none; }
           .utility-content { position: absolute; bottom: 95px; right: 0; width: 360px; background: var(--modal-bg); backdrop-filter: blur(30px); padding: 30px; border-radius: 28px; box-shadow: 0 30px 70px rgba(0,0,0,0.2); border: 2px solid var(--card-border); color: var(--text-main); transform-origin: bottom right; animation: popIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); transition: 0.5s; }
@@ -384,7 +396,7 @@ export default function ThemeParkEntrance() {
 
           .util-input { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid var(--card-border); font-size: 15px; outline: none; background: var(--input-bg); font-weight: 800; color: var(--text-main); transition: 0.3s; }
           .util-input:focus { border-color: var(--card-hover-border); }
-          .util-result { margin-top: 15px; font-size: 14px; color: var(--text-main); background: var(--kpi-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--card-border); font-weight: 900; cursor: pointer; transition: 0.3s; }
+          .util-result { margin-top: 15px; font-size: 14px; color: var(--text-main); background: var(--kpi-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--card-border); font-weight: 900; transition: 0.3s; }
 
           .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); z-index: 1000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; }
           .modal-overlay.open { opacity: 1; pointer-events: auto; }
@@ -392,7 +404,7 @@ export default function ThemeParkEntrance() {
           .modal-overlay.open .custom-modal { transform: translateY(0) scale(1); }
           .modal-title { font-size: 24px; font-weight: 900; text-align: center; margin-bottom: 30px; letter-spacing: 2px; color: var(--title-color); }
           
-          .btn-close-modal { width: 100%; margin-top: 30px; padding: 15px; background: var(--kpi-bg); color: var(--text-main); border: 2px solid var(--card-border); border-radius: 15px; font-weight: 900; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 2px; }
+          .btn-close-modal { width: 100%; margin-top: 30px; padding: 15px; background: var(--kpi-bg); color: var(--text-main); border: 2px solid var(--card-border); border-radius: 15px; font-weight: 900; transition: 0.2s; text-transform: uppercase; letter-spacing: 2px; }
           .btn-close-modal:hover { background: var(--card-hover-border); color: #fff; border-color: transparent; }
 
           #toast { visibility: hidden; position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px); padding: 16px 32px; background: rgba(15,23,42, 0.95); color: #fde047; border-radius: 30px; font-weight: 900; font-size: 15px; z-index: 2000; opacity: 0; transition: 0.4s; backdrop-filter: blur(20px); border: 2px solid #fde047; box-shadow: 0 20px 50px rgba(0,0,0,0.3); letter-spacing: 1px; }
@@ -423,37 +435,34 @@ export default function ThemeParkEntrance() {
             </div>
           </div>
 
-          {/* 📢 インフォメーション（流れるティッカー） */}
           <div className="news-ticker-wrapper fade-up-element" style={{ "--delay": "0.1s" } as any}>
             <div className="news-badge">📢 インフォメーション</div>
             <div className="news-scroll-container"><div className="news-text">{newsText}</div></div>
-            {isAdmin && <button style={{background: "var(--card-bg)", border:"1px solid var(--card-border)", color:"var(--text-main)", fontSize:"12px", fontWeight:900, padding:"6px 12px", borderRadius:"8px", cursor:"pointer", marginLeft:"15px"}} onClick={() => { setTempNews(newsText); setIsEditingNews(!isEditingNews); }}>✏️ 編集</button>}
+            {isAdmin && <button style={{background: "var(--card-bg)", border:"1px solid var(--card-border)", color:"var(--text-main)", fontSize:"12px", fontWeight:900, padding:"6px 12px", borderRadius:"8px", marginLeft:"15px"}} onClick={() => { setTempNews(newsText); setIsEditingNews(!isEditingNews); }}>✏️ 編集</button>}
           </div>
 
           {isAdmin && isEditingNews && (
             <div style={{display:"flex", gap:"10px", marginBottom:"40px", background:"var(--modal-bg)", padding:"20px", borderRadius:"16px", border:"2px dashed var(--card-border)", backdropFilter:"blur(15px)"}}>
               <input type="text" className="util-input" value={tempNews} onChange={(e) => setTempNews(e.target.value)} />
-              <button style={{background:"linear-gradient(135deg, #0ea5e9, #4f46e5)", color:"#fff", border:"none", padding:"0 25px", borderRadius:"10px", fontWeight:900, cursor:"pointer", boxShadow:"0 4px 15px rgba(2,132,199,0.3)"}} onClick={handleSaveNews}>保存</button>
+              <button style={{background:"linear-gradient(135deg, #0ea5e9, #4f46e5)", color:"#fff", border:"none", padding:"0 25px", borderRadius:"10px", fontWeight:900, boxShadow:"0 4px 15px rgba(2,132,199,0.3)"}} onClick={handleSaveNews}>保存</button>
             </div>
           )}
 
           <div className="main-layout">
             
-            {/* ℹ️ 左カラム：設定パネル */}
+            {/* ℹ️ 左カラム：ブックマークBOX (コンパクト化) */}
             <aside className="info-sidebar">
-              
-              {/* 📋 CallTree・ブックマーク管理BOX */}
               <div className="info-panel fade-up-element" style={{ transitionDelay: "0.2s" }}>
                 <h3 className="info-title">📋 CallTree & ブックマーク管理</h3>
-                <div style={{ fontSize: "12px", color: "var(--text-sub)", fontWeight: 800, marginBottom: "15px", lineHeight: 1.5 }}>
-                  クリックでコードをコピーし、ブックマークのURL欄に貼り付けてご活用ください。
+                <div style={{ fontSize: "11px", color: "var(--text-sub)", fontWeight: 800, marginBottom: "12px", lineHeight: 1.4 }}>
+                  クリックでコードをコピーし、ブックマークのURL欄に貼り付けてください。
                 </div>
                 
-                <div className="script-box" onClick={() => copyScriptCode("データ一括取得（Warp）", "javascript:(function(){/* ここに一括取得のスクリプトを記述 */ alert('Warpデータを取得しました');})();")}>
+                <div className="script-box" onClick={() => copyScriptCode("データ一括取得", "javascript:(function(){/* ここに一括取得のスクリプトを記述 */ alert('Warpデータを取得しました');})();")}>
                   <span className="script-title"><span className="script-icon">📦</span> データ一括取得（Warp）</span>
                 </div>
                 
-                <div className="script-box" onClick={() => copyScriptCode("電話番号一括コピー", "javascript:(function(){/* ここに電話番号抽出のスクリプトを記述 */ alert('電話番号を抽出しました');})();")}>
+                <div className="script-box" onClick={() => copyScriptCode("電話番号コピー", "javascript:(function(){/* ここに電話番号抽出のスクリプトを記述 */ alert('電話番号を抽出しました');})();")}>
                   <span className="script-title"><span className="script-icon">📞</span> 電話番号一括コピー</span>
                 </div>
                 
@@ -463,25 +472,25 @@ export default function ThemeParkEntrance() {
               </div>
             </aside>
 
-            {/* 🎡 右カラム：アトラクション グリッド */}
+            {/* 🎡 右カラム：アトラクション グリッド (Bento UI・ホバーエフェクト強化) */}
             <div className="attraction-grid">
-              <MagicCard delay={0.1} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="チームの獲得進捗や個人のランキング状況をリアルタイムに確認できます。" onClick={() => router.push("/kpi-detail")}>
+              <MagicCard delay={0.1} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="チームの進捗やランキング状況をリアルタイムに確認。" onClick={() => router.push("/kpi-detail")}>
                 <div className="kpi-widget">
                   <div className="kpi-numbers"><span className="kpi-current">{mockKpi.current}</span><span className="kpi-target">/ {mockKpi.target}件</span></div>
                   <div className="kpi-bar-bg"><div className="kpi-bar-fill" style={{ width: `${progressPercent}%` }}></div></div>
                 </div>
               </MagicCard>
 
-              <MagicCard delay={0.2} attraction="BULK REGISTER" title="📦 データ一括登録" desc="複数の顧客データを一括で処理し、データベースへ高速転送します。" onClick={() => router.push("/bulk-register")} />
-              <MagicCard delay={0.3} attraction="NET TOSS" title="🌐 ネットトス連携" desc="ネット回線のトスアップ用データを生成し、指定のシートへ送信します。" onClick={() => router.push("/net-toss")} />
+              <MagicCard delay={0.2} attraction="BULK REGISTER" title="📦 データ一括登録" desc="複数の顧客データを一括で処理し、DBへ高速転送します。" onClick={() => router.push("/bulk-register")} />
+              <MagicCard delay={0.3} attraction="NET TOSS" title="🌐 ネットトス連携" desc="ネット回線のトスアップ用データを生成し、送信します。" onClick={() => router.push("/net-toss")} />
               <MagicCard delay={0.4} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="成約後の情報を専用フォームからシームレスに連携します。" onClick={() => router.push("/self-close")} />
-              <MagicCard delay={0.5} attraction="SMS KRAKEN" title="📱 SMS (Kraken) 送信" desc="Kraken連携を用いたSMS送信・履歴管理・テンプレート展開を行います。" onClick={() => router.push("/sms-kraken")} />
-              <MagicCard delay={0.6} attraction="EMAIL TEMPLATE" title="✉️ メールテンプレート" desc="用途に応じたメール文面を素早く作成し、ワンクリックでコピーします。" onClick={() => router.push("/email-template")} />
-              <MagicCard delay={0.7} attraction="KRAKEN PROCEDURE" title="🗺️ Kraken 手順辞書" badge="NEW" desc="プラン変更や住所変更など、各手続きに必要な情報を入力し、提出用フォーマットを自動生成します。" onClick={() => router.push("/procedure-wizard")} />
-              <MagicCard delay={0.8} attraction="COST SIMULATOR" title="🆚 料金シミュレーター" badge="NEW" desc="現在の利用状況をヒアリングし、乗り換え時の節約額を即座に算出します。" onClick={() => router.push("/simulator")} />
+              <MagicCard delay={0.5} attraction="SMS KRAKEN" title="📱 SMS 送信" desc="Kraken連携を用いたSMS送信・テンプレート展開を行います。" onClick={() => router.push("/sms-kraken")} />
+              <MagicCard delay={0.6} attraction="EMAIL TEMPLATE" title="✉️ メールテンプレ" desc="用途に応じたメール文面を素早く作成し、コピーします。" onClick={() => router.push("/email-template")} />
+              <MagicCard delay={0.7} attraction="KRAKEN PROCEDURE" title="🗺️ Kraken 手順辞書" badge="NEW" desc="プラン変更等、手続きに必要な情報を入力しフォーマット生成。" onClick={() => router.push("/procedure-wizard")} />
+              <MagicCard delay={0.8} attraction="COST SIMULATOR" title="🆚 料金シミュレーター" badge="NEW" desc="利用状況をヒアリングし、乗り換え時の節約額を即座に算出。" onClick={() => router.push("/simulator")} />
 
-              <MagicCard delay={0.9} attraction="QUICK MEMO" title="🍯 クイックメモ" desc="通話中などに一時的に情報を置いておく、ブラウザ自動保存のメモパッド。" onClick={() => setIsMemoOpen(true)}>
-                {memoText && <div className="util-result" style={{marginTop:0, padding:"12px"}}>{memoText}</div>}
+              <MagicCard delay={0.9} attraction="QUICK MEMO" title="🍯 クイックメモ" desc="通話中などの一時的な情報を置いておく、自動保存メモパッド。" onClick={() => setIsMemoOpen(true)}>
+                {memoText && <div className="util-result" style={{marginTop:0, padding:"10px", fontSize:"12px"}}>{memoText}</div>}
               </MagicCard>
             </div>
           </div>
@@ -520,8 +529,8 @@ export default function ThemeParkEntrance() {
             <div className="modal-title">📝 クイックメモ</div>
             <textarea className="util-input" style={{flex:1, resize:"none", lineHeight:1.6}} placeholder="電話中のメモや、一時的なテキストの退避に。&#10;入力した内容は自動でブラウザに保存されます。" value={memoText} onChange={handleMemoChange} />
             <div style={{display:"flex", gap:"15px", marginTop:"20px"}}>
-              <button style={{flex:1, padding:"14px", borderRadius:"14px", fontWeight:900, border:"2px solid #0ea5e9", background:"rgba(14, 165, 233, 0.1)", color:"#0ea5e9", cursor:"pointer", transition:"0.2s"}} onClick={handleCopyMemo}>📋 全文コピー</button>
-              <button style={{flex:1, padding:"14px", borderRadius:"14px", fontWeight:900, border:"2px solid #ef4444", background:"rgba(239, 68, 68, 0.1)", color:"#ef4444", cursor:"pointer", transition:"0.2s"}} onClick={handleClearMemo}>🗑️ 全消去</button>
+              <button style={{flex:1, padding:"14px", borderRadius:"14px", fontWeight:900, border:"2px solid #0ea5e9", background:"rgba(14, 165, 233, 0.1)", color:"#0ea5e9", transition:"0.2s"}} onClick={handleCopyMemo}>📋 全文コピー</button>
+              <button style={{flex:1, padding:"14px", borderRadius:"14px", fontWeight:900, border:"2px solid #ef4444", background:"rgba(239, 68, 68, 0.1)", color:"#ef4444", transition:"0.2s"}} onClick={handleClearMemo}>🗑️ 全消去</button>
             </div>
             <button className="btn-close-modal" onClick={() => setIsMemoOpen(false)}>閉じる</button>
           </div>
