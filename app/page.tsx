@@ -3,23 +3,19 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// 🌟 魔法のカスタムカーソル（ホバー時に色が反転して、程よく大きくなる！）
+// 🌟 魔法のカスタムカーソル
 const CustomCursor = () => {
   const cursorRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    // 🖱 スマホ等タッチデバイスでは発動させない
     if (window.matchMedia("(pointer: coarse)").matches) return;
-
     const onMouseMove = (e: MouseEvent) => {
       if (cursorRef.current) {
-        // GPUで処理させるためtranslate3dを使用
         cursorRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
       }
     };
     const onMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      // ボタンやリンク、カードに重なった時にクラスを付与
       if (target.closest('button') || target.closest('a') || target.closest('.magic-card') || target.closest('.script-box') || target.closest('summary') || target.closest('input')) {
         cursorRef.current?.classList.add('hover');
       } else {
@@ -62,9 +58,7 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children }:
     >
       <div className="magic-card" style={{ transform: `perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)` }}>
         <div className="card-glare" style={{ transform: `translate(${tilt.y * 4}px, ${-tilt.x * 4}px)` }} />
-        {/* ✨ Clip-Pathによるホバー時のウェーブエフェクト */}
         <div className="card-wave-bg"></div>
-        
         <div className="card-content-3d">
           {badge && <span className="badge-new">{badge}</span>}
           <div className="attraction-name">{attraction}</div>
@@ -77,7 +71,7 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children }:
   );
 };
 
-// ✨ 背景のパーティクル（Generative UI）
+// ✨ 背景のパーティクル
 const PixieDust = () => {
   const [stars, setStars] = useState<{ id: number; left: string; top: string; delay: string; size: string }[]>([]);
   useEffect(() => {
@@ -100,6 +94,14 @@ const PixieDust = () => {
   );
 };
 
+// 💬 チャットメッセージの型定義
+interface ChatMessage {
+  id: string;
+  user: string;
+  text: string;
+  time: string;
+}
+
 export default function ThemeParkEntrance() {
   const router = useRouter();
   const [toast, setToast] = useState({ show: false, msg: "" });
@@ -108,33 +110,76 @@ export default function ThemeParkEntrance() {
   const [isReady, setIsReady] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  const [showArrivalFlash, setShowArrivalFlash] = useState(false);
+  // 🍎 Mac風ウェルカム画面のステート（完全復活！）
+  const [showMacWelcome, setShowMacWelcome] = useState(false);
+
   const [newsText, setNewsText] = useState("【お知らせ】本日はお疲れ様です！Team Portalへようこそ！");
   const [isEditingNews, setIsEditingNews] = useState(false);
   const [tempNews, setTempNews] = useState("");
+
+  // 💬 チャット用ステート
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const chatScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const savedUser = localStorage.getItem("team_portal_user");
     if (savedUser) { setUserName(savedUser); if (savedUser.toLowerCase().trim().includes("toranosuke.higashi")) setIsAdmin(true); }
     
+    // ✨ ログイン直後のみ、Mac風ウェルカム画面を発動！
     if (sessionStorage.getItem("just_logged_in") === "true") {
-      setShowArrivalFlash(true);
+      setShowMacWelcome(true);
       sessionStorage.removeItem("just_logged_in");
-      setTimeout(() => setShowArrivalFlash(false), 2000);
+      setTimeout(() => setShowMacWelcome(false), 3500); // アニメーション終了後にDOMから削除
     }
 
     const savedMemo = localStorage.getItem("team_portal_quick_memo"); if (savedMemo) setMemoText(savedMemo);
     const savedNews = localStorage.getItem("team_portal_news"); if (savedNews) setNewsText(savedNews);
     
+    // 💬 チャット履歴のロード＆タブ間同期
+    const loadChat = () => {
+      const savedChat = localStorage.getItem("team_portal_chat_history");
+      if (savedChat) setChatMessages(JSON.parse(savedChat));
+    };
+    loadChat();
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "team_portal_chat_history") loadChat();
+    };
+    window.addEventListener("storage", handleStorageChange);
+    
     setIsReady(true);
 
-    // 🪄 スクロールトリガー（Scroll-Triggered）
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("visible"); });
     }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
     document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+    
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim()) return;
+    const newMessage: ChatMessage = {
+      id: Date.now().toString(),
+      user: userName,
+      text: chatInput.trim(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    const updatedMessages = [...chatMessages, newMessage].slice(-50);
+    setChatMessages(updatedMessages);
+    localStorage.setItem("team_portal_chat_history", JSON.stringify(updatedMessages));
+    setChatInput("");
+  };
+
+  useEffect(() => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
 
   const toggleTheme = () => {
     const newTheme = !isDarkMode; setIsDarkMode(newTheme);
@@ -205,7 +250,15 @@ export default function ThemeParkEntrance() {
   return (
     <>
       <CustomCursor />
-      {showArrivalFlash && <div className="arrival-flash"></div>}
+      
+      {/* 🍎 Mac風「ようこそ」アニメーション・オーバーレイ（完全復活！） */}
+      {showMacWelcome && (
+        <div className="mac-welcome-overlay">
+          <div className="mac-welcome-text">
+            Welcome, <span style={{fontWeight: 600}}>{userName}</span>.
+          </div>
+        </div>
+      )}
 
       <div className={`entrance-bg ${isDarkMode ? "theme-dark" : "theme-light"}`}>
         <PixieDust />
@@ -215,7 +268,30 @@ export default function ThemeParkEntrance() {
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
 
-          /* 🎯 魔法のカスタムカーソル用のスタイル (PCのみ) */
+          /* 🍎 Mac風ウェルカムアニメーションCSS */
+          .mac-welcome-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000000; z-index: 999999; display: flex; align-items: center; justify-content: center;
+            animation: macFadeOut 1s cubic-bezier(0.8, 0, 0.2, 1) 2.5s forwards;
+          }
+          .mac-welcome-text {
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+            font-size: clamp(2rem, 4vw, 4rem); font-weight: 300; letter-spacing: 0.1em; color: #ffffff;
+            opacity: 0; transform: translateY(15px); filter: blur(10px);
+            animation: macTextFlow 2s cubic-bezier(0.4, 0, 0.2, 1) 0.4s forwards;
+          }
+          @keyframes macTextFlow {
+            0% { opacity: 0; transform: translateY(15px); filter: blur(10px); }
+            20% { opacity: 1; transform: translateY(0); filter: blur(0); }
+            80% { opacity: 1; transform: translateY(0); filter: blur(0); }
+            100% { opacity: 0; transform: translateY(-15px); filter: blur(10px); }
+          }
+          @keyframes macFadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; }
+          }
+
+          /* 🎯 魔法のカスタムカーソル用のスタイル */
           @media (pointer: fine) { body * { cursor: none !important; } }
           .hide-on-mobile { display: block; }
           @media (pointer: coarse) { .hide-on-mobile { display: none !important; } }
@@ -224,11 +300,10 @@ export default function ThemeParkEntrance() {
             position: fixed; top: 0; left: 0; width: 20px; height: 20px;
             margin-top: -10px; margin-left: -10px; border-radius: 50%;
             background: #fff; pointer-events: none; z-index: 99999;
-            mix-blend-mode: difference; /* ✨ 色を反転させる魔法 */
+            mix-blend-mode: difference;
             transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), margin 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
             will-change: transform;
           }
-          /* ✨ ホバー時のサイズを洗練（40pxに縮小 ww） */
           .custom-cursor.hover {
             width: 40px; height: 40px; margin-top: -20px; margin-left: -20px;
             background: rgba(255, 255, 255, 1); mix-blend-mode: difference;
@@ -261,9 +336,6 @@ export default function ThemeParkEntrance() {
 
           .app-wrapper { min-height: 100vh; padding: 20px; font-family: 'Inter', 'Noto Sans JP', sans-serif; overflow-x: hidden; position: relative; color: var(--text-main); transition: color 0.5s; }
 
-          .arrival-flash { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #fff; z-index: 9999; pointer-events: none; animation: flashFadeOut 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
-          @keyframes flashFadeOut { 0% { opacity: 1; filter: blur(10px); transform: scale(1.05); } 100% { opacity: 0; filter: blur(0); transform: scale(1); } }
-
           .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; transition: background 0.8s ease; }
           .entrance-bg.theme-light { background: var(--bg-gradient); }
           .entrance-bg.theme-dark { background: var(--bg-gradient); }
@@ -289,7 +361,6 @@ export default function ThemeParkEntrance() {
 
           .park-title-container { text-align: center; margin-bottom: 50px; position: relative; }
           
-          /* 🌟 ダイナミックタイポグラフィ */
           .park-main-title { 
             font-size: 65px; font-weight: 900; letter-spacing: 4px; margin: 0 0 15px 0;
             background: linear-gradient(to right, #0284c7, #38bdf8, #8b5cf6, #0284c7);
@@ -316,7 +387,7 @@ export default function ThemeParkEntrance() {
           .btn-logout { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
           .btn-logout:hover { background: rgba(239, 68, 68, 0.2); }
 
-          /* 📢 インフォメーション */
+          /* 📢 インフォメーション（流れるティッカー） */
           .news-ticker-wrapper { display: flex; align-items: center; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; margin-bottom: 40px; padding: 12px 25px; box-shadow: var(--card-shadow); backdrop-filter: blur(20px); transition: 0.5s; }
           .news-badge { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-weight: 900; font-size: 13px; padding: 8px 18px; border-radius: 12px; white-space: nowrap; margin-right: 25px; animation: pulseGold 2s infinite; box-shadow: 0 0 15px rgba(245,158,11,0.4); letter-spacing: 2px; }
           @keyframes pulseGold { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
@@ -324,23 +395,44 @@ export default function ThemeParkEntrance() {
           .news-text { display: inline-block; padding-left: 100%; animation: marquee 30s linear infinite; font-weight: 800; color: var(--text-main); font-size: 16px; letter-spacing: 1px; }
           @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
-          /* 🌟 レイアウト（Bento UI）左幅を260pxに縮小（そのまま） */
+          /* 🌟 レイアウト（Bento UI）左幅を260pxに縮小 */
           .main-layout { display: grid; grid-template-columns: 260px 1fr; gap: 25px; margin-bottom: 50px; }
           @media (max-width: 950px) { .main-layout { grid-template-columns: 1fr; } }
 
-          /* ℹ️ 左側：設定パネル（そのまま） */
+          /* ℹ️ 左側：設定パネル */
           .info-sidebar { display: flex; flex-direction: column; gap: 20px; }
-          .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 18px; box-shadow: var(--card-shadow); }
+          .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 18px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; }
           .info-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
 
-          /* 📋 クリップボードツール（そのまま） */
-          .script-box { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; }
+          /* 📋 クリップボードツール */
+          .script-box { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
           .script-box:hover { border-color: var(--card-hover-border); transform: translateX(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
           .script-title { font-weight: 900; font-size: 11px; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
           .script-icon { font-size: 14px; opacity: 0.7; }
 
-          /* 🎡 右側：アトラクショングリッド（そのまま） */
-          .attraction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; perspective: 1200px; }
+          /* 💬 ミニチャット用スタイル */
+          .chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px; padding-right: 5px; height: 250px; }
+          .chat-messages::-webkit-scrollbar { width: 4px; }
+          .chat-messages::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 4px; }
+          .chat-bubble-wrap { display: flex; flex-direction: column; max-width: 90%; }
+          .chat-bubble-wrap.me { align-self: flex-end; align-items: flex-end; }
+          .chat-bubble-wrap.other { align-self: flex-start; align-items: flex-start; }
+          .chat-user { font-size: 10px; color: var(--text-sub); font-weight: 800; margin-bottom: 4px; margin-left: 6px; }
+          .chat-bubble { padding: 10px 14px; border-radius: 16px; position: relative; display: flex; align-items: flex-end; gap: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+          .me .chat-bubble { background: linear-gradient(135deg, #0ea5e9, #3b82f6); color: #fff; border-bottom-right-radius: 4px; }
+          .other .chat-bubble { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--input-border); border-bottom-left-radius: 4px; }
+          .chat-text { font-size: 13px; font-weight: 700; line-height: 1.5; word-break: break-word; }
+          .chat-time { font-size: 9px; opacity: 0.8; font-weight: 800; white-space: nowrap; margin-bottom: -2px; }
+          .me .chat-time { color: #e0f2fe; }
+          .other .chat-time { color: var(--text-sub); }
+          .chat-input-area { display: flex; gap: 8px; margin-top: auto; }
+          .chat-input { flex: 1; padding: 12px 16px; border-radius: 20px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-main); font-size: 13px; font-weight: 700; outline: none; transition: 0.3s; }
+          .chat-input:focus { border-color: var(--card-hover-border); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); }
+          .chat-send-btn { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #0ea5e9, #3b82f6); color: #fff; border: none; font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.3); flex-shrink: 0; }
+          .chat-send-btn:hover { transform: scale(1.1); background: linear-gradient(135deg, #0284c7, #2563eb); }
+
+          /* 🎡 右側：アトラクショングリッド */
+          .attraction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; perspective: 1200px; align-content: flex-start; }
           .fade-up-element { opacity: 0; transform: translateY(50px) scale(0.95); transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: var(--delay); }
           .fade-up-element.visible { opacity: 1; transform: translateY(0) scale(1); }
           
@@ -371,7 +463,6 @@ export default function ThemeParkEntrance() {
           .card-glare { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, transparent 60%); pointer-events: none; z-index: 1; mix-blend-mode: overlay; transition: 0.5s; }
           .theme-dark .card-glare { background: radial-gradient(circle at center, rgba(255,255,255,0.15) 0%, transparent 60%); }
           
-          /* テキスト等の深度表現（深度を少し浅くして落ち着かせる） */
           .card-content-3d { z-index: 2; position: relative; transform: translateZ(30px); transform-style: preserve-3d; display: flex; flex-direction: column; height: 100%; }
           
           .attraction-name { font-size: 11px; color: var(--accent-color); font-weight: 900; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
@@ -406,17 +497,12 @@ export default function ThemeParkEntrance() {
           .modal-overlay.open .custom-modal { transform: translateY(0) scale(1); }
           .modal-title { font-size: 24px; font-weight: 900; text-align: center; margin-bottom: 30px; letter-spacing: 2px; color: var(--title-color); }
           
-          .btn-close-modal { width: 100%; margin-top: 30px; padding: 15px; background: var(--kpi-bg); color: var(--text-main); border: 2px solid var(--card-border); border-radius: 15px; font-weight: 900; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 2px; }
+          .btn-close-modal { width: 100%; margin-top: 30px; padding: 15px; background: var(--kpi-bg); color: var(--text-main); border: 2px solid var(--card-border); border-radius: 15px; font-weight: 900; transition: 0.2s; text-transform: uppercase; letter-spacing: 2px; }
           .btn-close-modal:hover { background: var(--card-hover-border); color: #fff; border-color: transparent; }
 
           #toast { visibility: hidden; position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px); padding: 16px 32px; background: rgba(15,23,42, 0.95); color: #fde047; border-radius: 30px; font-weight: 900; font-size: 15px; z-index: 2000; opacity: 0; transition: 0.4s; backdrop-filter: blur(20px); border: 2px solid #fde047; box-shadow: 0 20px 50px rgba(0,0,0,0.3); letter-spacing: 1px; }
           #toast.show { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
         `}} />
-
-        <svg className="magic-svg-bg" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <path className="magic-path" d="M -10,30 Q 30,80 50,50 T 110,40" />
-          <path className="magic-path" d="M -10,70 Q 40,20 70,60 T 110,80" style={{animationDelay: "4s", opacity: 0.5}} />
-        </svg>
 
         <div className="dashboard-inner">
           <div className="top-bar">
@@ -452,7 +538,7 @@ export default function ThemeParkEntrance() {
 
           <div className="main-layout">
             
-            {/* ℹ️ 左カラム：ブックマークBOX (コンパクト化・そのまま維持) */}
+            {/* ℹ️ 左カラム：ブックマークBOX ＆ チャット (コンパクト化) */}
             <aside className="info-sidebar">
               <div className="info-panel fade-up-element" style={{ transitionDelay: "0.2s" }}>
                 <h3 className="info-title">📋 CallTree & ブックマーク管理</h3>
@@ -460,11 +546,11 @@ export default function ThemeParkEntrance() {
                   クリックでコードをコピーし、ブックマークのURL欄に貼り付けてください。
                 </div>
                 
-                <div className="script-box" onClick={() => copyScriptCode("データ一括取得（Warp）", "javascript:(function(){/* ここに一括取得のスクリプトを記述 */ alert('Warpデータを取得しました');})();")}>
+                <div className="script-box" onClick={() => copyScriptCode("データ一括取得", "javascript:(function(){/* ここに一括取得のスクリプトを記述 */ alert('Warpデータを取得しました');})();")}>
                   <span className="script-title"><span className="script-icon">📦</span> データ一括取得（Warp）</span>
                 </div>
                 
-                <div className="script-box" onClick={() => copyScriptCode("電話番号一括コピー", "javascript:(function(){/* ここに電話番号抽出のスクリプトを記述 */ alert('電話番号を抽出しました');})();")}>
+                <div className="script-box" onClick={() => copyScriptCode("電話番号コピー", "javascript:(function(){/* ここに電話番号抽出のスクリプトを記述 */ alert('電話番号を抽出しました');})();")}>
                   <span className="script-title"><span className="script-icon">📞</span> 電話番号一括コピー</span>
                 </div>
                 
@@ -472,9 +558,44 @@ export default function ThemeParkEntrance() {
                   <span className="script-title"><span className="script-icon">🌐</span> ネットトス自動入力</span>
                 </div>
               </div>
+
+              {/* 💬 新機能：チーム内ミニチャット */}
+              <div className="info-panel fade-up-element" style={{ transitionDelay: "0.3s", flex: 1, paddingBottom: "20px" }}>
+                <h3 className="info-title">💬 チーム内ミニチャット</h3>
+                
+                <div className="chat-messages" ref={chatScrollRef}>
+                  {chatMessages.length === 0 ? (
+                    <div style={{ textAlign: "center", color: "var(--text-sub)", fontSize: "12px", marginTop: "20px", fontWeight: 800 }}>まだメッセージはありません</div>
+                  ) : (
+                    chatMessages.map(msg => {
+                      const isMe = msg.user === userName;
+                      return (
+                        <div key={msg.id} className={`chat-bubble-wrap ${isMe ? "me" : "other"}`}>
+                          {!isMe && <div className="chat-user">{msg.user}</div>}
+                          <div className="chat-bubble">
+                            <div className="chat-text">{msg.text}</div>
+                            <div className="chat-time">{msg.time}</div>
+                          </div>
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
+
+                <form className="chat-input-area" onSubmit={handleSendMessage}>
+                  <input 
+                    type="text" 
+                    className="chat-input" 
+                    placeholder="メッセージを送信..." 
+                    value={chatInput} 
+                    onChange={(e) => setChatInput(e.target.value)} 
+                  />
+                  <button type="submit" className="chat-send-btn">➤</button>
+                </form>
+              </div>
             </aside>
 
-            {/* 🎡 右カラム：アトラクション グリッド */}
+            {/* 🎡 右カラム：アトラクション グリッド (Bento UI・ホバーエフェクト強化) */}
             <div className="attraction-grid">
               <MagicCard delay={0.1} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="チームの進捗やランキング状況をリアルタイムに確認。" onClick={() => router.push("/kpi-detail")}>
                 <div className="kpi-widget">
