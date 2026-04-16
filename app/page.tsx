@@ -342,7 +342,8 @@ export default function ThemeParkEntrance() {
 
           {/* 🎡 Bento UI グリッド */}
           <div className="attraction-grid">
-            <MagicCard delay={0.1} attraction="TOY STORY MANIA!" title="📊 獲得進捗・KPI" desc="おもちゃの世界でスコア（件数）を稼ごう！チームの獲得状況やランキングを確認できます。" onClick={() => setIsKpiOpen(true)}>
+            {/* 🌟 修正ポイント：onClickの中身を setIsKpiOpen(true) から router.push("/kpi-detail") に変更！ */}
+            <MagicCard delay={0.1} attraction="TOY STORY MANIA!" title="📊 獲得進捗・KPI" desc="おもちゃの世界でスコア（件数）を稼ごう！チームの獲得状況やランキングを確認できます。" onClick={() => router.push("/kpi-detail")}>
               <div className="kpi-widget">
                 <div className="kpi-numbers"><span className="kpi-current">{mockKpi.current}</span><span className="kpi-target">/ {mockKpi.target}件</span></div>
                 <div className="kpi-bar-bg"><div className="kpi-bar-fill" style={{ width: `${progressPercent}%` }}></div></div>
@@ -395,29 +396,6 @@ export default function ThemeParkEntrance() {
               </div>
             )}
             <button className="btn-close-modal" onClick={() => { setIsSimOpen(false); setResult(null); setTargetDate(""); }}>閉じる</button>
-          </div>
-        </div>
-
-        {/* 📊 KPI モーダル */}
-        <div className={`modal-overlay ${isKpiOpen ? "open" : ""}`} onClick={() => setIsKpiOpen(false)}>
-          <div className="custom-modal" style={{maxWidth: "450px"}} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-title">🎯 本日の進捗詳細</div>
-            <div style={{ background: "rgba(0,0,0,0.4)", borderRadius: "16px", padding: "20px", display: "flex", flexDirection: "column", gap: "15px", border: "1px solid rgba(255,255,255,0.2)" }}>
-              <div style={{ textAlign: "center", marginBottom: "5px" }}>
-                <span style={{ fontSize: "40px", fontWeight: 900, color: "#38bdf8", textShadow: "0 0 15px rgba(56,189,248,0.6)" }}>{mockKpi.current}</span><span style={{ color: "#cbd5e1", fontSize: "14px", fontWeight: 800 }}> / 目標 {mockKpi.target}件</span>
-              </div>
-              <div style={{ width: "100%", height: "10px", background: "rgba(255,255,255,0.15)", borderRadius: "5px", overflow: "hidden" }}><div style={{ height: "100%", width: `${progressPercent}%`, background: "linear-gradient(90deg, #38bdf8, #818cf8)", transition: "width 1s ease-out", boxShadow: "0 0 10px rgba(56,189,248,0.6)" }}></div></div>
-              <div style={{ textAlign: "right", fontSize: "13px", fontWeight: 900, color: "#38bdf8" }}>達成率 {progressPercent}%</div>
-            </div>
-            <div style={{ marginTop: "20px" }}>
-              <div style={{ fontSize: "13px", fontWeight: 900, color: "#cbd5e1", marginBottom: "10px", marginLeft: "5px" }}>メンバー別 内訳</div>
-              {mockKpi.members.map((member, index) => (
-                <div key={index} style={{ display: "flex", justifyContent: "space-between", padding: "12px 20px", background: "rgba(0,0,0,0.4)", borderRadius: "12px", marginBottom: "10px", border: "1px solid rgba(255,255,255,0.15)" }}>
-                  <span style={{ color: "#fff", fontWeight: 800 }}>👤 {member.name}</span><span style={{ fontWeight: 900, color: "#ec4899" }}>{member.count} 件</span>
-                </div>
-              ))}
-            </div>
-            <button className="btn-close-modal" onClick={() => setIsKpiOpen(false)}>閉じる</button>
           </div>
         </div>
 
