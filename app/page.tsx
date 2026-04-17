@@ -3,32 +3,52 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// 🌟 3Dパララックス ＆ 光の追従（激重JS）を完全撤廃！純粋なCSSホバーで遅延ゼロに！
+// 🌟 3Dパララックス ＆ オーロラボーダー
 const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, liveData, sparkline }: any) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const glareRef = useRef<HTMLDivElement>(null);
+  const requestRef = useRef<number | null>(null);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!cardRef.current || !innerRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    if (requestRef.current !== null) cancelAnimationFrame(requestRef.current);
+    requestRef.current = requestAnimationFrame(() => {
+      if (innerRef.current) innerRef.current.style.transform = `perspective(1200px) rotateX(${-(y / 25)}deg) rotateY(${x / 25}deg)`;
+      if (cardRef.current) {
+        cardRef.current.style.setProperty('--mouse-x', `${mouseX}px`);
+        cardRef.current.style.setProperty('--mouse-y', `${mouseY}px`);
+      }
+      if (glareRef.current) glareRef.current.style.transform = `translate(${(x / 25) * 4}px, ${-(y / 25) * 4}px)`;
+    });
+  };
+
+  const handleMouseLeave = () => {
+    if (requestRef.current !== null) cancelAnimationFrame(requestRef.current);
+    if (innerRef.current) innerRef.current.style.transform = `perspective(1200px) rotateX(0deg) rotateY(0deg)`;
+    if (glareRef.current) glareRef.current.style.transform = `translate(0px, 0px)`;
+  };
+
   return (
-    <div
-      className="magic-card-wrapper fade-up-element fluid-card"
-      style={{ "--delay": `${delay}s` } as React.CSSProperties}
-      onClick={onClick}
-    >
-      <div className="magic-card glitch-hover">
-        {/* CSSだけのシンプルな輝きエフェクトに差し替え */}
-        <div className="card-static-glow"></div>
-        
-        {/* 📉 マイクロ・チャート（Sparkline） */}
+    <div ref={cardRef} className="magic-card-wrapper fade-up-element fluid-card" style={{ "--delay": `${delay}s` } as React.CSSProperties} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} onClick={onClick}>
+      <div ref={innerRef} className="magic-card glitch-hover" style={{ transition: "transform 0.1s ease-out" }}>
+        <div className="card-aurora-border"></div>
         {sparkline && (
           <svg className="sparkline-bg" viewBox="0 0 100 30" preserveAspectRatio="none">
             <path d="M0,28 Q10,15 20,22 T40,10 T60,18 T80,5 T100,12" fill="none" stroke="var(--accent-color)" strokeWidth="1.5" opacity="0.3" />
             <path d="M0,28 Q10,15 20,22 T40,10 T60,18 T80,5 T100,12 L100,30 L0,30 Z" fill="url(#sparkline-grad)" opacity="0.1" />
             <defs>
-              <linearGradient id="sparkline-grad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--accent-color)" stopOpacity="0.8"/>
-                <stop offset="100%" stopColor="var(--accent-color)" stopOpacity="0"/>
-              </linearGradient>
+              <linearGradient id="sparkline-grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--accent-color)" stopOpacity="0.8"/><stop offset="100%" stopColor="var(--accent-color)" stopOpacity="0"/></linearGradient>
             </defs>
           </svg>
         )}
-        
+        <div ref={glareRef} className="card-glare" style={{ transition: "transform 0.1s ease-out" }} />
         <div className="card-wave-bg"></div>
         <div className="card-content-3d">
           {badge && <span className="badge-new">{badge}</span>}
@@ -103,7 +123,6 @@ export default function ThemeParkEntrance() {
 
   const [greeting, setGreeting] = useState("Hello");
   const [dynamicBg, setDynamicBg] = useState("");
-  // ✨ 時間帯テーマを管理するステート（夕方用）
   const [timeTheme, setTimeTheme] = useState("morning");
 
   const [animDelayOffset, setAnimDelayOffset] = useState(0.2);
@@ -115,9 +134,6 @@ export default function ThemeParkEntrance() {
   const [isCmdKOpen, setIsCmdKOpen] = useState(false);
   const [cmdKQuery, setCmdKQuery] = useState("");
 
-  const [isAreaOpen, setIsAreaOpen] = useState(false);
-  const [areaZip, setAreaZip] = useState("");
-
   const mockKpi = { current: 12, target: 20 };
   const progressPercent = Math.min(100, Math.round((mockKpi.current / mockKpi.target) * 100));
 
@@ -127,11 +143,10 @@ export default function ThemeParkEntrance() {
     { id: 'b3', icon: '🌐', title: 'ネットトス自動入力', copyName: 'ネットトス自動入力', copyUrl: 'javascript:(function(){/* 自動入力のスクリプト */ alert("自動入力しました");})();' }
   ];
 
-  // ✨ Cmd+K の動的リスト
+  // ✨ Cmd+K インテント（意図）検索用リスト（エリア判定を削除！）
   const allCmdKLinks = [
     { id: 'sim', name: "🆚 料金シミュレーターへ移動", desc: "乗り換え費用、スマホセット割、違約金の計算", url: "/simulator", search: ["sim", "シミュレーター", "料金", "cost", "見積もり", "比較", "乗り換え", "違約金", "スマホ割", "安く", "解約金", "シミュ", "計算"] },
     { id: 'toss', name: "🌐 ネットトス連携へ移動", desc: "フレッツ・光コラボ等の回線手配・情報送信", url: "/net-toss", search: ["toss", "トス", "ネット", "net", "フレッツ", "ドコモ光", "ソフトバンク光", "光コラボ", "事業者変更", "転用", "新規", "回線", "手配"] },
-    { id: 'area', name: "🗺️ 提供エリア判定ハブを開く", desc: "NTT東西・au・NUROの提供エリア・設備確認", action: () => setIsAreaOpen(true), search: ["エリア", "判定", "area", "フレッツ", "東日本", "西日本", "提供", "マンション", "戸建て", "番地", "設備", "引ける", "住所", "郵便番号"] },
     { id: 'kraken', name: "🐙 Kraken マニュアルを開く", desc: "SMS送信、テンプレート、手続きの業務手順書", url: "/procedure-wizard", search: ["kraken", "マニュアル", "手順", "manual", "sms", "送信", "雛形", "テンプレ", "案内", "やり方", "ルール", "規定"] },
     { id: 'call', name: "🗓️ 再架電タイムラインを開く", desc: "掛け直し、不在、検討中顧客のスケジュール", url: "/callback-board", search: ["コール", "再架電", "タイムライン", "call", "callback", "不在", "掛け直し", "後確", "予定", "スケジュール", "アポ", "保留"] },
     { id: 'memo', name: "🍯 クイックメモを開く", desc: "通話中の情報一時退避、テキストコピー", action: () => setIsMemoOpen(true), search: ["メモ", "memo", "クイック", "一時保存", "コピペ", "テキスト", "控え", "ノート", "note"] },
@@ -176,7 +191,6 @@ export default function ThemeParkEntrance() {
     };
   }, []);
 
-  // ✨ 時間帯に応じた背景色と、テーマ状態のセット
   useEffect(() => {
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 12) { 
@@ -192,7 +206,6 @@ export default function ThemeParkEntrance() {
     else if (hour >= 17 && hour < 20) { 
       setGreeting("Good Evening 🌇"); 
       setTimeTheme("evening");
-      // 🌆 夕方はオレンジ文字が映えるように、専用の美しいグラデーション背景を指定！
       setDynamicBg(isDarkMode ? "linear-gradient(135deg, #2a0a18, #1e1b4b)" : "linear-gradient(135deg, #fff7ed, #ffedd5)"); 
     }
     else { 
@@ -263,17 +276,6 @@ export default function ThemeParkEntrance() {
     }
   };
 
-  const openAreaSite = async (url: string, type: 'east' | 'west' | 'other') => {
-    const cleanZip = areaZip.replace(/[^0-9]/g, "");
-    if (cleanZip.length < 7 && type !== 'other') { showToast("⚠️ 7桁の郵便番号を入力してください"); return; }
-    let copyText = cleanZip;
-    if (type === 'east') { copyText = `${cleanZip.substring(0, 3)}-${cleanZip.substring(3)}`; }
-    if (type !== 'other') {
-      try { await navigator.clipboard.writeText(copyText); showToast(`📋 ${type === 'east' ? '東日本' : '西日本'}用に「${copyText}」をコピーしました！`); } catch (e) { console.error("Copy failed", e); }
-    }
-    window.open(url, "_blank");
-  };
-
   const titleString = "Team Portal Workspace";
   const titleChars = titleString.split("");
   const welcomeTextRaw = `Welcome, ${userName}.`;
@@ -327,7 +329,6 @@ export default function ThemeParkEntrance() {
         <path className="magic-path" d="M -10,70 Q 40,20 70,60 T 110,80" style={{animationDelay: "4s", opacity: 0.5}} />
       </svg>
 
-      {/* ✨ time-Theme クラスを付与し、夕方限定のオレンジCSSを発動させる！ */}
       <main className={`app-wrapper ${isReady ? "ready" : ""} time-${timeTheme}`}>
         
         <style dangerouslySetInnerHTML={{ __html: `
@@ -386,8 +387,7 @@ export default function ThemeParkEntrance() {
 
           .avatar-circle { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #fde047, #f59e0b); display: flex; align-items: center; justify-content: center; color: #451a03; font-weight: 900; font-size: 18px; box-shadow: 0 0 10px rgba(250,204,21,0.5); flex-shrink: 0; }
 
-          /* ✨ 重いJSを撤廃し、CSSだけの「遅延ゼロ」シンプルな輝きエフェクトに！ */
-          .magic-card { position: relative; border-radius: 28px; padding: 25px; background: var(--card-bg); backdrop-filter: blur(25px); display: flex; flex-direction: column; gap: 12px; box-shadow: var(--card-shadow); overflow: hidden; }
+          .magic-card { position: relative; border-radius: 28px; padding: 25px; background: var(--card-bg); backdrop-filter: blur(25px); display: flex; flex-direction: column; gap: 12px; height: 100%; cursor: pointer; box-shadow: var(--card-shadow); overflow: hidden; }
           .card-static-glow { position: absolute; inset: 0; border-radius: 28px; padding: 2px; background: linear-gradient(135deg, transparent, var(--card-hover-border), transparent); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 2; }
           .magic-card:hover .card-static-glow { opacity: 1; }
 
@@ -410,7 +410,6 @@ export default function ThemeParkEntrance() {
           .context-greeting { font-size: 20px; font-weight: 900; color: var(--title-color); letter-spacing: 1px; display: flex; align-items: center; gap: 12px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); transition: color 0.5s; }
           .context-greeting span { text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); }
 
-          /* 🌇 夕方（Evening）限定のオレンジ・エモーショナルテーマ！ */
           .app-wrapper.time-evening .context-greeting { color: #ea580c; }
           .app-wrapper.time-evening.theme-dark .context-greeting { color: #fb923c; }
           
@@ -527,10 +526,6 @@ export default function ThemeParkEntrance() {
           .fade-up-element.visible { opacity: 1; transform: translateY(0) scale(1); }
           .magic-card-wrapper.visible:hover { transform: translateY(0) scale(1.02); z-index: 10; }
 
-          .magic-card { position: relative; border-radius: 28px; padding: 25px; background: var(--card-bg); backdrop-filter: blur(25px); display: flex; flex-direction: column; gap: 12px; height: 100%; cursor: pointer; box-shadow: var(--card-shadow); overflow: hidden; }
-          .card-static-glow { position: absolute; inset: 0; border-radius: 28px; padding: 2px; background: linear-gradient(135deg, transparent, var(--card-hover-border), transparent); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 2; }
-          .magic-card:hover .card-static-glow { opacity: 1; }
-
           .sparkline-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; pointer-events: none; z-index: 0; }
 
           .card-glare { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, transparent 60%); pointer-events: none; z-index: 1; mix-blend-mode: overlay; transition: 0.5s; }
@@ -576,15 +571,6 @@ export default function ThemeParkEntrance() {
           .cmdk-item-desc { font-size: 11px; color: var(--text-sub); font-weight: 600; opacity: 0.8; }
           .cmdk-item:hover { background: var(--accent-color); transform: translateX(5px); }
           .cmdk-item:hover .cmdk-item-title, .cmdk-item:hover .cmdk-item-desc { color: #fff; opacity: 1; }
-
-          /* エリア判定ボタン用 */
-          .area-btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-          .area-btn { padding: 15px; border-radius: 12px; font-weight: 900; font-size: 14px; display: flex; align-items: center; justify-content: space-between; border: 2px solid var(--card-border); background: var(--input-bg); color: var(--text-main); cursor: pointer; transition: 0.3s; }
-          .area-btn:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-color: var(--accent-color); }
-          .area-btn.east:hover { border-color: #0284c7; color: #0284c7; }
-          .area-btn.west:hover { border-color: #ea580c; color: #ea580c; }
-          .area-btn.au:hover { border-color: #ea580c; color: #ea580c; }
-          .area-btn.nuro:hover { border-color: #10b981; color: #10b981; }
 
           .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); z-index: 1000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; }
           .modal-overlay.open { opacity: 1; pointer-events: auto; }
@@ -662,7 +648,6 @@ export default function ThemeParkEntrance() {
                   
                   {callTreeBookmarks.map(bm => (
                     <div key={bm.id} className="bookmark-wrapper">
-                      {/* ✨ e.stopPropagation() でクリック干渉を完全に防ぐ！ */}
                       <div className="script-box glitch-hover" onClick={(e) => { e.stopPropagation(); setActiveBookmark(activeBookmark === bm.id ? null : bm.id); }}>
                         <span className="script-title"><span className="script-icon">{bm.icon}</span> {bm.title}</span>
                       </div>
@@ -708,16 +693,15 @@ export default function ThemeParkEntrance() {
                 </div>
               </MagicCard>
 
-              <MagicCard delay={animDelayOffset + 0.6} attraction="AREA CHECKER" title="🗺️ 提供エリア判定ハブ" badge="NEW" desc="住所から各事業者の判定ページをワンタップで開きます。" onClick={(e: any) => { e.stopPropagation(); setIsAreaOpen(true); }} />
-              <MagicCard delay={animDelayOffset + 0.7} attraction="BULK REGISTER" title="📦 データ一括登録" desc="顧客データを高速でDBへ転送します。" liveData="Ready" onClick={(e: any) => { e.stopPropagation(); router.push("/bulk-register"); }} />
-              <MagicCard delay={animDelayOffset + 0.8} attraction="NET TOSS" title="🌐 ネットトス連携" desc="回線のトスアップデータを指定シートへ送信。" onClick={(e: any) => { e.stopPropagation(); router.push("/net-toss"); }} />
-              <MagicCard delay={animDelayOffset + 0.9} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="成約情報を専用フォームからシームレスに連携。" onClick={(e: any) => { e.stopPropagation(); router.push("/self-close"); }} />
-              <MagicCard delay={animDelayOffset + 1.0} attraction="SMS KRAKEN" title="📱 SMS 送信" desc="Krakenを用いたSMS送信とテンプレート展開。" liveData="System Active" onClick={(e: any) => { e.stopPropagation(); router.push("/sms-kraken"); }} />
-              <MagicCard delay={animDelayOffset + 1.1} attraction="EMAIL TEMPLATE" title="✉️ メールテンプレ" desc="用途に応じたメール文面を素早く作成。" onClick={(e: any) => { e.stopPropagation(); router.push("/email-template"); }} />
-              <MagicCard delay={animDelayOffset + 1.2} attraction="KRAKEN MANUAL" title="🐙 Kraken マニュアル" badge="NEW" desc="手続きに必要な情報を入力しフォーマット生成。" onClick={(e: any) => { e.stopPropagation(); router.push("/procedure-wizard"); }} />
-              <MagicCard delay={animDelayOffset + 1.3} attraction="COST SIMULATOR" title="🆚 料金シミュレーター" badge="NEW" desc="利用状況から乗り換え節約額を即座に算出します。" liveData="Avg. ¥4,200/mo" onClick={(e: any) => { e.stopPropagation(); router.push("/simulator"); }} />
+              <MagicCard delay={animDelayOffset + 0.6} attraction="BULK REGISTER" title="📦 データ一括登録" desc="顧客データを高速でDBへ転送します。" liveData="Ready" onClick={(e: any) => { e.stopPropagation(); router.push("/bulk-register"); }} />
+              <MagicCard delay={animDelayOffset + 0.7} attraction="NET TOSS" title="🌐 ネットトス連携" desc="回線のトスアップデータを指定シートへ送信。" onClick={(e: any) => { e.stopPropagation(); router.push("/net-toss"); }} />
+              <MagicCard delay={animDelayOffset + 0.8} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="成約情報を専用フォームからシームレスに連携。" onClick={(e: any) => { e.stopPropagation(); router.push("/self-close"); }} />
+              <MagicCard delay={animDelayOffset + 0.9} attraction="SMS KRAKEN" title="📱 SMS 送信" desc="Krakenを用いたSMS送信とテンプレート展開。" liveData="System Active" onClick={(e: any) => { e.stopPropagation(); router.push("/sms-kraken"); }} />
+              <MagicCard delay={animDelayOffset + 1.0} attraction="EMAIL TEMPLATE" title="✉️ メールテンプレ" desc="用途に応じたメール文面を素早く作成。" onClick={(e: any) => { e.stopPropagation(); router.push("/email-template"); }} />
+              <MagicCard delay={animDelayOffset + 1.1} attraction="KRAKEN MANUAL" title="🐙 Kraken マニュアル" badge="NEW" desc="手続きに必要な情報を入力しフォーマット生成。" onClick={(e: any) => { e.stopPropagation(); router.push("/procedure-wizard"); }} />
+              <MagicCard delay={animDelayOffset + 1.2} attraction="COST SIMULATOR" title="🆚 料金シミュレーター" badge="NEW" desc="利用状況から乗り換え節約額を即座に算出します。" liveData="Avg. ¥4,200/mo" onClick={(e: any) => { e.stopPropagation(); router.push("/simulator"); }} />
 
-              <MagicCard delay={animDelayOffset + 1.4} attraction="QUICK MEMO" title="🍯 クイックメモ" desc="通話中などの一時的な情報を置いておくメモパッド。" onClick={(e: any) => { e.stopPropagation(); setIsMemoOpen(true); }}>
+              <MagicCard delay={animDelayOffset + 1.3} attraction="QUICK MEMO" title="🍯 クイックメモ" desc="通話中などの一時的な情報を置いておくメモパッド。" onClick={(e: any) => { e.stopPropagation(); setIsMemoOpen(true); }}>
                 {memoText ? (
                   <div className="util-result" style={{marginTop:0, padding:"10px", fontSize:"11px", opacity: 0.8}}>
                     {memoText.length > 20 ? memoText.substring(0, 20) + "..." : memoText}
@@ -767,40 +751,6 @@ export default function ThemeParkEntrance() {
             <div className="util-result glitch-hover" onClick={copyUtilResult}>{utilResult}</div>
           </div>
         </details>
-
-        {/* 🗺️ エリア判定ハブ モーダル */}
-        <div className={`modal-overlay ${isAreaOpen ? "open" : ""}`} onClick={() => setIsAreaOpen(false)}>
-          <div className="custom-modal" style={{maxWidth: "500px"}} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-title">🗺️ エリア判定ハブ</div>
-            <p style={{fontSize: "13px", color: "var(--text-sub)", marginBottom: "20px", lineHeight: 1.6, fontWeight: 800}}>
-              郵便番号を入力して各事業者のボタンを押すと、<br/>
-              <b>最適な形式でクリップボードにコピーされ、判定ページが開きます。</b>
-            </p>
-            
-            <input type="text" className="util-input" style={{marginBottom:"10px", fontSize:"20px", textAlign:"center", letterSpacing:"2px"}} placeholder="郵便番号 (ハイフンなし7桁)" value={areaZip} onChange={(e) => setAreaZip(e.target.value)} />
-            
-            <div className="area-btn-group">
-              <div className="area-btn east" onClick={() => openAreaSite('https://flets.com/app_new/cao/SelectAddress', 'east')}>
-                <span>🔵 NTT東日本で判定</span>
-                <span style={{fontSize:"11px", fontWeight:800, color:"var(--text-sub)"}}>自動コピー: 123-4567</span>
-              </div>
-              <div className="area-btn west" onClick={() => openAreaSite('https://flets.ntt-west.co.jp/area/areaSearch?_gl=1*1wzcbm2*_ga*Nzg0MDY3MTc3LjE3NjMxMDM3OTM.*_ga_83NMYZFEHR*czE3NzY0MDgyODQkbzIxOSRnMCR0MTc3NjQwODI4NCRqNjAkbDAkaDA.', 'west')}>
-                <span>🟠 NTT西日本で判定</span>
-                <span style={{fontSize:"11px", fontWeight:800, color:"var(--text-sub)"}}>自動コピー: 1234567</span>
-              </div>
-              <div className="area-btn au" onClick={() => openAreaSite('https://bb-application.au.com/auhikari/area-check', 'other')}>
-                <span>🟠 auひかりで判定</span>
-                <span style={{fontSize:"11px", fontWeight:800, color:"var(--text-sub)"}}>自動コピー: そのまま</span>
-              </div>
-              <div className="area-btn nuro" onClick={() => openAreaSite('https://nuro.jp/hikari/area/', 'other')}>
-                <span>🟢 NURO光で判定</span>
-                <span style={{fontSize:"11px", fontWeight:800, color:"var(--text-sub)"}}>自動コピー: そのまま</span>
-              </div>
-            </div>
-
-            <button className="btn-close-modal btn-hover-shine" onClick={() => setIsAreaOpen(false)}>閉じる</button>
-          </div>
-        </div>
 
         <div className={`modal-overlay ${isSimOpen ? "open" : ""}`} onClick={() => setIsSimOpen(false)}>
           <div className="custom-modal" style={{maxWidth: "400px"}} onClick={(e) => e.stopPropagation()}>
