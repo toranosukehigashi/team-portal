@@ -26,7 +26,7 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, l
     <div
       ref={cardRef}
       className="magic-card-wrapper fade-up-element fluid-card"
-      style={{ "--delay": `${delay}s` } as React.CSSProperties}
+      style={{ "--delay": `${delay}s` } as any}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
@@ -150,6 +150,8 @@ export default function ThemeParkEntrance() {
   const [chatInput, setChatInput] = useState("");
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
+  const [animDelayOffset, setAnimDelayOffset] = useState(0.2);
+
   const mockKpi = { current: 12, target: 20 };
   const progressPercent = Math.min(100, Math.round((mockKpi.current / mockKpi.target) * 100));
 
@@ -157,7 +159,6 @@ export default function ThemeParkEntrance() {
     const savedUser = localStorage.getItem("team_portal_user");
     if (savedUser) { setUserName(savedUser); if (savedUser.toLowerCase().trim().includes("toranosuke.higashi")) setIsAdmin(true); }
     
-    // ✨ 「チラつき」排除！getSessionStorageの値でWelcome画面の有無を判定
     const justLoggedIn = sessionStorage.getItem("just_logged_in") === "true";
     let welcomeTimeout: NodeJS.Timeout | null = null;
     let readyTimeout: NodeJS.Timeout | null = null;
@@ -165,13 +166,12 @@ export default function ThemeParkEntrance() {
     if (justLoggedIn) {
       setShowMacWelcome(true);
       sessionStorage.removeItem("just_logged_in");
-      welcomeTimeout = setTimeout(() => setShowMacWelcome(false), 3000); 
-      
-      // ✨ HOME画面の表示（Ready）タイミングを、Welcomeのアニメーションフェードアウト（2.6s+0.6s）に完璧に合わせる！
-      readyTimeout = setTimeout(() => setIsReady(true), 3200); 
+      welcomeTimeout = setTimeout(() => setShowMacWelcome(false), 3200); 
+      readyTimeout = setTimeout(() => setIsReady(true), 2600); 
+      setAnimDelayOffset(3.2);
     } else {
-      // ログイン直後でない場合は、即座にReady（表示）にする
       setIsReady(true);
+      setAnimDelayOffset(0.2);
     }
 
     const savedMemo = localStorage.getItem("team_portal_quick_memo"); if (savedMemo) setMemoText(savedMemo);
@@ -182,13 +182,12 @@ export default function ThemeParkEntrance() {
     const handleStorageChange = (e: StorageEvent) => { if (e.key === "team_portal_chat_history") loadChat(); };
     window.addEventListener("storage", handleStorageChange);
     
-    // ✨ Observerのアニメーション発動タイマーを、Ready（表示）になるタイミング（最短0.15s、Welcomeありなら3.2s）に同期
     const observerTimer = setTimeout(() => {
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("visible"); });
       }, { threshold: 0.05, rootMargin: "0px 0px 50px 0px" });
       document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
-    }, justLoggedIn ? 3200 : 150);
+    }, justLoggedIn ? 3400 : 200);
     
     return () => { 
       if (welcomeTimeout) clearTimeout(welcomeTimeout);
@@ -196,9 +195,8 @@ export default function ThemeParkEntrance() {
       clearTimeout(observerTimer); 
       window.removeEventListener("storage", handleStorageChange); 
     };
-  }, []); // 🌅 案Dの useEffect と依存関係を切り離す
+  }, []);
 
-  // 🌅 案D: 時間帯に応じた背景色と挨拶の自動変更（ Ready（表示）された後、テーマチェンジ時に再計算 ）
   useEffect(() => {
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 12) {
@@ -281,7 +279,6 @@ export default function ThemeParkEntrance() {
 
   return (
     <>
-      {/* 🍎 Mac風「ようこそ」アニメーション（完全色固定：文字白・背景黒！） */}
       {showMacWelcome && (
         <div className={`mac-welcome-overlay dark-fix-welcome`}>
           <div className="mac-welcome-text-container">
@@ -294,36 +291,26 @@ export default function ThemeParkEntrance() {
         </div>
       )}
 
-      {/* ✨ スライム背景やデータメッシュをテーマクラスの「内側」に入れることで、真っ黒になるバグを完全解消！ */}
-      {/* ✨ 「チラつき」排除！Readyクラスで完全に表示/非表示を切り替え、フェードイン！ */}
       <main className={`app-wrapper ${isReady ? "ready" : ""} ${isDarkMode ? "theme-dark" : "theme-light"}`}>
         
-        {/* 🌅 案D: 状況連動型背景 */}
         <div className={`entrance-bg`} style={{ background: dynamicBg || "var(--bg-gradient)", transition: "background 2s ease" }}>
-          {/* 🌐 案A: ライブ・データメッシュ */}
           <DataMesh isDarkMode={isDarkMode} />
         </div>
         
-        {/* 🌊 案C: 流体エフェクトの背景要素 */}
         <GooeyBackground />
 
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
 
           .mac-welcome-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999; display: flex; align-items: center; justify-content: center; animation: macFadeOut 0.6s cubic-bezier(0.8, 0, 0.2, 1) 2.6s forwards; }
-          
-          /* ✨ Mac風ウェルカムを漆黒・白文字に完全固定！ */
           .mac-welcome-overlay.dark-fix-welcome { background: #000000; }
           .welcome-kinetic-char.white-fix-char { color: #ffffff; }
-          
           .mac-welcome-text-container { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 300; letter-spacing: 0.05em; display: flex; justify-content: center; flex-wrap: wrap; }
           .welcome-char-wrapper { display: inline-block; overflow: hidden; vertical-align: bottom; line-height: 1.2; padding-bottom: 5px; margin-bottom: -5px; }
           .welcome-kinetic-char { display: inline-block; transform: translateY(100%); opacity: 0; animation: slideUpWelcomeChar 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
-          
           @keyframes slideUpWelcomeChar { to { transform: translateY(0); opacity: 1; } }
           @keyframes macFadeOut { to { opacity: 0; visibility: hidden; } }
 
-          /* 🎨 テーマ */
           .theme-light { 
             --text-main: #1e293b; --text-sub: #475569; 
             --card-bg: rgba(255, 255, 255, 0.65); --card-border: rgba(255, 255, 255, 1); 
@@ -335,7 +322,7 @@ export default function ThemeParkEntrance() {
           }
           .theme-dark { 
             --text-main: #f8fafc; --text-sub: #cbd5e1; 
-            --card-bg: rgba(15, 23, 42, 0.6); --card-border: rgba(255, 255, 255, 0.1); 
+            --card-bg: rgba(15, 23, 42, 0.6); --card-border: rgba(255, 255, 255, 0.15); 
             --card-hover-border: #fde047; --card-hover-bg: rgba(30, 41, 59, 0.8); 
             --card-shadow: 0 20px 50px rgba(0,0,0,0.8); 
             --title-color: #fde047; --accent-color: #fde047; 
@@ -343,13 +330,15 @@ export default function ThemeParkEntrance() {
             --input-bg: rgba(0, 0, 0, 0.4); --svg-color: rgba(255, 255, 255, 0.4); 
           }
 
-          /* ✨ 「チラつき」排除！Readyクラスで完全に表示/非表示を切り替え、フェードイン！ */
-          .app-wrapper { min-height: 100vh; padding: 20px; font-family: 'Inter', 'Noto Sans JP', sans-serif; overflow-x: hidden; position: relative; color: var(--text-main); z-index: 1; opacity: 0; visibility: hidden; transition: color 0.5s, opacity 0.5s, visibility 0.5s; }
-          .app-wrapper.ready { opacity: 1; visibility: visible; }
+          .app-wrapper { 
+            min-height: 100vh; padding: 20px; font-family: 'Inter', 'Noto Sans JP', sans-serif; overflow-x: hidden; position: relative; color: var(--text-main); z-index: 1; 
+            opacity: 0; visibility: hidden; filter: blur(5px); transform: scale(0.98);
+            transition: opacity 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), filter 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.5s; 
+          }
+          .app-wrapper.ready { opacity: 1; visibility: visible; filter: blur(0); transform: scale(1); }
           
           .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -3; transition: background 2s ease; }
 
-          /* 🌊 案C: 流体ダッシュボード Gooey エフェクト */
           .gooey-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; pointer-events: none; filter: url(#goo); opacity: 0.4; overflow: hidden; }
           .theme-dark .gooey-container { opacity: 0.15; }
           .gooey-blob { position: absolute; border-radius: 50%; background: var(--accent-color); filter: blur(20px); }
@@ -358,11 +347,16 @@ export default function ThemeParkEntrance() {
           .blob-3 { width: 250px; height: 250px; bottom: 10%; left: 40%; animation: floatBlob 12s ease-in-out infinite alternate; background: #38bdf8; }
           @keyframes floatBlob { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(150px, 100px) scale(1.2); } }
 
-          /* カードのフワフワ流体アニメーション */
+          /* ✨ 削ってしまっていた魔法のSVG背景とアバターアイコンを完全復活！ */
+          .magic-svg-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.7; }
+          .magic-path { fill: none; stroke: var(--svg-color); stroke-width: 3; stroke-dasharray: 3000; stroke-dashoffset: 3000; animation: drawMagic 10s ease-in-out infinite alternate; transition: stroke 0.5s; }
+          @keyframes drawMagic { 0% { stroke-dashoffset: 3000; } 100% { stroke-dashoffset: 0; } }
+
+          .avatar-circle { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #fde047, #f59e0b); display: flex; align-items: center; justify-content: center; color: #451a03; font-weight: 900; font-size: 18px; box-shadow: 0 0 10px rgba(250,204,21,0.5); flex-shrink: 0; }
+
           .fluid-card { animation: fluidFloat 6s ease-in-out infinite alternate; }
           @keyframes fluidFloat { 0% { transform: translateY(0px); } 100% { transform: translateY(-8px); } }
 
-          /* 💎 案B: ホログラフィック・グリッチ (Hover) */
           .glitch-hover:hover { animation: holoGlitch 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
           .btn-hover-shine:hover { animation: holoGlitch 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
           @keyframes holoGlitch {
@@ -376,9 +370,7 @@ export default function ThemeParkEntrance() {
           .dashboard-inner { max-width: 1200px; margin: 0 auto; position: relative; z-index: 10; }
           
           .context-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 15px; }
-          
-          /* ✨ 挨拶テキストに強い「黒い縁取り（text-shadow）」を追加し、どんな背景でもくっきり読めるように修正！ */
-          .context-greeting { font-size: 20px; font-weight: 900; color: var(--title-color); letter-spacing: 1px; display: flex; align-items: center; gap: 10px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); }
+          .context-greeting { font-size: 20px; font-weight: 900; color: var(--title-color); letter-spacing: 1px; display: flex; align-items: center; gap: 12px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); }
           .context-greeting span { text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); }
 
           .context-ticker { background: var(--card-bg); backdrop-filter: blur(15px); padding: 8px 20px; border-radius: 30px; border: 1px solid var(--card-border); font-size: 12px; font-weight: 800; color: var(--text-main); display: flex; gap: 15px; box-shadow: var(--card-shadow); }
@@ -391,11 +383,19 @@ export default function ThemeParkEntrance() {
           .park-title-container { text-align: center; margin-bottom: 50px; }
           .park-main-title { margin: 0 0 15px 0; display: flex; justify-content: center; flex-wrap: wrap; }
           .char-wrapper { display: inline-block; overflow: hidden; vertical-align: bottom; line-height: 1.3; margin-bottom: -10px; padding-bottom: 10px; }
-          .kinetic-char { display: inline-block; font-size: clamp(40px, 6vw, 65px); font-weight: 900; letter-spacing: 2px; transform: translateY(100%); opacity: 0; background: linear-gradient(to bottom, #0284c7, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: slideUpChar 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); }
+          
+          .kinetic-char { 
+            display: inline-block; font-size: clamp(40px, 6vw, 65px); font-weight: 900; letter-spacing: 2px; 
+            transform: translateY(120%); opacity: 0; 
+            background: linear-gradient(to bottom, #0284c7, #2563eb); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+            animation: slideUpChar 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); 
+          }
           .theme-dark .kinetic-char { background: linear-gradient(to bottom, #fde047, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
           @keyframes slideUpChar { to { transform: translateY(0); opacity: 1; } }
           
-          .park-sub-title { color: var(--text-sub); font-size: 16px; font-weight: 800; letter-spacing: 8px; text-transform: uppercase; opacity: 0; animation: fadeIn 1s ease 1s forwards; }
+          .park-sub-title { color: var(--text-sub); font-size: 16px; font-weight: 800; letter-spacing: 8px; text-transform: uppercase; opacity: 0; animation: fadeIn 1s ease forwards; }
           @keyframes fadeIn { to { opacity: 1; } }
 
           .quick-actions { display: flex; gap: 20px; justify-content: center; margin-top: 30px; }
@@ -485,14 +485,13 @@ export default function ThemeParkEntrance() {
 
           .live-badge { font-size: 10px; font-weight: 900; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; gap: 4px; animation: pulseGreen 2s infinite; }
           .live-badge::before { content:''; width:6px; height:6px; background:#10b981; border-radius:50%; }
-          @keyframes pulseGreen { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); なぜ } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+          @keyframes pulseGreen { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
 
           .kpi-widget { background: var(--kpi-bg); padding: 12px; border-radius: 16px; border: 1px solid var(--card-border); transition: 0.5s; pointer-events: auto; }
           .kpi-numbers { display: flex; align-items: baseline; gap: 5px; margin-bottom: 6px; }
           .kpi-current { font-size: 24px; font-weight: 900; color: #38bdf8; }
           .kpi-target { font-size: 13px; font-weight: 800; color: var(--text-sub); }
           .kpi-bar-bg { width: 100%; height: 8px; background: rgba(0,0,0,0.1); border-radius: 4px; overflow: hidden; margin-top: 8px; }
-          .theme-dark .kpi-bar-bg { background: rgba(255,255,255,0.1); }
           .kpi-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #818cf8); border-radius: 4px; }
 
           .quick-utility { position: fixed; bottom: 40px; right: 40px; z-index: 1000; }
@@ -517,12 +516,18 @@ export default function ThemeParkEntrance() {
           #toast.show { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
         `}} />
 
+        {/* ✨ 削ってしまっていた魔法のSVG背景！ */}
+        <svg className="magic-svg-bg" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path className="magic-path" d="M -10,30 Q 30,80 50,50 T 110,40" />
+          <path className="magic-path" d="M -10,70 Q 40,20 70,60 T 110,80" style={{animationDelay: "4s", opacity: 0.5}} />
+        </svg>
+
         <div className="dashboard-inner">
           
-          {/* ☀️ コンテキスト・ヘッダー */}
-          <div className="context-header fade-up-element" style={{ "--delay": "0s" } as any}>
-            {/* ✨ 挨拶テキスト（text-shadowを追加） */}
+          <div className="context-header fade-up-element" style={{ "--delay": `${animDelayOffset}s` } as any}>
             <div className="context-greeting">
+              {/* ✨ 削ってしまっていたアバターアイコン！ */}
+              <div className="avatar-circle">{userName.charAt(0).toUpperCase()}</div>
               {greeting}, <span style={{ color: "var(--accent-color)" }}>{userName}</span>.
             </div>
             <div className="context-ticker">
@@ -537,28 +542,26 @@ export default function ThemeParkEntrance() {
             </div>
           </div>
 
-          {/* 🔠 新生キネティック・タイポグラフィ */}
           <div className="park-title-container">
             <h1 className="park-main-title">
               {titleChars.map((char, i) => (
                 <span key={i} className="char-wrapper">
-                  <span className="kinetic-char" style={{ animationDelay: `${i * 0.03 + 0.3}s` }}>
+                  <span className="kinetic-char" style={{ animationDelay: `${i * 0.03 + animDelayOffset}s` }}>
                     {char === " " ? "\u00A0" : char}
                   </span>
                 </span>
               ))}
             </h1>
-            <div className="park-sub-title">Central Operation Dashboard</div>
+            <div className="park-sub-title" style={{ animationDelay: `${animDelayOffset + 0.6}s` }}>Central Operation Dashboard</div>
             
-            {/* ✨ 新ホバー: ホログラフィック・グレア＆リフト */}
-            <div className="quick-actions">
+            <div className="quick-actions fade-up-element" style={{ "--delay": `${animDelayOffset + 0.3}s` } as any}>
               <button className="btn-qa btn-sim btn-hover-shine" onClick={handleOpenSim}>⏳ 納期確認</button>
               <button className="btn-qa btn-clockout btn-hover-shine" onClick={handleClockOut}>🏃‍♂️ 退勤する</button>
               <button className="btn-qa btn-logout btn-hover-shine" onClick={handleLogout}>🚪 ログアウト</button>
             </div>
           </div>
 
-          <div className="news-ticker-wrapper fade-up-element" style={{ "--delay": "0.1s" } as any}>
+          <div className="news-ticker-wrapper fade-up-element" style={{ "--delay": `${animDelayOffset + 0.4}s` } as any}>
             <div className="news-badge">📢 インフォメーション</div>
             <div className="news-scroll-container"><div className="news-text">{newsText}</div></div>
             {isAdmin && <button className="btn-hover-shine" style={{background: "var(--card-bg)", border:"1px solid var(--card-border)", color:"var(--text-main)", fontSize:"12px", fontWeight:900, padding:"8px 16px", borderRadius:"12px", marginLeft:"15px", cursor:"pointer"}} onClick={() => { setTempNews(newsText); setIsEditingNews(!isEditingNews); }}>✏️ 編集</button>}
@@ -574,7 +577,7 @@ export default function ThemeParkEntrance() {
           <div className="main-layout">
             
             <aside className="info-sidebar">
-              <div className="info-panel fade-up-element" style={{ transitionDelay: "0.2s" }}>
+              <div className="info-panel fade-up-element" style={{ "--delay": `${animDelayOffset + 0.5}s` } as any}>
                 <h3 className="info-title">📋 CallTree & ブックマーク管理</h3>
                 <div style={{ fontSize: "11px", color: "var(--text-sub)", fontWeight: 800, marginBottom: "12px", lineHeight: 1.4 }}>
                   クリックでコードをコピーし、ブックマークに保存してください。
@@ -591,7 +594,7 @@ export default function ThemeParkEntrance() {
                 </div>
               </div>
 
-              <div className="info-panel fade-up-element" style={{ transitionDelay: "0.3s", flex: 1, paddingBottom: "20px" }}>
+              <div className="info-panel fade-up-element" style={{ "--delay": `${animDelayOffset + 0.6}s`, flex: 1, paddingBottom: "20px" } as any}>
                 <h3 className="info-title">💬 チーム内ミニチャット</h3>
                 <div className="chat-messages" ref={chatScrollRef}>
                   {chatMessages.length === 0 ? (
@@ -621,22 +624,22 @@ export default function ThemeParkEntrance() {
 
             {/* 🎡 ライブ・ベントー・ウィジェット */}
             <div className="attraction-grid">
-              <MagicCard delay={0.1} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="本日の目標まであと何件か、リアルタイムで確認。" liveData={`${progressPercent}% Achieved`} onClick={() => router.push("/kpi-detail")}>
+              <MagicCard delay={animDelayOffset + 0.5} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="本日の目標まであと何件か、リアルタイムで確認。" liveData={`${progressPercent}% Achieved`} onClick={() => router.push("/kpi-detail")}>
                 <div className="kpi-widget">
                   <div className="kpi-numbers"><span className="kpi-current">{mockKpi.current}</span><span className="kpi-target">/ {mockKpi.target}件</span></div>
                   <div className="kpi-bar-bg"><div className="kpi-bar-fill" style={{ width: `${progressPercent}%` }}></div></div>
                 </div>
               </MagicCard>
 
-              <MagicCard delay={0.2} attraction="BULK REGISTER" title="📦 データ一括登録" desc="顧客データを高速でDBへ転送します。" liveData="Ready" onClick={() => router.push("/bulk-register")} />
-              <MagicCard delay={0.3} attraction="NET TOSS" title="🌐 ネットトス連携" desc="回線のトスアップデータを指定シートへ送信。" onClick={() => router.push("/net-toss")} />
-              <MagicCard delay={0.4} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="成約情報を専用フォームからシームレスに連携。" onClick={() => router.push("/self-close")} />
-              <MagicCard delay={0.5} attraction="SMS KRAKEN" title="📱 SMS 送信" desc="Krakenを用いたSMS送信とテンプレート展開。" liveData="System Active" onClick={() => router.push("/sms-kraken")} />
-              <MagicCard delay={0.6} attraction="EMAIL TEMPLATE" title="✉️ メールテンプレ" desc="用途に応じたメール文面を素早く作成。" onClick={() => router.push("/email-template")} />
-              <MagicCard delay={0.7} attraction="KRAKEN PROCEDURE" title="🗺️ Kraken 手順辞書" badge="NEW" desc="手続きに必要な情報を入力しフォーマット生成。" onClick={() => router.push("/procedure-wizard")} />
-              <MagicCard delay={0.8} attraction="COST SIMULATOR" title="🆚 料金シミュレーター" badge="NEW" desc="利用状況から乗り換え節約額を即座に算出します。" liveData="Avg. ¥4,200/mo" onClick={() => router.push("/simulator")} />
+              <MagicCard delay={animDelayOffset + 0.6} attraction="BULK REGISTER" title="📦 データ一括登録" desc="顧客データを高速でDBへ転送します。" liveData="Ready" onClick={() => router.push("/bulk-register")} />
+              <MagicCard delay={animDelayOffset + 0.7} attraction="NET TOSS" title="🌐 ネットトス連携" desc="回線のトスアップデータを指定シートへ送信。" onClick={() => router.push("/net-toss")} />
+              <MagicCard delay={animDelayOffset + 0.8} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="成約情報を専用フォームからシームレスに連携。" onClick={() => router.push("/self-close")} />
+              <MagicCard delay={animDelayOffset + 0.9} attraction="SMS KRAKEN" title="📱 SMS 送信" desc="Krakenを用いたSMS送信とテンプレート展開。" liveData="System Active" onClick={() => router.push("/sms-kraken")} />
+              <MagicCard delay={animDelayOffset + 1.0} attraction="EMAIL TEMPLATE" title="✉️ メールテンプレ" desc="用途に応じたメール文面を素早く作成。" onClick={() => router.push("/email-template")} />
+              <MagicCard delay={animDelayOffset + 1.1} attraction="KRAKEN PROCEDURE" title="🗺️ Kraken 手順辞書" badge="NEW" desc="手続きに必要な情報を入力しフォーマット生成。" onClick={() => router.push("/procedure-wizard")} />
+              <MagicCard delay={animDelayOffset + 1.2} attraction="COST SIMULATOR" title="🆚 料金シミュレーター" badge="NEW" desc="利用状況から乗り換え節約額を即座に算出します。" liveData="Avg. ¥4,200/mo" onClick={() => router.push("/simulator")} />
 
-              <MagicCard delay={0.9} attraction="QUICK MEMO" title="🍯 クイックメモ" desc="通話中などの一時的な情報を置いておくメモパッド。" onClick={() => setIsMemoOpen(true)}>
+              <MagicCard delay={animDelayOffset + 1.3} attraction="QUICK MEMO" title="🍯 クイックメモ" desc="通話中などの一時的な情報を置いておくメモパッド。" onClick={() => setIsMemoOpen(true)}>
                 {memoText ? (
                   <div className="util-result" style={{marginTop:0, padding:"10px", fontSize:"11px", opacity: 0.8}}>
                     {memoText.length > 20 ? memoText.substring(0, 20) + "..." : memoText}
@@ -650,7 +653,7 @@ export default function ThemeParkEntrance() {
         </div>
 
         {/* 🧲 新ホバー・フローティングボタン */}
-        <details className="quick-utility hide-on-mobile">
+        <details className="quick-utility hide-on-mobile fade-up-element" style={{ "--delay": `${animDelayOffset + 1.5}s` } as any}>
           <summary className="utility-fab btn-hover-shine" style={{listStyle:"none", border:"none", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"28px", cursor:"pointer"}}>🔍</summary>
           <div className="utility-content">
             <h4 style={{margin: "0 0 15px 0", fontSize: "16px", fontWeight: 900, color: "var(--title-color)", borderBottom: "2px dashed var(--card-border)", paddingBottom: "10px"}}>📍 住所クイック検索</h4>
