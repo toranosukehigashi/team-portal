@@ -107,7 +107,7 @@ const DataMesh = ({ isDarkMode }: { isDarkMode: boolean }) => {
     return () => { window.removeEventListener("resize", resize); cancelAnimationFrame(animationFrameId); };
   }, [isDarkMode]);
 
-  return <canvas ref={canvasRef} style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: -2, pointerEvents: "none" }} />;
+  return <canvas ref={canvasRef} style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", zIndex: -2, pointerEvents: "none" }} />;
 };
 
 // 🌊 案C: 流体ダッシュボード用 Gooey バックグラウンド
@@ -151,14 +151,14 @@ export default function ThemeParkEntrance() {
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
   const [animDelayOffset, setAnimDelayOffset] = useState(0.2);
-
-  // ✨ ブックマーク管理用ステート
+  
+  // ✨ ブックマークの吹き出し状態管理
   const [activeBookmark, setActiveBookmark] = useState<string | null>(null);
 
   const mockKpi = { current: 12, target: 20 };
   const progressPercent = Math.min(100, Math.round((mockKpi.current / mockKpi.target) * 100));
 
-  // ✨ ブックマークの実際のデータ群
+  // ✨ ブックマークの実データ
   const callTreeBookmarks = [
     { id: 'b1', icon: '📦', title: 'データ一括取得（Warp）', copyName: 'Warp一括取得', copyUrl: 'javascript:(function(){/* 一括取得のスクリプト */ alert("Warpデータを取得しました");})();' },
     { id: 'b2', icon: '📞', title: '電話番号一括コピー', copyName: '電話番号一括コピー', copyUrl: 'javascript:(function(){/* 電話番号抽出のスクリプト */ alert("電話番号を抽出しました");})();' },
@@ -273,7 +273,7 @@ export default function ThemeParkEntrance() {
     try { 
       await navigator.clipboard.writeText(text); 
       showToast(`📋 ${label}をコピーしました！`); 
-      setActiveBookmark(null); // コピーしたら吹き出しを閉じる
+      setActiveBookmark(null); 
     } catch (err) { 
       alert("コピーに失敗しました"); 
     } 
@@ -328,7 +328,7 @@ export default function ThemeParkEntrance() {
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
 
-          .mac-welcome-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999; display: flex; align-items: center; justify-content: center; animation: macFadeOut 0.6s cubic-bezier(0.8, 0, 0.2, 1) 2.6s forwards; }
+          .mac-welcome-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999999; display: flex; align-items: center; justify-content: center; animation: macFadeOut 0.6s cubic-bezier(0.8, 0, 0.2, 1) 2.6s forwards; }
           .mac-welcome-overlay.dark-fix-welcome { background: #000000; }
           .welcome-kinetic-char.white-fix-char { color: #ffffff; }
           .mac-welcome-text-container { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 300; letter-spacing: 0.05em; display: flex; justify-content: center; flex-wrap: wrap; }
@@ -337,7 +337,6 @@ export default function ThemeParkEntrance() {
           @keyframes slideUpWelcomeChar { to { transform: translateY(0); opacity: 1; } }
           @keyframes macFadeOut { to { opacity: 0; visibility: hidden; } }
 
-          /* 🎨 テーマ */
           .theme-light { 
             --text-main: #1e293b; --text-sub: #475569; 
             --card-bg: rgba(255, 255, 255, 0.65); --card-border: rgba(255, 255, 255, 1); 
@@ -357,16 +356,16 @@ export default function ThemeParkEntrance() {
             --input-bg: rgba(0, 0, 0, 0.4); --svg-color: rgba(255, 255, 255, 0.4); 
           }
 
+          /* overflow-x: clip でスクロールバー抑制 */
           .app-wrapper { 
-            min-height: 100vh; padding: 20px; font-family: 'Inter', 'Noto Sans JP', sans-serif; overflow-x: hidden; position: relative; color: var(--text-main); z-index: 1; 
+            min-height: 100vh; padding: 20px; font-family: 'Inter', 'Noto Sans JP', sans-serif; overflow-x: clip; position: relative; color: var(--text-main); z-index: 1; 
             opacity: 0; visibility: hidden; filter: blur(5px); transform: scale(0.98);
             transition: opacity 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), filter 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.5s; 
           }
           .app-wrapper.ready { opacity: 1; visibility: visible; filter: blur(0); transform: scale(1); }
           
-          .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -3; transition: background 2s ease; }
-
-          .gooey-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; pointer-events: none; filter: url(#goo); opacity: 0.4; overflow: hidden; }
+          .entrance-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -3; transition: background 2s ease; }
+          .gooey-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; pointer-events: none; filter: url(#goo); opacity: 0.4; overflow: hidden; }
           .theme-dark .gooey-container { opacity: 0.15; }
           .gooey-blob { position: absolute; border-radius: 50%; background: var(--accent-color); filter: blur(20px); }
           .blob-1 { width: 300px; height: 300px; top: 20%; left: 20%; animation: floatBlob 15s ease-in-out infinite alternate; }
@@ -374,7 +373,7 @@ export default function ThemeParkEntrance() {
           .blob-3 { width: 250px; height: 250px; bottom: 10%; left: 40%; animation: floatBlob 12s ease-in-out infinite alternate; background: #38bdf8; }
           @keyframes floatBlob { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(150px, 100px) scale(1.2); } }
 
-          .magic-svg-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.7; }
+          .magic-svg-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; opacity: 0.7; }
           .magic-path { fill: none; stroke: var(--svg-color); stroke-width: 3; stroke-dasharray: 3000; stroke-dashoffset: 3000; animation: drawMagic 10s ease-in-out infinite alternate; transition: stroke 0.5s; }
           @keyframes drawMagic { 0% { stroke-dashoffset: 3000; } 100% { stroke-dashoffset: 0; } }
 
@@ -452,13 +451,12 @@ export default function ThemeParkEntrance() {
           .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 18px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; }
           .info-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
 
-          /* ✨ ブックマーク管理：ボタン＆吹き出し用スタイル */
+          /* ✨ ブックマーク管理：ボタン＆吹き出し用スタイル復活！ */
           .bookmark-wrapper { position: relative; margin-bottom: 8px; }
           .script-box { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 12px; padding: 10px 12px; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
           .script-box:hover { border-color: var(--card-hover-border); transform: translateX(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
           .script-title { font-weight: 900; font-size: 11px; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
 
-          /* 🎈 右側に飛び出す吹き出し（ポップオーバー） */
           .bookmark-popover {
             position: absolute; top: 50%; left: calc(100% + 15px); transform: translateY(-50%) scale(0.9); transform-origin: left center;
             background: var(--modal-bg); backdrop-filter: blur(30px); border: 1px solid var(--card-hover-border); border-radius: 16px;
@@ -466,7 +464,6 @@ export default function ThemeParkEntrance() {
             opacity: 0; animation: popoverIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; display: flex; flex-direction: column; gap: 8px;
           }
           .theme-dark .bookmark-popover { box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
-          /* 吹き出しのしっぽ（左向きの三角） */
           .bookmark-popover::before {
             content: ''; position: absolute; top: 50%; left: -6px; transform: translateY(-50%) rotate(45deg);
             width: 12px; height: 12px; background: var(--modal-bg);
@@ -474,7 +471,6 @@ export default function ThemeParkEntrance() {
           }
           @keyframes popoverIn { to { opacity: 1; transform: translateY(-50%) scale(1); } }
 
-          /* スマホ等で画面が狭い場合は「下」に飛び出すようレスポンシブ対応！ */
           @media (max-width: 950px) {
             .bookmark-popover { top: calc(100% + 10px); left: 50%; transform: translateX(-50%) scale(0.9); transform-origin: top center; width: 90%; }
             .bookmark-popover::before { top: -6px; left: 50%; transform: translateX(-50%) rotate(45deg); border-bottom: none; border-left: none; border-top: 1px solid var(--card-hover-border); border-left: 1px solid var(--card-hover-border); }
@@ -565,7 +561,7 @@ export default function ThemeParkEntrance() {
           .util-input:focus { border-color: var(--card-hover-border); }
           .util-result { margin-top: 15px; font-size: 14px; color: var(--text-main); background: var(--kpi-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--card-border); font-weight: 900; transition: 0.3s; cursor: pointer; }
 
-          .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); z-index: 1000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; }
+          .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); z-index: 1000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; }
           .modal-overlay.open { opacity: 1; pointer-events: auto; }
           .custom-modal { background: var(--modal-bg); backdrop-filter: blur(30px); width: 90%; padding: 40px; border-radius: 30px; box-shadow: 0 30px 80px rgba(0,0,0,0.3); border: 2px solid var(--card-border); transform: translateY(40px) scale(0.95); transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); display: flex; flex-direction: column; color: var(--text-main); }
           .modal-overlay.open .custom-modal { transform: translateY(0) scale(1); }
@@ -637,20 +633,19 @@ export default function ThemeParkEntrance() {
           <div className="main-layout">
             
             <aside className="info-sidebar">
-              {/* ✨ 新機能：ブックマーク・吹き出しUI実装！ */}
               <div className="info-panel fade-up-element" style={{ "--delay": `${animDelayOffset + 0.5}s` } as any}>
                 <h3 className="info-title">📋 CallTree & ブックマーク管理</h3>
                 <div style={{ fontSize: "11px", color: "var(--text-sub)", fontWeight: 800, marginBottom: "12px", lineHeight: 1.4 }}>
-                  項目をクリックして、コピーしたい内容を選択してください。
+                  クリックして、コピーしたい内容を選択してください。
                 </div>
                 
+                {/* ✨ 完璧に復活したブックマーク吹き出しUI */}
                 {callTreeBookmarks.map(bm => (
                   <div key={bm.id} className="bookmark-wrapper">
                     <div className="script-box glitch-hover" onClick={(e) => { e.stopPropagation(); setActiveBookmark(activeBookmark === bm.id ? null : bm.id); }}>
                       <span className="script-title"><span className="script-icon">{bm.icon}</span> {bm.title}</span>
                     </div>
                     
-                    {/* 🎈 ポップオーバー（吹き出し） */}
                     {activeBookmark === bm.id && (
                       <div className="bookmark-popover" onClick={(e) => e.stopPropagation()}>
                         <div className="popover-header">🔗 コピーする項目</div>
@@ -700,7 +695,6 @@ export default function ThemeParkEntrance() {
               </div>
             </aside>
 
-            {/* 🎡 ライブ・ベントー・ウィジェット */}
             <div className="attraction-grid">
               <MagicCard delay={animDelayOffset + 0.5} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="本日の目標まであと何件か、リアルタイムで確認。" liveData={`${progressPercent}% Achieved`} onClick={() => router.push("/kpi-detail")}>
                 <div className="kpi-widget">
@@ -730,7 +724,6 @@ export default function ThemeParkEntrance() {
           </div>
         </div>
 
-        {/* 🧲 新ホバー・フローティングボタン */}
         <details className="quick-utility hide-on-mobile fade-up-element" style={{ "--delay": `${animDelayOffset + 1.5}s` } as any}>
           <summary className="utility-fab btn-hover-shine" style={{listStyle:"none", border:"none", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"28px", cursor:"pointer"}}>🔍</summary>
           <div className="utility-content">
@@ -740,7 +733,6 @@ export default function ThemeParkEntrance() {
           </div>
         </details>
 
-        {/* ⏳ 納期シミュレーター モーダル */}
         <div className={`modal-overlay ${isSimOpen ? "open" : ""}`} onClick={() => setIsSimOpen(false)}>
           <div className="custom-modal" style={{maxWidth: "400px"}} onClick={(e) => e.stopPropagation()}>
             <div className="modal-title">⏳ 納期確認</div>
@@ -757,7 +749,6 @@ export default function ThemeParkEntrance() {
           </div>
         </div>
 
-        {/* 📝 一時メモ モーダル */}
         <div className={`modal-overlay ${isMemoOpen ? "open" : ""}`} onClick={() => setIsMemoOpen(false)}>
           <div className="custom-modal" style={{maxWidth: "600px", height: "80vh"}} onClick={(e) => e.stopPropagation()}>
             <div className="modal-title">📝 クイックメモ</div>
