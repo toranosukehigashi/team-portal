@@ -151,14 +151,11 @@ export default function ThemeParkEntrance() {
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
   const [animDelayOffset, setAnimDelayOffset] = useState(0.2);
-  
-  // ✨ ブックマークの吹き出し状態管理
   const [activeBookmark, setActiveBookmark] = useState<string | null>(null);
 
   const mockKpi = { current: 12, target: 20 };
   const progressPercent = Math.min(100, Math.round((mockKpi.current / mockKpi.target) * 100));
 
-  // ✨ ブックマークの実データ
   const callTreeBookmarks = [
     { id: 'b1', icon: '📦', title: 'データ一括取得（Warp）', copyName: 'Warp一括取得', copyUrl: 'javascript:(function(){/* 一括取得のスクリプト */ alert("Warpデータを取得しました");})();' },
     { id: 'b2', icon: '📞', title: '電話番号一括コピー', copyName: '電話番号一括コピー', copyUrl: 'javascript:(function(){/* 電話番号抽出のスクリプト */ alert("電話番号を抽出しました");})();' },
@@ -198,17 +195,12 @@ export default function ThemeParkEntrance() {
       }, { threshold: 0.05, rootMargin: "0px 0px 50px 0px" });
       document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
     }, justLoggedIn ? 3400 : 200);
-
-    // ✨ 画面のどこかをクリックしたら、ブックマーク吹き出しを閉じる
-    const closeBookmark = () => setActiveBookmark(null);
-    document.addEventListener('click', closeBookmark);
     
     return () => { 
       if (welcomeTimeout) clearTimeout(welcomeTimeout);
       if (readyTimeout) clearTimeout(readyTimeout);
       clearTimeout(observerTimer); 
       window.removeEventListener("storage", handleStorageChange); 
-      document.removeEventListener('click', closeBookmark);
     };
   }, []);
 
@@ -267,16 +259,9 @@ export default function ThemeParkEntrance() {
   const handleLogout = () => { localStorage.removeItem("team_portal_user"); router.push("/login"); };
   const handleClockOut = async () => { const now = new Date(); const hours = String(now.getHours()).padStart(2, "0"); const minutes = String(now.getMinutes()).padStart(2, "0"); try { await navigator.clipboard.writeText(`${hours}:${minutes} 退勤いたします`); showToast(`✨ 退勤メッセージをコピーしました！`); } catch (err) { alert("コピーに失敗しました"); } };
   
-  // ✨ コピー処理（吹き出しの中のボタンを押した時）
   const handleTargetCopy = async (e: React.MouseEvent, text: string, label: string) => { 
     e.stopPropagation();
-    try { 
-      await navigator.clipboard.writeText(text); 
-      showToast(`📋 ${label}をコピーしました！`); 
-      setActiveBookmark(null); 
-    } catch (err) { 
-      alert("コピーに失敗しました"); 
-    } 
+    try { await navigator.clipboard.writeText(text); showToast(`📋 ${label}をコピーしました！`); setActiveBookmark(null); } catch (err) { alert("コピーに失敗しました"); } 
   };
   
   const calculateDeadlines = (dateStr: string) => {
@@ -317,7 +302,8 @@ export default function ThemeParkEntrance() {
         </div>
       )}
 
-      <main className={`app-wrapper ${isReady ? "ready" : ""} ${isDarkMode ? "theme-dark" : "theme-light"}`}>
+      {/* ✨ 画面のどこかをクリックしたら吹き出しが閉じるように onClick を追加！ */}
+      <main className={`app-wrapper ${isReady ? "ready" : ""} ${isDarkMode ? "theme-dark" : "theme-light"}`} onClick={() => setActiveBookmark(null)}>
         
         <div className={`entrance-bg`} style={{ background: dynamicBg || "var(--bg-gradient)", transition: "background 2s ease" }}>
           <DataMesh isDarkMode={isDarkMode} />
@@ -356,7 +342,6 @@ export default function ThemeParkEntrance() {
             --input-bg: rgba(0, 0, 0, 0.4); --svg-color: rgba(255, 255, 255, 0.4); 
           }
 
-          /* overflow-x: clip でスクロールバー抑制 */
           .app-wrapper { 
             min-height: 100vh; padding: 20px; font-family: 'Inter', 'Noto Sans JP', sans-serif; overflow-x: clip; position: relative; color: var(--text-main); z-index: 1; 
             opacity: 0; visibility: hidden; filter: blur(5px); transform: scale(0.98);
@@ -447,11 +432,12 @@ export default function ThemeParkEntrance() {
           .main-layout { display: grid; grid-template-columns: 260px 1fr; gap: 25px; margin-bottom: 50px; }
           @media (max-width: 950px) { .main-layout { grid-template-columns: 1fr; } }
 
-          .info-sidebar { display: flex; flex-direction: column; gap: 20px; }
+          /* ✨ 左カラムのz-indexを50にして最前面に！これで吹き出しが隠れない！ */
+          .info-sidebar { display: flex; flex-direction: column; gap: 20px; position: relative; z-index: 50; }
           .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 18px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; }
           .info-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
 
-          /* ✨ ブックマーク管理：ボタン＆吹き出し用スタイル復活！ */
+          /* ✨ ブックマーク管理：ボタン＆吹き出し用スタイル */
           .bookmark-wrapper { position: relative; margin-bottom: 8px; }
           .script-box { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 12px; padding: 10px 12px; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
           .script-box:hover { border-color: var(--card-hover-border); transform: translateX(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
@@ -639,7 +625,6 @@ export default function ThemeParkEntrance() {
                   クリックして、コピーしたい内容を選択してください。
                 </div>
                 
-                {/* ✨ 完璧に復活したブックマーク吹き出しUI */}
                 {callTreeBookmarks.map(bm => (
                   <div key={bm.id} className="bookmark-wrapper">
                     <div className="script-box glitch-hover" onClick={(e) => { e.stopPropagation(); setActiveBookmark(activeBookmark === bm.id ? null : bm.id); }}>
