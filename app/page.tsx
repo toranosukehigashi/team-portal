@@ -26,7 +26,7 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, l
     <div
       ref={cardRef}
       className="magic-card-wrapper fade-up-element fluid-card"
-      style={{ "--delay": `${delay}s` } as any}
+      style={{ "--delay": `${delay}s` } as React.CSSProperties}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
@@ -152,8 +152,18 @@ export default function ThemeParkEntrance() {
 
   const [animDelayOffset, setAnimDelayOffset] = useState(0.2);
 
+  // ✨ ブックマーク管理用ステート
+  const [activeBookmark, setActiveBookmark] = useState<string | null>(null);
+
   const mockKpi = { current: 12, target: 20 };
   const progressPercent = Math.min(100, Math.round((mockKpi.current / mockKpi.target) * 100));
+
+  // ✨ ブックマークの実際のデータ群
+  const callTreeBookmarks = [
+    { id: 'b1', icon: '📦', title: 'データ一括取得（Warp）', copyName: 'Warp一括取得', copyUrl: 'javascript:(function(){/* 一括取得のスクリプト */ alert("Warpデータを取得しました");})();' },
+    { id: 'b2', icon: '📞', title: '電話番号一括コピー', copyName: '電話番号一括コピー', copyUrl: 'javascript:(function(){/* 電話番号抽出のスクリプト */ alert("電話番号を抽出しました");})();' },
+    { id: 'b3', icon: '🌐', title: 'ネットトス自動入力', copyName: 'ネットトス自動入力', copyUrl: 'javascript:(function(){/* 自動入力のスクリプト */ alert("自動入力しました");})();' }
+  ];
 
   useEffect(() => {
     const savedUser = localStorage.getItem("team_portal_user");
@@ -188,12 +198,17 @@ export default function ThemeParkEntrance() {
       }, { threshold: 0.05, rootMargin: "0px 0px 50px 0px" });
       document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
     }, justLoggedIn ? 3400 : 200);
+
+    // ✨ 画面のどこかをクリックしたら、ブックマーク吹き出しを閉じる
+    const closeBookmark = () => setActiveBookmark(null);
+    document.addEventListener('click', closeBookmark);
     
     return () => { 
       if (welcomeTimeout) clearTimeout(welcomeTimeout);
       if (readyTimeout) clearTimeout(readyTimeout);
       clearTimeout(observerTimer); 
       window.removeEventListener("storage", handleStorageChange); 
+      document.removeEventListener('click', closeBookmark);
     };
   }, []);
 
@@ -251,7 +266,18 @@ export default function ThemeParkEntrance() {
   const showToast = (msg: string) => { setToast({ show: true, msg }); setTimeout(() => setToast({ show: false, msg: "" }), 3000); };
   const handleLogout = () => { localStorage.removeItem("team_portal_user"); router.push("/login"); };
   const handleClockOut = async () => { const now = new Date(); const hours = String(now.getHours()).padStart(2, "0"); const minutes = String(now.getMinutes()).padStart(2, "0"); try { await navigator.clipboard.writeText(`${hours}:${minutes} 退勤いたします`); showToast(`✨ 退勤メッセージをコピーしました！`); } catch (err) { alert("コピーに失敗しました"); } };
-  const copyScriptCode = async (title: string, code: string) => { try { await navigator.clipboard.writeText(code); showToast(`📋 ${title}のコードをコピーしました！`); } catch (err) { alert("コピーに失敗しました"); } };
+  
+  // ✨ コピー処理（吹き出しの中のボタンを押した時）
+  const handleTargetCopy = async (e: React.MouseEvent, text: string, label: string) => { 
+    e.stopPropagation();
+    try { 
+      await navigator.clipboard.writeText(text); 
+      showToast(`📋 ${label}をコピーしました！`); 
+      setActiveBookmark(null); // コピーしたら吹き出しを閉じる
+    } catch (err) { 
+      alert("コピーに失敗しました"); 
+    } 
+  };
   
   const calculateDeadlines = (dateStr: string) => {
     if (!dateStr) return;
@@ -311,6 +337,7 @@ export default function ThemeParkEntrance() {
           @keyframes slideUpWelcomeChar { to { transform: translateY(0); opacity: 1; } }
           @keyframes macFadeOut { to { opacity: 0; visibility: hidden; } }
 
+          /* 🎨 テーマ */
           .theme-light { 
             --text-main: #1e293b; --text-sub: #475569; 
             --card-bg: rgba(255, 255, 255, 0.65); --card-border: rgba(255, 255, 255, 1); 
@@ -347,7 +374,6 @@ export default function ThemeParkEntrance() {
           .blob-3 { width: 250px; height: 250px; bottom: 10%; left: 40%; animation: floatBlob 12s ease-in-out infinite alternate; background: #38bdf8; }
           @keyframes floatBlob { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(150px, 100px) scale(1.2); } }
 
-          /* ✨ 削ってしまっていた魔法のSVG背景とアバターアイコンを完全復活！ */
           .magic-svg-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.7; }
           .magic-path { fill: none; stroke: var(--svg-color); stroke-width: 3; stroke-dasharray: 3000; stroke-dashoffset: 3000; animation: drawMagic 10s ease-in-out infinite alternate; transition: stroke 0.5s; }
           @keyframes drawMagic { 0% { stroke-dashoffset: 3000; } 100% { stroke-dashoffset: 0; } }
@@ -426,9 +452,44 @@ export default function ThemeParkEntrance() {
           .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 18px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; }
           .info-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
 
-          .script-box { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+          /* ✨ ブックマーク管理：ボタン＆吹き出し用スタイル */
+          .bookmark-wrapper { position: relative; margin-bottom: 8px; }
+          .script-box { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 12px; padding: 10px 12px; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
           .script-box:hover { border-color: var(--card-hover-border); transform: translateX(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
           .script-title { font-weight: 900; font-size: 11px; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
+
+          /* 🎈 右側に飛び出す吹き出し（ポップオーバー） */
+          .bookmark-popover {
+            position: absolute; top: 50%; left: calc(100% + 15px); transform: translateY(-50%) scale(0.9); transform-origin: left center;
+            background: var(--modal-bg); backdrop-filter: blur(30px); border: 1px solid var(--card-hover-border); border-radius: 16px;
+            padding: 12px; width: 260px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); z-index: 1000;
+            opacity: 0; animation: popoverIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; display: flex; flex-direction: column; gap: 8px;
+          }
+          .theme-dark .bookmark-popover { box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
+          /* 吹き出しのしっぽ（左向きの三角） */
+          .bookmark-popover::before {
+            content: ''; position: absolute; top: 50%; left: -6px; transform: translateY(-50%) rotate(45deg);
+            width: 12px; height: 12px; background: var(--modal-bg);
+            border-bottom: 1px solid var(--card-hover-border); border-left: 1px solid var(--card-hover-border);
+          }
+          @keyframes popoverIn { to { opacity: 1; transform: translateY(-50%) scale(1); } }
+
+          /* スマホ等で画面が狭い場合は「下」に飛び出すようレスポンシブ対応！ */
+          @media (max-width: 950px) {
+            .bookmark-popover { top: calc(100% + 10px); left: 50%; transform: translateX(-50%) scale(0.9); transform-origin: top center; width: 90%; }
+            .bookmark-popover::before { top: -6px; left: 50%; transform: translateX(-50%) rotate(45deg); border-bottom: none; border-left: none; border-top: 1px solid var(--card-hover-border); border-left: 1px solid var(--card-hover-border); }
+            @keyframes popoverIn { to { opacity: 1; transform: translateX(-50%) scale(1); } }
+          }
+
+          .popover-header { font-size: 10px; color: var(--text-sub); font-weight: 900; margin-bottom: 4px; padding-left: 4px; letter-spacing: 1px; }
+          .popover-row { display: flex; align-items: center; justify-content: space-between; background: var(--input-bg); border: 1px solid var(--input-border); padding: 8px 10px; border-radius: 10px; cursor: pointer; transition: 0.2s; }
+          .popover-row:hover { background: var(--card-hover-bg); border-color: var(--card-hover-border); transform: translateX(2px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+          .popover-badge { font-size: 10px; font-weight: 900; padding: 2px 6px; border-radius: 6px; white-space: nowrap; }
+          .name-badge { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.4); }
+          .url-badge { background: rgba(14, 165, 233, 0.15); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.4); }
+          .popover-text { font-size: 11px; font-weight: 800; color: var(--text-main); flex: 1; margin: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+          .popover-copy-icon { font-size: 12px; opacity: 0.6; transition: 0.2s; }
+          .popover-row:hover .popover-copy-icon { opacity: 1; color: var(--accent-color); transform: scale(1.1); }
 
           .chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px; padding-right: 5px; height: 250px; }
           .chat-messages::-webkit-scrollbar { width: 4px; }
@@ -492,6 +553,7 @@ export default function ThemeParkEntrance() {
           .kpi-current { font-size: 24px; font-weight: 900; color: #38bdf8; }
           .kpi-target { font-size: 13px; font-weight: 800; color: var(--text-sub); }
           .kpi-bar-bg { width: 100%; height: 8px; background: rgba(0,0,0,0.1); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+          .theme-dark .kpi-bar-bg { background: rgba(255,255,255,0.1); }
           .kpi-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #818cf8); border-radius: 4px; }
 
           .quick-utility { position: fixed; bottom: 40px; right: 40px; z-index: 1000; }
@@ -516,7 +578,6 @@ export default function ThemeParkEntrance() {
           #toast.show { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
         `}} />
 
-        {/* ✨ 削ってしまっていた魔法のSVG背景！ */}
         <svg className="magic-svg-bg" viewBox="0 0 100 100" preserveAspectRatio="none">
           <path className="magic-path" d="M -10,30 Q 30,80 50,50 T 110,40" />
           <path className="magic-path" d="M -10,70 Q 40,20 70,60 T 110,80" style={{animationDelay: "4s", opacity: 0.5}} />
@@ -526,7 +587,6 @@ export default function ThemeParkEntrance() {
           
           <div className="context-header fade-up-element" style={{ "--delay": `${animDelayOffset}s` } as any}>
             <div className="context-greeting">
-              {/* ✨ 削ってしまっていたアバターアイコン！ */}
               <div className="avatar-circle">{userName.charAt(0).toUpperCase()}</div>
               {greeting}, <span style={{ color: "var(--accent-color)" }}>{userName}</span>.
             </div>
@@ -577,21 +637,39 @@ export default function ThemeParkEntrance() {
           <div className="main-layout">
             
             <aside className="info-sidebar">
+              {/* ✨ 新機能：ブックマーク・吹き出しUI実装！ */}
               <div className="info-panel fade-up-element" style={{ "--delay": `${animDelayOffset + 0.5}s` } as any}>
                 <h3 className="info-title">📋 CallTree & ブックマーク管理</h3>
                 <div style={{ fontSize: "11px", color: "var(--text-sub)", fontWeight: 800, marginBottom: "12px", lineHeight: 1.4 }}>
-                  クリックでコードをコピーし、ブックマークに保存してください。
+                  項目をクリックして、コピーしたい内容を選択してください。
                 </div>
                 
-                <div className="script-box glitch-hover" onClick={() => copyScriptCode("データ一括取得", "javascript:(function(){/* 一括取得 */ alert('Warpデータを取得しました');})();")}>
-                  <span className="script-title"><span className="script-icon">📦</span> 一括取得（Warp）</span>
-                </div>
-                <div className="script-box glitch-hover" onClick={() => copyScriptCode("電話番号コピー", "javascript:(function(){/* 電話番号抽出 */ alert('電話番号を抽出しました');})();")}>
-                  <span className="script-title"><span className="script-icon">📞</span> 電話番号一括コピー</span>
-                </div>
-                <div className="script-box glitch-hover" onClick={() => copyScriptCode("ネットトス自動入力", "javascript:(function(){/* 自動入力 */ alert('自動入力しました');})();")}>
-                  <span className="script-title"><span className="script-icon">🌐</span> ネットトス自動入力</span>
-                </div>
+                {callTreeBookmarks.map(bm => (
+                  <div key={bm.id} className="bookmark-wrapper">
+                    <div className="script-box glitch-hover" onClick={(e) => { e.stopPropagation(); setActiveBookmark(activeBookmark === bm.id ? null : bm.id); }}>
+                      <span className="script-title"><span className="script-icon">{bm.icon}</span> {bm.title}</span>
+                    </div>
+                    
+                    {/* 🎈 ポップオーバー（吹き出し） */}
+                    {activeBookmark === bm.id && (
+                      <div className="bookmark-popover" onClick={(e) => e.stopPropagation()}>
+                        <div className="popover-header">🔗 コピーする項目</div>
+                        
+                        <div className="popover-row glitch-hover" onClick={(e) => handleTargetCopy(e, bm.copyName, "ブックマーク名")}>
+                          <span className="popover-badge name-badge">名前</span>
+                          <span className="popover-text">{bm.copyName}</span>
+                          <span className="popover-copy-icon">📋</span>
+                        </div>
+                        
+                        <div className="popover-row glitch-hover" onClick={(e) => handleTargetCopy(e, bm.copyUrl, "URL")}>
+                          <span className="popover-badge url-badge">URL</span>
+                          <span className="popover-text">{bm.copyUrl.substring(0, 18)}...</span>
+                          <span className="popover-copy-icon">📋</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
 
               <div className="info-panel fade-up-element" style={{ "--delay": `${animDelayOffset + 0.6}s`, flex: 1, paddingBottom: "20px" } as any}>
