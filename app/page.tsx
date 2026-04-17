@@ -3,52 +3,32 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// 🌟 3Dパララックス ＆ オーロラボーダー
+// 🌟 3Dパララックス ＆ 光の追従（激重JS）を完全撤廃！純粋なCSSホバーで遅延ゼロに！
 const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, liveData, sparkline }: any) => {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const innerRef = useRef<HTMLDivElement>(null);
-  const glareRef = useRef<HTMLDivElement>(null);
-  const requestRef = useRef<number | null>(null);
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!cardRef.current || !innerRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-
-    if (requestRef.current !== null) cancelAnimationFrame(requestRef.current);
-    requestRef.current = requestAnimationFrame(() => {
-      if (innerRef.current) innerRef.current.style.transform = `perspective(1200px) rotateX(${-(y / 25)}deg) rotateY(${x / 25}deg)`;
-      if (cardRef.current) {
-        cardRef.current.style.setProperty('--mouse-x', `${mouseX}px`);
-        cardRef.current.style.setProperty('--mouse-y', `${mouseY}px`);
-      }
-      if (glareRef.current) glareRef.current.style.transform = `translate(${(x / 25) * 4}px, ${-(y / 25) * 4}px)`;
-    });
-  };
-
-  const handleMouseLeave = () => {
-    if (requestRef.current !== null) cancelAnimationFrame(requestRef.current);
-    if (innerRef.current) innerRef.current.style.transform = `perspective(1200px) rotateX(0deg) rotateY(0deg)`;
-    if (glareRef.current) glareRef.current.style.transform = `translate(0px, 0px)`;
-  };
-
   return (
-    <div ref={cardRef} className="magic-card-wrapper fade-up-element fluid-card" style={{ "--delay": `${delay}s` } as React.CSSProperties} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} onClick={onClick}>
-      <div ref={innerRef} className="magic-card glitch-hover" style={{ transition: "transform 0.1s ease-out" }}>
-        <div className="card-aurora-border"></div>
+    <div
+      className="magic-card-wrapper fade-up-element fluid-card"
+      style={{ "--delay": `${delay}s` } as React.CSSProperties}
+      onClick={onClick}
+    >
+      <div className="magic-card glitch-hover">
+        {/* CSSだけのシンプルな輝きエフェクトに差し替え */}
+        <div className="card-static-glow"></div>
+        
+        {/* 📉 マイクロ・チャート（Sparkline） */}
         {sparkline && (
           <svg className="sparkline-bg" viewBox="0 0 100 30" preserveAspectRatio="none">
             <path d="M0,28 Q10,15 20,22 T40,10 T60,18 T80,5 T100,12" fill="none" stroke="var(--accent-color)" strokeWidth="1.5" opacity="0.3" />
             <path d="M0,28 Q10,15 20,22 T40,10 T60,18 T80,5 T100,12 L100,30 L0,30 Z" fill="url(#sparkline-grad)" opacity="0.1" />
             <defs>
-              <linearGradient id="sparkline-grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--accent-color)" stopOpacity="0.8"/><stop offset="100%" stopColor="var(--accent-color)" stopOpacity="0"/></linearGradient>
+              <linearGradient id="sparkline-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--accent-color)" stopOpacity="0.8"/>
+                <stop offset="100%" stopColor="var(--accent-color)" stopOpacity="0"/>
+              </linearGradient>
             </defs>
           </svg>
         )}
-        <div ref={glareRef} className="card-glare" style={{ transition: "transform 0.1s ease-out" }} />
+        
         <div className="card-wave-bg"></div>
         <div className="card-content-3d">
           {badge && <span className="badge-new">{badge}</span>}
@@ -123,12 +103,15 @@ export default function ThemeParkEntrance() {
 
   const [greeting, setGreeting] = useState("Hello");
   const [dynamicBg, setDynamicBg] = useState("");
+  // ✨ 時間帯テーマを管理するステート（夕方用）
+  const [timeTheme, setTimeTheme] = useState("morning");
 
   const [animDelayOffset, setAnimDelayOffset] = useState(0.2);
   const [activeBookmark, setActiveBookmark] = useState<string | null>(null);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
+  // ⌨️ Cmd+K 検索用ステート
   const [isCmdKOpen, setIsCmdKOpen] = useState(false);
   const [cmdKQuery, setCmdKQuery] = useState("");
 
@@ -144,44 +127,19 @@ export default function ThemeParkEntrance() {
     { id: 'b3', icon: '🌐', title: 'ネットトス自動入力', copyName: 'ネットトス自動入力', copyUrl: 'javascript:(function(){/* 自動入力のスクリプト */ alert("自動入力しました");})();' }
   ];
 
-  // ✨ Cmd+K インテント（意図）検索用の超強化リスト！
+  // ✨ Cmd+K の動的リスト
   const allCmdKLinks = [
-    { 
-      id: 'sim', name: "🆚 料金シミュレーターへ移動", desc: "乗り換え費用、スマホセット割、違約金の計算", url: "/simulator", 
-      search: ["sim", "シミュレーター", "料金", "cost", "見積もり", "比較", "乗り換え", "違約金", "スマホ割", "安く", "解約金", "シミュ", "計算"] 
-    },
-    { 
-      id: 'toss', name: "🌐 ネットトス連携へ移動", desc: "フレッツ・光コラボ等の回線手配・情報送信", url: "/net-toss", 
-      search: ["toss", "トス", "ネット", "net", "フレッツ", "ドコモ光", "ソフトバンク光", "光コラボ", "事業者変更", "転用", "新規", "回線", "手配"] 
-    },
-    { 
-      id: 'area', name: "🗺️ 提供エリア判定ハブを開く", desc: "NTT東西・au・NUROの提供エリア・設備確認", action: () => setIsAreaOpen(true), 
-      search: ["エリア", "判定", "area", "フレッツ", "東日本", "西日本", "提供", "マンション", "戸建て", "番地", "設備", "引ける", "住所", "郵便番号"] 
-    },
-    { 
-      id: 'kraken', name: "🐙 Kraken マニュアルを開く", desc: "SMS送信、テンプレート、手続きの業務手順書", url: "/procedure-wizard", 
-      search: ["kraken", "マニュアル", "手順", "manual", "sms", "送信", "雛形", "テンプレ", "案内", "やり方", "ルール", "規定"] 
-    },
-    { 
-      id: 'call', name: "🗓️ 再架電タイムラインを開く", desc: "掛け直し、不在、検討中顧客のスケジュール", url: "/callback-board", 
-      search: ["コール", "再架電", "タイムライン", "call", "callback", "不在", "掛け直し", "後確", "予定", "スケジュール", "アポ", "保留"] 
-    },
-    { 
-      id: 'memo', name: "🍯 クイックメモを開く", desc: "通話中の情報一時退避、テキストコピー", action: () => setIsMemoOpen(true), 
-      search: ["メモ", "memo", "クイック", "一時保存", "コピペ", "テキスト", "控え", "ノート", "note"] 
-    },
+    { id: 'sim', name: "🆚 料金シミュレーターへ移動", desc: "乗り換え費用、スマホセット割、違約金の計算", url: "/simulator", search: ["sim", "シミュレーター", "料金", "cost", "見積もり", "比較", "乗り換え", "違約金", "スマホ割", "安く", "解約金", "シミュ", "計算"] },
+    { id: 'toss', name: "🌐 ネットトス連携へ移動", desc: "フレッツ・光コラボ等の回線手配・情報送信", url: "/net-toss", search: ["toss", "トス", "ネット", "net", "フレッツ", "ドコモ光", "ソフトバンク光", "光コラボ", "事業者変更", "転用", "新規", "回線", "手配"] },
+    { id: 'area', name: "🗺️ 提供エリア判定ハブを開く", desc: "NTT東西・au・NUROの提供エリア・設備確認", action: () => setIsAreaOpen(true), search: ["エリア", "判定", "area", "フレッツ", "東日本", "西日本", "提供", "マンション", "戸建て", "番地", "設備", "引ける", "住所", "郵便番号"] },
+    { id: 'kraken', name: "🐙 Kraken マニュアルを開く", desc: "SMS送信、テンプレート、手続きの業務手順書", url: "/procedure-wizard", search: ["kraken", "マニュアル", "手順", "manual", "sms", "送信", "雛形", "テンプレ", "案内", "やり方", "ルール", "規定"] },
+    { id: 'call', name: "🗓️ 再架電タイムラインを開く", desc: "掛け直し、不在、検討中顧客のスケジュール", url: "/callback-board", search: ["コール", "再架電", "タイムライン", "call", "callback", "不在", "掛け直し", "後確", "予定", "スケジュール", "アポ", "保留"] },
+    { id: 'memo', name: "🍯 クイックメモを開く", desc: "通話中の情報一時退避、テキストコピー", action: () => setIsMemoOpen(true), search: ["メモ", "memo", "クイック", "一時保存", "コピペ", "テキスト", "控え", "ノート", "note"] },
   ];
 
-  // ✨ あいまい検索ロジック（ひらがな/カタカナ、部分一致などを賢く判定）
-  const query = cmdKQuery.trim().toLowerCase();
-  const filteredCmdKLinks = allCmdKLinks.filter(link => {
-    if (!query) return true;
-    const matchName = link.name.toLowerCase().includes(query);
-    const matchDesc = link.desc.toLowerCase().includes(query);
-    // query がキーワードに含まれるか、キーワードが query に含まれるかをチェック（例: 「フレ」で「フレッツ」がヒット）
-    const matchTags = link.search.some(keyword => keyword.toLowerCase().includes(query) || query.includes(keyword.toLowerCase()));
-    return matchName || matchDesc || matchTags;
-  });
+  const filteredCmdKLinks = allCmdKLinks.filter(link => 
+    cmdKQuery === "" || link.name.toLowerCase().includes(cmdKQuery.toLowerCase()) || link.search.some(keyword => keyword.includes(cmdKQuery.toLowerCase()))
+  );
 
   useEffect(() => {
     const savedUser = localStorage.getItem("team_portal_user");
@@ -218,12 +176,30 @@ export default function ThemeParkEntrance() {
     };
   }, []);
 
+  // ✨ 時間帯に応じた背景色と、テーマ状態のセット
   useEffect(() => {
     const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) { setGreeting("Good Morning ☀️"); setDynamicBg(isDarkMode ? "linear-gradient(135deg, #0f172a, #1e1b4b)" : "linear-gradient(135deg, #f0f9ff, #fdf4ff)"); }
-    else if (hour >= 12 && hour < 17) { setGreeting("Good Afternoon ☕"); setDynamicBg(isDarkMode ? "linear-gradient(135deg, #1e1b4b, #312e81)" : "linear-gradient(135deg, #e0f2fe, #e0e7ff)"); }
-    else if (hour >= 17 && hour < 20) { setGreeting("Good Evening 🌇"); setDynamicBg(isDarkMode ? "linear-gradient(135deg, #31111d, #1e1b4b)" : "linear-gradient(135deg, #ffedd5, #ffe4e6)"); }
-    else { setGreeting("Good Night 🌙"); setDynamicBg(isDarkMode ? "radial-gradient(ellipse at bottom, #1e1b4b 0%, #020617 100%)" : "linear-gradient(135deg, #312e81, #1e1b4b)"); }
+    if (hour >= 5 && hour < 12) { 
+      setGreeting("Good Morning ☀️"); 
+      setTimeTheme("morning");
+      setDynamicBg(isDarkMode ? "linear-gradient(135deg, #0f172a, #1e1b4b)" : "linear-gradient(135deg, #f0f9ff, #fdf4ff)"); 
+    }
+    else if (hour >= 12 && hour < 17) { 
+      setGreeting("Good Afternoon ☕"); 
+      setTimeTheme("afternoon");
+      setDynamicBg(isDarkMode ? "linear-gradient(135deg, #1e1b4b, #312e81)" : "linear-gradient(135deg, #e0f2fe, #e0e7ff)"); 
+    }
+    else if (hour >= 17 && hour < 20) { 
+      setGreeting("Good Evening 🌇"); 
+      setTimeTheme("evening");
+      // 🌆 夕方はオレンジ文字が映えるように、専用の美しいグラデーション背景を指定！
+      setDynamicBg(isDarkMode ? "linear-gradient(135deg, #2a0a18, #1e1b4b)" : "linear-gradient(135deg, #fff7ed, #ffedd5)"); 
+    }
+    else { 
+      setGreeting("Good Night 🌙"); 
+      setTimeTheme("night");
+      setDynamicBg(isDarkMode ? "radial-gradient(ellipse at bottom, #1e1b4b 0%, #020617 100%)" : "linear-gradient(135deg, #312e81, #1e1b4b)"); 
+    }
   }, [isDarkMode]);
 
   const toggleTheme = () => { const newTheme = !isDarkMode; setIsDarkMode(newTheme); showToast(newTheme ? "🌙 ダークモードに切り替えました" : "☀️ ライトモードに切り替えました"); };
@@ -276,7 +252,6 @@ export default function ThemeParkEntrance() {
   const handleClearMemo = () => { if(confirm("メモをクリアしますか？")){ setMemoText(""); localStorage.removeItem("team_portal_quick_memo"); } };
   const copyUtilResult = async () => { if (utilResult.includes("📍")) { try { await navigator.clipboard.writeText(utilResult.replace("📍 ", "")); showToast("📋 住所をコピーしました！"); } catch (err) { alert("コピー失敗"); } } };
 
-  // ✨ Cmd+K 検索実行ロジック（エンターキーで一番上の結果にジャンプ）
   const handleCmdKSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (filteredCmdKLinks.length > 0) {
@@ -319,7 +294,7 @@ export default function ThemeParkEntrance() {
         </div>
       )}
 
-      {/* ⌨️ Cmd + K パレット（✨ UIも情報量豊かに進化！） */}
+      {/* ⌨️ Cmd + K パレット */}
       <div className={`modal-overlay ${isCmdKOpen ? "open" : ""}`} onClick={() => setIsCmdKOpen(false)} style={{zIndex: 99999}}>
         <div className="custom-modal cmdk-modal" onClick={(e) => e.stopPropagation()}>
           <form onSubmit={handleCmdKSearch} style={{display: "flex", alignItems: "center", borderBottom: "1px solid var(--card-border)", paddingBottom: "15px", marginBottom: "15px"}}>
@@ -352,7 +327,8 @@ export default function ThemeParkEntrance() {
         <path className="magic-path" d="M -10,70 Q 40,20 70,60 T 110,80" style={{animationDelay: "4s", opacity: 0.5}} />
       </svg>
 
-      <main className={`app-wrapper ${isReady ? "ready" : ""}`}>
+      {/* ✨ time-Theme クラスを付与し、夕方限定のオレンジCSSを発動させる！ */}
+      <main className={`app-wrapper ${isReady ? "ready" : ""} time-${timeTheme}`}>
         
         <style dangerouslySetInnerHTML={{ __html: `
           body { background-color: #020617; overflow-x: hidden; }
@@ -395,7 +371,6 @@ export default function ThemeParkEntrance() {
           }
           .app-wrapper.ready { opacity: 1; visibility: visible; filter: blur(0); transform: scale(1); }
           
-          /* ✨ 背景切れ防止！140%に拡張してバウンドしても見えないようにする */
           .entrance-bg { position: fixed; top: -20vh; left: -20vw; width: 140vw; height: 140vh; z-index: -3; transition: background 2s ease; }
           .gooey-container { position: fixed; top: -20vh; left: -20vw; width: 140vw; height: 140vh; z-index: -2; pointer-events: none; filter: url(#goo); opacity: 0.4; overflow: hidden; }
           .theme-dark .gooey-container { opacity: 0.15; }
@@ -410,6 +385,11 @@ export default function ThemeParkEntrance() {
           @keyframes drawMagic { 0% { stroke-dashoffset: 3000; } 100% { stroke-dashoffset: 0; } }
 
           .avatar-circle { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #fde047, #f59e0b); display: flex; align-items: center; justify-content: center; color: #451a03; font-weight: 900; font-size: 18px; box-shadow: 0 0 10px rgba(250,204,21,0.5); flex-shrink: 0; }
+
+          /* ✨ 重いJSを撤廃し、CSSだけの「遅延ゼロ」シンプルな輝きエフェクトに！ */
+          .magic-card { position: relative; border-radius: 28px; padding: 25px; background: var(--card-bg); backdrop-filter: blur(25px); display: flex; flex-direction: column; gap: 12px; box-shadow: var(--card-shadow); overflow: hidden; }
+          .card-static-glow { position: absolute; inset: 0; border-radius: 28px; padding: 2px; background: linear-gradient(135deg, transparent, var(--card-hover-border), transparent); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 2; }
+          .magic-card:hover .card-static-glow { opacity: 1; }
 
           .fluid-card { animation: fluidFloat 6s ease-in-out infinite alternate; }
           @keyframes fluidFloat { 0% { transform: translateY(0px); } 100% { transform: translateY(-8px); } }
@@ -427,8 +407,23 @@ export default function ThemeParkEntrance() {
           .dashboard-inner { max-width: 1400px; margin: 0 auto; position: relative; z-index: 10; }
           
           .context-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 15px; }
-          .context-greeting { font-size: 20px; font-weight: 900; color: var(--title-color); letter-spacing: 1px; display: flex; align-items: center; gap: 12px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); }
+          .context-greeting { font-size: 20px; font-weight: 900; color: var(--title-color); letter-spacing: 1px; display: flex; align-items: center; gap: 12px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); transition: color 0.5s; }
           .context-greeting span { text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); }
+
+          /* 🌇 夕方（Evening）限定のオレンジ・エモーショナルテーマ！ */
+          .app-wrapper.time-evening .context-greeting { color: #ea580c; }
+          .app-wrapper.time-evening.theme-dark .context-greeting { color: #fb923c; }
+          
+          .app-wrapper.time-evening .kinetic-char, 
+          .app-wrapper.time-evening .static-char {
+            background: linear-gradient(to bottom, #f97316, #c2410c) !important;
+            -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important;
+          }
+          .app-wrapper.time-evening.theme-dark .kinetic-char, 
+          .app-wrapper.time-evening.theme-dark .static-char {
+            background: linear-gradient(to bottom, #fdba74, #ea580c) !important;
+            -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important;
+          }
 
           .cmdk-hint-bar { background: var(--input-bg); border: 1px solid var(--input-border); padding: 8px 15px; border-radius: 20px; display: flex; align-items: center; gap: 30px; font-size: 13px; font-weight: 800; color: var(--text-main); cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.05); backdrop-filter: blur(10px); transition: 0.3s; }
           .cmdk-hint-bar:hover { border-color: var(--card-hover-border); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
@@ -448,7 +443,7 @@ export default function ThemeParkEntrance() {
           
           .kinetic-char { display: inline-block; font-size: clamp(40px, 6vw, 65px); font-weight: 900; letter-spacing: 2px; transform: translateY(120%); opacity: 0; background: linear-gradient(to bottom, #0284c7, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: slideUpChar 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); }
           .theme-dark .kinetic-char { background: linear-gradient(to bottom, #fde047, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-          .static-char { display: inline-block; font-size: clamp(40px, 6vw, 65px); font-weight: 900; letter-spacing: 2px; background: linear-gradient(to bottom, #0284c7, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); }
+          .static-char { display: inline-block; font-size: clamp(40px, 6vw, 65px); font-weight: 900; letter-spacing: 2px; background: linear-gradient(to bottom, #0284c7, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); transition: background 0.5s; }
           .theme-dark .static-char { background: linear-gradient(to bottom, #fde047, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
           @keyframes slideUpChar { to { transform: translateY(0); opacity: 1; } }
           
@@ -506,7 +501,6 @@ export default function ThemeParkEntrance() {
           .script-box:hover { border-color: var(--card-hover-border); transform: translateX(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
           .script-title { font-weight: 900; font-size: 11px; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
 
-          /* ✨ ブックマークのポップオーバー */
           .bookmark-popover { position: absolute; top: 50%; left: calc(100% + 15px); transform: translateY(-50%) scale(0.9); transform-origin: left center; background: var(--modal-bg); backdrop-filter: blur(30px); border: 1px solid var(--card-hover-border); border-radius: 16px; padding: 12px; width: 260px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); z-index: 9999; opacity: 0; animation: popoverIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; display: flex; flex-direction: column; gap: 8px; pointer-events: auto; }
           .theme-dark .bookmark-popover { box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
           .bookmark-popover::before { content: ''; position: absolute; top: 50%; left: -6px; transform: translateY(-50%) rotate(45deg); width: 12px; height: 12px; background: var(--modal-bg); border-bottom: 1px solid var(--card-hover-border); border-left: 1px solid var(--card-hover-border); }
@@ -533,9 +527,9 @@ export default function ThemeParkEntrance() {
           .fade-up-element.visible { opacity: 1; transform: translateY(0) scale(1); }
           .magic-card-wrapper.visible:hover { transform: translateY(0) scale(1.02); z-index: 10; }
 
-          .magic-card { position: relative; border-radius: 28px; padding: 25px; background: var(--card-bg); backdrop-filter: blur(25px); display: flex; flex-direction: column; gap: 12px; transform-style: preserve-3d; height: 100%; cursor: pointer; box-shadow: var(--card-shadow); overflow: hidden; }
-          .card-aurora-border { position: absolute; inset: 0; border-radius: 28px; padding: 2px; background: radial-gradient(400px circle at var(--mouse-x, 0) var(--mouse-y, 0), var(--card-hover-border), transparent 40%); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0.2; transition: opacity 0.3s; pointer-events: none; z-index: 2; }
-          .magic-card:hover .card-aurora-border { opacity: 1; }
+          .magic-card { position: relative; border-radius: 28px; padding: 25px; background: var(--card-bg); backdrop-filter: blur(25px); display: flex; flex-direction: column; gap: 12px; height: 100%; cursor: pointer; box-shadow: var(--card-shadow); overflow: hidden; }
+          .card-static-glow { position: absolute; inset: 0; border-radius: 28px; padding: 2px; background: linear-gradient(135deg, transparent, var(--card-hover-border), transparent); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 2; }
+          .magic-card:hover .card-static-glow { opacity: 1; }
 
           .sparkline-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; pointer-events: none; z-index: 0; }
 
@@ -571,7 +565,6 @@ export default function ThemeParkEntrance() {
           .util-input:focus { border-color: var(--card-hover-border); }
           .util-result { margin-top: 15px; font-size: 14px; color: var(--text-main); background: var(--kpi-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--card-border); font-weight: 900; transition: 0.3s; cursor: pointer; }
 
-          /* ✨ Cmd+K モーダル（洗練されたUI） */
           .cmdk-modal { width: 600px; padding: 25px; top: 15%; transform: translateY(-20px) scale(0.95); position: absolute; }
           .modal-overlay.open .cmdk-modal { transform: translateY(0) scale(1); }
           .cmdk-input { width: 100%; border: none; background: transparent; font-size: 20px; font-weight: 800; color: var(--text-main); outline: none; }
@@ -667,9 +660,9 @@ export default function ThemeParkEntrance() {
                     クリックして、コピーしたい内容を選択してください。
                   </div>
                   
-                  {/* ✨ ブックマーク管理（クリック干渉完全解消！） */}
                   {callTreeBookmarks.map(bm => (
                     <div key={bm.id} className="bookmark-wrapper">
+                      {/* ✨ e.stopPropagation() でクリック干渉を完全に防ぐ！ */}
                       <div className="script-box glitch-hover" onClick={(e) => { e.stopPropagation(); setActiveBookmark(activeBookmark === bm.id ? null : bm.id); }}>
                         <span className="script-title"><span className="script-icon">{bm.icon}</span> {bm.title}</span>
                       </div>
