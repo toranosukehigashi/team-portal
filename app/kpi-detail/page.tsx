@@ -42,39 +42,46 @@ export default function KpiDetailDashboard() {
   const [data, setData] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // 🛠️ ご主人様からいただいた社内用URL！
-  const GAS_API_URL = "https://script.google.com/a/macros/octopusenergy.co.jp/s/AKfycbw6RG_EtOffqAPwIYuIoRpAHkfH865ktNkJ9nk9XxKZxEv1GfEcqvZAfsulkE_7LUHIzw/exec";
+  // 🛠️ 新しくデプロイして発行された最新のURLをここに貼り付けてください！
+  const GAS_API_URL = "https://script.google.com/a/macros/octopusenergy.co.jp/s/AKfycbwZVKEPoal1XzHD-zunYWxD8gd4nJjeOXaok0u62kVzKbNsARViK_z_F1eOwUWtVAGcig/exec";
 
   useEffect(() => {
     const hour = new Date().getHours();
     if (hour >= 17 && hour < 20) setTimeTheme("evening");
     setTimeout(() => setIsReady(true), 100);
 
-    // ✨ 【裏ルート】透明な小窓（Iframe）から送られてくるデータを待ち構えるリスナー！
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data && event.data.success) {
-        setData(event.data);
+    // ✨ 【最終奥義】JSONP通信（スクリプト注入）でセキュリティを完全突破！
+    const fetchWithJSONP = () => {
+      setLoading(true);
+      const callbackName = 'jsonpCallback_' + Date.now();
+      
+      // データの受け取り口をグローバルに用意
+      (window as any)[callbackName] = (jsonData: any) => {
+        if(jsonData.success) {
+          setData(jsonData);
+        } else {
+          setErrorMsg("スプレッドシート処理エラー: " + jsonData.error);
+        }
         setLoading(false);
-      } else if (event.data && event.data.success === false) {
-        setErrorMsg("スプレッドシート処理エラー: " + event.data.error);
+        delete (window as any)[callbackName]; // お掃除
+        const scriptElem = document.getElementById(callbackName);
+        if (scriptElem) scriptElem.remove();
+      };
+
+      // プログラムのフリをしてGASを呼び出す（これなら絶対弾かれない！）
+      const script = document.createElement('script');
+      script.id = callbackName;
+      script.src = `${GAS_API_URL}?callback=${callbackName}`;
+      script.onerror = () => {
+        setErrorMsg("⚠️ セキュリティブロック：通信が弾かれました。お使いのブラウザで「Octopusenergy」のGoogleアカウントにログインしているか確認してください！");
         setLoading(false);
-      }
+        delete (window as any)[callbackName];
+      };
+      document.body.appendChild(script);
     };
 
-    window.addEventListener("message", handleMessage);
+    fetchWithJSONP();
 
-    // もし15秒経ってもデータが来なければ、会社のGoogleアカウントにログインしていない可能性が高い！
-    const timeoutId = setTimeout(() => {
-      if (loading && !data) {
-        setErrorMsg("⚠️ セキュリティブロック：データを受信できませんでした。お使いのブラウザで「Octopusenergy」のGoogleアカウントにログインしているか確認してください！");
-        setLoading(false);
-      }
-    }, 15000);
-
-    return () => {
-      window.removeEventListener("message", handleMessage);
-      clearTimeout(timeoutId);
-    };
   }, []);
 
   if (errorMsg) {
@@ -93,9 +100,6 @@ export default function KpiDetailDashboard() {
   if (loading || !data) {
     return (
       <div style={{ background: "#020617", height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#38bdf8", flexDirection: "column", gap: "20px" }}>
-        {/* ✨ ここに透明な小窓を仕込んでおき、裏側でコッソリ通信させます！ */}
-        <iframe src={GAS_API_URL} style={{ display: "none" }} />
-        
         <div className="spinner"></div>
         <p style={{ fontWeight: 900, letterSpacing: "3px" }}>SYNCING SECURELY WITH GOOGLE SHEETS...</p>
         <style>{`.spinner { width: 50px; height: 50px; border: 4px solid rgba(56,189,248,0.1); border-top-color: #38bdf8; border-radius: 50%; animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -104,7 +108,6 @@ export default function KpiDetailDashboard() {
   }
 
   const currentStats = viewMode === "daily" ? data.daily : data.monthly;
-  // 目標が0の場合はプログレスバーがエラーになるので、最低1とする安全策
   const safeTarget = currentStats.target > 0 ? currentStats.target : 1;
   const progressPercent = Math.min(100, Math.round((currentStats.total / safeTarget) * 100)) || 0;
 
@@ -196,7 +199,6 @@ export default function KpiDetailDashboard() {
           <div className="glass-panel">
             <h3 style={{fontSize:"12px", fontWeight:900, color:"#94a3b8", letterSpacing:"3px", marginBottom:"20px"}}>OP RANKING</h3>
             {currentStats.ops.sort((a:any, b:any) => b.value - a.value).map((op:any, i:number) => {
-              // 個人目標がないので、1位の数値を100%として相対的なバーを描画する（よりエモーショナル！）
               const maxVal = currentStats.ops[0]?.value || 1;
               const p = Math.min(100, Math.round((op.value / maxVal) * 100));
               return (
