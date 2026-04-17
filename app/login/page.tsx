@@ -36,7 +36,7 @@ export default function Login() {
 
       setTimeout(() => {
         router.push("/");
-      }, 1800); // 映画的な演出に合わせて時間を調整
+      }, 1800); 
       
     } else {
       setErrorMsg("⚠️ 魔法の鍵（IDまたはパスワード）が間違っています。");
@@ -44,30 +44,38 @@ export default function Login() {
   };
 
   return (
-    // ✨ JSのマウスイベントハンドラを完全に削除
-    <div className={`login-wrapper ${isEntering ? "entering-magic" : ""}`}>
+    // ✨ body レベルで背景色を担保する「テーマの箱」を一番外側に配置
+    <div className={`global-theme-wrapper ${isEntering ? "entering-magic" : ""}`} style={{ backgroundColor: "#020617", minHeight: "100vh" }}>
       <style dangerouslySetInnerHTML={{ __html: `
-        .login-wrapper * { box-sizing: border-box; }
+        .global-theme-wrapper * { box-sizing: border-box; }
         
-        /* ✨ 上下左右 background が絶対に切れないように修正 */
-        .login-wrapper {
-          position: fixed; top: 0; left: 0; width: 100%; height: 100%; /* 画面全体を固定 */
-          display: flex; align-items: center; justify-content: center;
+        /* 🎨 html, body レベルでスクロールと背景色を管理（オーバースクロールバグ撲滅） */
+        html, body {
           background-color: #020617;
+          margin: 0; padding: 0;
+          height: 100%; overflow-x: hidden;
+        }
+
+        /* ✨ 背景が絶対に切れない「真の」修正 */
+        .login-wrapper {
+          position: relative; /* fixed 撤廃 */
+          min-height: 100vh; /* 最低でも画面いっぱい */
+          width: 100%;
+          display: flex; align-items: center; justify-content: center;
+          /* グリッド背景はコンテンツと一緒に伸びる */
           background-image: 
             linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
             linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
           background-size: 50px 50px;
           background-position: center center;
-          background-repeat: repeat; /* 明示的にリピート */
           font-family: 'Inter', 'Noto Sans JP', sans-serif;
-          overflow: auto; /* コンテンツが多い場合はスクロール */
-          position: relative; padding: 40px;
+          overflow: visible; /* 親の body でスクロールさせる */
+          padding: 80px 20px; /* 上下に余裕を持たせる */
           perspective: 1500px;
           z-index: 1;
         }
 
-        /* 🌊 流体オーロラ（Fluid Gradient Blob） */
+        /* 🌊 流体オーロラ（画面に完全固定） */
         .aurora-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: -1; pointer-events: none; filter: blur(80px); opacity: 0.6; }
         .aurora-blob { position: absolute; border-radius: 50%; mix-blend-mode: screen; animation: fluid 20s infinite alternate ease-in-out; }
         .blob-1 { width: 60vw; height: 60vw; background: #c084fc; top: -10%; left: -10%; animation-delay: 0s; }
@@ -81,17 +89,16 @@ export default function Login() {
 
         /* 🎇 ログイン成功時のワープライン */
         .warp-lines { position: fixed; top: 50%; left: 50%; width: 200vw; height: 200vw; transform: translate(-50%, -50%) scale(0); border-radius: 50%; background: repeating-radial-gradient(circle at center, transparent 0, transparent 40px, rgba(255,255,255,0.8) 41px, transparent 42px); opacity: 0; pointer-events: none; z-index: 900; }
-        .login-wrapper.entering-magic .warp-lines { animation: hyperSpace 1.5s cubic-bezier(0.5, 0, 0.2, 1) forwards; }
+        .global-theme-wrapper.entering-magic .warp-lines { animation: hyperSpace 1.5s cubic-bezier(0.5, 0, 0.2, 1) forwards; }
         @keyframes hyperSpace { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translate(-50%, -50%) scale(3); opacity: 0; filter: blur(5px); } }
 
         /* ホワイトアウト */
         .screen-flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.8s ease; transition-delay: 0.8s; }
-        .login-wrapper.entering-magic .screen-flash { opacity: 1; }
+        .global-theme-wrapper.entering-magic .screen-flash { opacity: 1; }
 
         /* 🪟 グラスモーフィズム・カード */
         .login-card-container {
           position: relative; z-index: 10; width: 100%; max-width: 440px;
-          /* ✨ 傾くエフェクト用の transition と transform-style を削除 */
           transition: all 1.2s cubic-bezier(0.5, 0, 0.2, 1);
         }
 
@@ -107,26 +114,16 @@ export default function Login() {
           position: relative; overflow: hidden;
         }
 
-        /* 表面の光の反射（Tilt消したけど、静的なアクセントとして残す） */
         .card-glare { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, rgba(255,255,255,0.08) 0%, transparent 60%); pointer-events: none; z-index: 1; mix-blend-mode: overlay; }
 
-        /* 🏰 魔法発動時：傾きを除去し、奥へ消え去る演出を強化 */
-        .login-wrapper.entering-magic .login-card-container { transform: translateZ(-500px) scale(0.8); opacity: 0; filter: blur(20px); }
-        .login-wrapper.entering-magic .login-card { box-shadow: 0 0 100px 50px rgba(192, 132, 252, 0.8); border-color: rgba(255,255,255,0.8); }
+        /* 🏰 魔法発動時：奥へ消え去る演出 */
+        .global-theme-wrapper.entering-magic .login-card-container { transform: translateZ(-500px) scale(0.8); opacity: 0; filter: blur(20px); }
+        .global-theme-wrapper.entering-magic .login-card { box-shadow: 0 0 100px 50px rgba(192, 132, 252, 0.8); border-color: rgba(255,255,255,0.8); }
 
         .login-content { position: relative; z-index: 2; }
 
         .login-logo { text-align: center; margin-bottom: 40px; }
-        
-        /* ✨ ロゴシンボルをシステム的なSVGアイコンに変更 */
-        .logo-symbol { 
-          width: 70px; height: 70px; /* SVGのサイズ */
-          margin-bottom: 10px; 
-          display: inline-block; 
-          animation: floatLogo 4s ease-in-out infinite alternate; 
-          color: #38bdf8; /* SVGの色 */
-          filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.6));
-        }
+        .logo-symbol { width: 70px; height: 70px; margin-bottom: 10px; display: inline-block; animation: floatLogo 4s ease-in-out infinite alternate; color: #38bdf8; filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.6)); }
         @keyframes floatLogo { 0% { transform: translateY(0); filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.4)); } 100% { transform: translateY(-15px); filter: drop-shadow(0 20px 25px rgba(192, 132, 252, 0.8)); } }
 
         .login-title { font-size: 34px; font-weight: 900; letter-spacing: 1px; margin: 0; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
@@ -170,87 +167,88 @@ export default function Login() {
       <div className="warp-lines"></div>
       <div className="screen-flash"></div>
 
-      {/* 🪟 カード本体（傾きエフェクト除去済み） */}
-      <div className="login-card-container">
-        <div className="login-card">
-          <div className="card-glare"></div>
-          
-          <div className="login-content">
-            <div className="login-logo">
-              {/* ✨ 不要な絵文字を廃止し、超一流SaaS風のシステムアイコンへ変更！ */}
-              <div className="logo-symbol">
-                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="50" cy="50" r="48" stroke="currentColor" strokeWidth="4"/>
-                  <path d="M50 20V80" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
-                  <path d="M20 50H80" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
-                  <circle cx="50" cy="50" r="15" fill="currentColor"/>
-                  <path d="M75 25L25 75" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
-                  <path d="M75 75L25 25" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
-                </svg>
+      {/* 🪟 カード本体（絶対切れないCSS構成） */}
+      <div className="login-wrapper">
+        <div className="login-card-container">
+          <div className="login-card">
+            <div className="card-glare"></div>
+            
+            <div className="login-content">
+              <div className="login-logo">
+                <div className="logo-symbol">
+                  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="48" stroke="currentColor" strokeWidth="4"/>
+                    <path d="M50 20V80" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
+                    <path d="M20 50H80" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
+                    <circle cx="50" cy="50" r="15" fill="currentColor"/>
+                    <path d="M75 25L25 75" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
+                    <path d="M75 75L25 25" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <h1 className="login-title">Team Portal</h1>
+                <p className="login-subtitle">Workspace</p>
               </div>
-              <h1 className="login-title">Team Portal</h1>
-              <p className="login-subtitle">Workspace</p>
-            </div>
 
-            <form onSubmit={handleLogin}>
-              {errorMsg && <div className="error-message"><span>⚠️</span> {errorMsg}</div>}
-              
-              <div className="input-group">
-                <label className="input-label">Cast Member ID</label>
-                <input 
-                  type="email" 
-                  className="login-input" 
-                  placeholder="name@octopusenergy.co.jp" 
-                  value={userId} 
-                  onChange={(e) => setUserId(e.target.value)} 
-                  required 
-                  disabled={isEntering} 
-                />
-              </div>
-              
-              <div className="input-group">
-                <label className="input-label">Magic Word</label>
-                <input 
-                  type={showPassword ? "text" : "password"} 
-                  className="login-input" 
-                  placeholder="••••••••" 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                  required 
-                  disabled={isEntering} 
-                  style={{ paddingRight: "45px" }} 
-                />
+              <form onSubmit={handleLogin}>
+                {errorMsg && <div className="error-message"><span>⚠️</span> {errorMsg}</div>}
                 
-                <button 
-                  type="button" 
-                  className="btn-toggle-pass" 
-                  onClick={() => setShowPassword(!showPassword)} 
-                  disabled={isEntering} 
-                  tabIndex={-1}
-                  aria-label="Toggle Password Visibility"
-                >
-                  {showPassword ? (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                      <line x1="1" y1="1" x2="23" y2="23"></line>
-                    </svg>
-                  ) : (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  )}
+                <div className="input-group">
+                  <label className="input-label">Cast Member ID</label>
+                  <input 
+                    type="email" 
+                    className="login-input" 
+                    placeholder="name@octopusenergy.co.jp" 
+                    value={userId} 
+                    onChange={(e) => setUserId(e.target.value)} 
+                    required 
+                    disabled={isEntering} 
+                  />
+                </div>
+                
+                <div className="input-group">
+                  <label className="input-label">Magic Word</label>
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    className="login-input" 
+                    placeholder="••••••••" 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    required 
+                    disabled={isEntering} 
+                    style={{ paddingRight: "45px" }} 
+                  />
+                  
+                  <button 
+                    type="button" 
+                    className="btn-toggle-pass" 
+                    onClick={() => setShowPassword(!showPassword)} 
+                    disabled={isEntering} 
+                    tabIndex={-1}
+                    aria-label="Toggle Password Visibility"
+                  >
+                    {showPassword ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                    )}
+                  </button>
+                </div>
+                
+                <button type="submit" className={`btn-login ${isEntering ? "casting" : ""}`} disabled={isEntering}>
+                  {isEntering ? "Initiating Warp..." : "Secure Login ➔"}
                 </button>
-              </div>
-              
-              <button type="submit" className={`btn-login ${isEntering ? "casting" : ""}`} disabled={isEntering}>
-                {isEntering ? "Initiating Warp..." : "Secure Login ➔"}
-              </button>
-            </form>
+              </form>
 
-            <div className="system-status">
-              <div className="status-item"><span className="status-dot"></span>Secure Connection</div>
-              <div className="status-item">v3.1</div>
+              <div className="system-status">
+                <div className="status-item"><span className="status-dot"></span>Secure Connection</div>
+                <div className="status-item">v3.1</div>
+              </div>
             </div>
           </div>
         </div>
