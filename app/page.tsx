@@ -3,12 +3,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// 🌟 3Dパララックス ＆ オーロラボーダー（✨遅延ゼロの60fps駆動に完全書き換え！）
+// 🌟 3Dパララックス ＆ オーロラボーダー（✨ 引数エラー完全修正！）
 const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, liveData, sparkline }: any) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const glareRef = useRef<HTMLDivElement>(null);
-  const requestRef = useRef<number>();
+  
+  // ✨ TypeScriptの厳格エラーを解消するため初期値(null)を追加！
+  const requestRef = useRef<number | null>(null);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!cardRef.current || !innerRef.current) return;
@@ -18,52 +20,37 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, l
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
 
-    // ReactのStateを使わず、DOMを直接操作して遅延ゼロ（ヌルヌル）を実現！
-    if (requestRef.current) cancelAnimationFrame(requestRef.current);
+    if (requestRef.current !== null) cancelAnimationFrame(requestRef.current);
     requestRef.current = requestAnimationFrame(() => {
-      if (innerRef.current) {
-        innerRef.current.style.transform = `perspective(1200px) rotateX(${-(y / 25)}deg) rotateY(${x / 25}deg)`;
-      }
+      if (innerRef.current) innerRef.current.style.transform = `perspective(1200px) rotateX(${-(y / 25)}deg) rotateY(${x / 25}deg)`;
       if (cardRef.current) {
         cardRef.current.style.setProperty('--mouse-x', `${mouseX}px`);
         cardRef.current.style.setProperty('--mouse-y', `${mouseY}px`);
       }
-      if (glareRef.current) {
-        glareRef.current.style.transform = `translate(${(x / 25) * 4}px, ${-(y / 25) * 4}px)`;
-      }
+      if (glareRef.current) glareRef.current.style.transform = `translate(${(x / 25) * 4}px, ${-(y / 25) * 4}px)`;
     });
   };
 
   const handleMouseLeave = () => {
-    if (requestRef.current) cancelAnimationFrame(requestRef.current);
+    if (requestRef.current !== null) cancelAnimationFrame(requestRef.current);
     if (innerRef.current) innerRef.current.style.transform = `perspective(1200px) rotateX(0deg) rotateY(0deg)`;
+    if (glareRef.current) glareRef.current.style.transform = `translate(0px, 0px)`;
   };
 
   return (
-    <div
-      ref={cardRef}
-      className="magic-card-wrapper fade-up-element fluid-card"
-      style={{ "--delay": `${delay}s` } as React.CSSProperties}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      onClick={onClick}
-    >
+    <div ref={cardRef} className="magic-card-wrapper fade-up-element fluid-card" style={{ "--delay": `${delay}s` } as React.CSSProperties} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} onClick={onClick}>
       <div ref={innerRef} className="magic-card glitch-hover" style={{ transition: "transform 0.1s ease-out" }}>
         <div className="card-aurora-border"></div>
-        {/* 📉 マイクロ・チャート（Sparkline） */}
         {sparkline && (
           <svg className="sparkline-bg" viewBox="0 0 100 30" preserveAspectRatio="none">
             <path d="M0,28 Q10,15 20,22 T40,10 T60,18 T80,5 T100,12" fill="none" stroke="var(--accent-color)" strokeWidth="1.5" opacity="0.3" />
             <path d="M0,28 Q10,15 20,22 T40,10 T60,18 T80,5 T100,12 L100,30 L0,30 Z" fill="url(#sparkline-grad)" opacity="0.1" />
             <defs>
-              <linearGradient id="sparkline-grad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--accent-color)" stopOpacity="0.8"/>
-                <stop offset="100%" stopColor="var(--accent-color)" stopOpacity="0"/>
-              </linearGradient>
+              <linearGradient id="sparkline-grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--accent-color)" stopOpacity="0.8"/><stop offset="100%" stopColor="var(--accent-color)" stopOpacity="0"/></linearGradient>
             </defs>
           </svg>
         )}
-        <div ref={glareRef} className="card-glare" />
+        <div ref={glareRef} className="card-glare" style={{ transition: "transform 0.1s ease-out" }} />
         <div className="card-wave-bg"></div>
         <div className="card-content-3d">
           {badge && <span className="badge-new">{badge}</span>}
@@ -83,52 +70,22 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, l
 // 🌐 案A: ライブ・データメッシュ
 const DataMesh = ({ isDarkMode }: { isDarkMode: boolean }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    
-    let animationFrameId: number;
-    let particles: { x: number, y: number, vx: number, vy: number, size: number }[] = [];
+    const canvas = canvasRef.current; if (!canvas) return; const ctx = canvas.getContext("2d"); if (!ctx) return;
+    let animationFrameId: number; let particles: { x: number, y: number, vx: number, vy: number, size: number }[] = [];
     const particleCount = 40;
-    
     const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
-    window.addEventListener("resize", resize);
-    resize();
-
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
-        x: Math.random() * canvas.width, y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 1.0, vy: (Math.random() - 0.5) * 1.0,
-        size: Math.random() * 2 + 1
-      });
-    }
-
+    window.addEventListener("resize", resize); resize();
+    for (let i = 0; i < particleCount; i++) particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, vx: (Math.random() - 0.5) * 1.0, vy: (Math.random() - 0.5) * 1.0, size: Math.random() * 2 + 1 });
     const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const colorRGB = isDarkMode ? "56, 189, 248" : "14, 165, 233"; 
-      
+      ctx.clearRect(0, 0, canvas.width, canvas.height); const colorRGB = isDarkMode ? "56, 189, 248" : "14, 165, 233"; 
       for (let i = 0; i < particleCount; i++) {
-        let p = particles[i];
-        p.x += p.vx; p.y += p.vy;
-        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${colorRGB}, 0.8)`; ctx.fill();
-
+        let p = particles[i]; p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1; if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fillStyle = `rgba(${colorRGB}, 0.8)`; ctx.fill();
         for (let j = i + 1; j < particleCount; j++) {
-          let p2 = particles[j];
-          let dist = Math.sqrt(Math.pow(p.x - p2.x, 2) + Math.pow(p.y - p2.y, 2));
-          if (dist < 150) {
-            ctx.beginPath();
-            ctx.strokeStyle = `rgba(${colorRGB}, ${1 - dist / 150})`;
-            ctx.lineWidth = 1;
-            ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y);
-            ctx.stroke();
-          }
+          let p2 = particles[j]; let dist = Math.sqrt(Math.pow(p.x - p2.x, 2) + Math.pow(p.y - p2.y, 2));
+          if (dist < 150) { ctx.beginPath(); ctx.strokeStyle = `rgba(${colorRGB}, ${1 - dist / 150})`; ctx.lineWidth = 1; ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
         }
       }
       animationFrameId = requestAnimationFrame(animate);
@@ -136,24 +93,17 @@ const DataMesh = ({ isDarkMode }: { isDarkMode: boolean }) => {
     animate();
     return () => { window.removeEventListener("resize", resize); cancelAnimationFrame(animationFrameId); };
   }, [isDarkMode]);
-
-  return <canvas ref={canvasRef} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: -2, pointerEvents: "none" }} />;
+  return <canvas ref={canvasRef} style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", zIndex: -2, pointerEvents: "none" }} />;
 };
 
 // 🌊 案C: 流体ダッシュボード用 Gooey バックグラウンド
 const GooeyBackground = () => (
   <>
-    <svg style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }}>
-      <filter id="goo">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="30" result="blur" />
-        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 30 -15" result="goo" />
-        <feBlend in="SourceGraphic" in2="goo" />
-      </filter>
+    <svg style={{ position: 'fixed', width: 0, height: 0, pointerEvents: 'none' }}>
+      <filter id="goo"><feGaussianBlur in="SourceGraphic" stdDeviation="30" result="blur" /><feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 30 -15" result="goo" /><feBlend in="SourceGraphic" in2="goo" /></filter>
     </svg>
     <div className="gooey-container">
-      <div className="gooey-blob blob-1"></div>
-      <div className="gooey-blob blob-2"></div>
-      <div className="gooey-blob blob-3"></div>
+      <div className="gooey-blob blob-1"></div><div className="gooey-blob blob-2"></div><div className="gooey-blob blob-3"></div>
     </div>
   </>
 );
@@ -202,16 +152,13 @@ export default function ThemeParkEntrance() {
     { id: 'sim', name: "🆚 料金シミュレーターへ移動", url: "/simulator", search: ["sim", "シミュレーター", "料金", "cost"] },
     { id: 'toss', name: "🌐 ネットトス連携へ移動", url: "/net-toss", search: ["toss", "トス", "ネット", "net"] },
     { id: 'kraken', name: "🐙 Kraken マニュアルを開く", url: "/procedure-wizard", search: ["kraken", "マニュアル", "手順", "manual"] },
-    { id: 'call', name: "🗓️ 再架電タイムラインを開く", url: "/callback-board", search: ["コール", "再架電", "タイムライン", "call"] },
+    { id: 'call', name: "🗓️ 再架電タイムラインを開く", url: "/callback-board", search: ["コール", "再架電", "タイムライン", "call", "callback"] },
     { id: 'area', name: "🗺️ エリア判定ハブを開く", action: () => setIsAreaOpen(true), search: ["エリア", "判定", "area"] },
     { id: 'memo', name: "🍯 クイックメモを開く", action: () => setIsMemoOpen(true), search: ["メモ", "memo", "クイック"] },
   ];
 
-  // 入力された文字でリストを絞り込み
   const filteredCmdKLinks = allCmdKLinks.filter(link => 
-    cmdKQuery === "" || 
-    link.name.toLowerCase().includes(cmdKQuery.toLowerCase()) || 
-    link.search.some(keyword => keyword.includes(cmdKQuery.toLowerCase()))
+    cmdKQuery === "" || link.name.toLowerCase().includes(cmdKQuery.toLowerCase()) || link.search.some(keyword => keyword.includes(cmdKQuery.toLowerCase()))
   );
 
   useEffect(() => {
@@ -223,33 +170,21 @@ export default function ThemeParkEntrance() {
     let readyTimeout: NodeJS.Timeout | null = null;
 
     if (justLoggedIn) {
-      setIsInitialLogin(true); 
-      setShowMacWelcome(true);
-      sessionStorage.removeItem("just_logged_in");
-      welcomeTimeout = setTimeout(() => setShowMacWelcome(false), 3200); 
-      readyTimeout = setTimeout(() => setIsReady(true), 2600); 
-      setAnimDelayOffset(3.2);
+      setIsInitialLogin(true); setShowMacWelcome(true); sessionStorage.removeItem("just_logged_in");
+      welcomeTimeout = setTimeout(() => setShowMacWelcome(false), 3200); readyTimeout = setTimeout(() => setIsReady(true), 2600); setAnimDelayOffset(3.2);
     } else {
-      setIsInitialLogin(false); 
-      setIsReady(true);
-      setAnimDelayOffset(0.2);
+      setIsInitialLogin(false); setIsReady(true); setAnimDelayOffset(0.2);
     }
 
-    const savedMemo = localStorage.getItem("team_portal_quick_memo"); if (savedMemo) setMemoText(savedMemo);
     const savedNews = localStorage.getItem("team_portal_news"); if (savedNews) setNewsText(savedNews);
     
     const observerTimer = setTimeout(() => {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("visible"); });
-      }, { threshold: 0.05, rootMargin: "0px 0px 50px 0px" });
+      const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("visible"); }); }, { threshold: 0.05, rootMargin: "0px 0px 50px 0px" });
       document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
     }, justLoggedIn ? 3400 : 200);
-
+    
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setIsCmdKOpen(prev => !prev);
-      }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setIsCmdKOpen(prev => !prev); }
     };
     window.addEventListener('keydown', handleKeyDown);
     
@@ -263,19 +198,10 @@ export default function ThemeParkEntrance() {
 
   useEffect(() => {
     const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) {
-      setGreeting("Good Morning ☀️");
-      setDynamicBg(isDarkMode ? "linear-gradient(135deg, #0f172a, #1e1b4b)" : "linear-gradient(135deg, #f0f9ff, #fdf4ff)");
-    } else if (hour >= 12 && hour < 17) {
-      setGreeting("Good Afternoon ☕");
-      setDynamicBg(isDarkMode ? "linear-gradient(135deg, #1e1b4b, #312e81)" : "linear-gradient(135deg, #e0f2fe, #e0e7ff)");
-    } else if (hour >= 17 && hour < 20) {
-      setGreeting("Good Evening 🌇");
-      setDynamicBg(isDarkMode ? "linear-gradient(135deg, #31111d, #1e1b4b)" : "linear-gradient(135deg, #ffedd5, #ffe4e6)");
-    } else {
-      setGreeting("Good Night 🌙");
-      setDynamicBg(isDarkMode ? "radial-gradient(ellipse at bottom, #1e1b4b 0%, #020617 100%)" : "linear-gradient(135deg, #312e81, #1e1b4b)");
-    }
+    if (hour >= 5 && hour < 12) { setGreeting("Good Morning ☀️"); setDynamicBg(isDarkMode ? "linear-gradient(135deg, #0f172a, #1e1b4b)" : "linear-gradient(135deg, #f0f9ff, #fdf4ff)"); }
+    else if (hour >= 12 && hour < 17) { setGreeting("Good Afternoon ☕"); setDynamicBg(isDarkMode ? "linear-gradient(135deg, #1e1b4b, #312e81)" : "linear-gradient(135deg, #e0f2fe, #e0e7ff)"); }
+    else if (hour >= 17 && hour < 20) { setGreeting("Good Evening 🌇"); setDynamicBg(isDarkMode ? "linear-gradient(135deg, #31111d, #1e1b4b)" : "linear-gradient(135deg, #ffedd5, #ffe4e6)"); }
+    else { setGreeting("Good Night 🌙"); setDynamicBg(isDarkMode ? "radial-gradient(ellipse at bottom, #1e1b4b 0%, #020617 100%)" : "linear-gradient(135deg, #312e81, #1e1b4b)"); }
   }, [isDarkMode]);
 
   const toggleTheme = () => { const newTheme = !isDarkMode; setIsDarkMode(newTheme); showToast(newTheme ? "🌙 ダークモードに切り替えました" : "☀️ ライトモードに切り替えました"); };
@@ -328,18 +254,12 @@ export default function ThemeParkEntrance() {
   const handleClearMemo = () => { if(confirm("メモをクリアしますか？")){ setMemoText(""); localStorage.removeItem("team_portal_quick_memo"); } };
   const copyUtilResult = async () => { if (utilResult.includes("📍")) { try { await navigator.clipboard.writeText(utilResult.replace("📍 ", "")); showToast("📋 住所をコピーしました！"); } catch (err) { alert("コピー失敗"); } } };
 
-  // ✨ Cmd+K 検索実行ロジック（エンターキーを押した時に一番上の候補を実行）
   const handleCmdKSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (filteredCmdKLinks.length > 0) {
       const topLink = filteredCmdKLinks[0];
-      if (topLink.url) {
-        router.push(topLink.url);
-      } else if (topLink.action) {
-        topLink.action();
-      }
-      setIsCmdKOpen(false);
-      setCmdKQuery("");
+      if (topLink.url) { router.push(topLink.url); } else if (topLink.action) { topLink.action(); }
+      setIsCmdKOpen(false); setCmdKQuery("");
     } else {
       showToast("該当する機能が見つかりません");
     }
@@ -362,7 +282,7 @@ export default function ThemeParkEntrance() {
   const welcomeChars = welcomeTextRaw.split("");
 
   return (
-    // ✨ ここをクリックするとブックマークが閉じる！ネイティブイベントとの干渉を完全排除！
+    // ✨ ここをクリックするとブックマークが確実に閉じる！ネイティブイベントとの干渉を完全排除！
     <div className={`global-theme-wrapper ${isDarkMode ? "theme-dark" : "theme-light"}`} onClick={() => setActiveBookmark(null)}>
       
       {showMacWelcome && (
@@ -400,7 +320,7 @@ export default function ThemeParkEntrance() {
         </div>
       </div>
 
-      {/* 🌍 背景要素を上下左右に20%拡張（140vw / 140vh）し、バウンドスクロールの切れ目を完全に撲滅！！ */}
+      {/* 🌍 背景要素を上下左右に140%拡張し、バウンドスクロールの切れ目を完全に撲滅！！ */}
       <div className={`entrance-bg`} style={{ background: dynamicBg || "var(--bg-gradient)", transition: "background 2s ease" }}>
         <DataMesh isDarkMode={isDarkMode} />
       </div>
@@ -414,9 +334,9 @@ export default function ThemeParkEntrance() {
         
         <style dangerouslySetInnerHTML={{ __html: `
           /* ✨ 背景の切れ目を完全排除する CSS の神髄 */
-          body { background-color: #020617; }
+          body { background-color: #020617; overflow-x: hidden; }
           .global-theme-wrapper * { box-sizing: border-box; }
-          .global-theme-wrapper { width: 100%; min-height: 100vh; position: relative; overflow-x: clip; color: var(--text-main); transition: color 0.5s; font-family: 'Inter', 'Noto Sans JP', sans-serif; }
+          .global-theme-wrapper { width: 100%; min-height: 100vh; position: relative; color: var(--text-main); transition: color 0.5s; font-family: 'Inter', 'Noto Sans JP', sans-serif; }
 
           .mac-welcome-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999999; display: flex; align-items: center; justify-content: center; animation: macFadeOut 0.6s cubic-bezier(0.8, 0, 0.2, 1) 2.6s forwards; }
           .mac-welcome-overlay.dark-fix-welcome { background: #000000; }
@@ -535,7 +455,7 @@ export default function ThemeParkEntrance() {
           .news-text { display: inline-block; padding-left: 100%; animation: marquee 30s linear infinite; font-weight: 800; color: var(--text-main); font-size: 15px; letter-spacing: 1px; }
           @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
-          /* ✨ 3カラムレイアウト（左：サイド、中：グリッド、右：タイムライン） */
+          /* ✨ 3カラムレイアウト */
           .main-layout { display: flex; gap: 25px; margin-bottom: 50px; align-items: flex-start; justify-content: center; }
           .info-sidebar-wrapper { width: 280px; flex-shrink: 0; transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s; overflow: visible; position: relative; z-index: 50; }
           .info-sidebar-wrapper.collapsed { width: 0px; opacity: 0; pointer-events: none; overflow: hidden; }
@@ -556,7 +476,6 @@ export default function ThemeParkEntrance() {
           .sidebar-toggle-btn { position: absolute; top: -35px; left: 0; background: transparent; border: none; color: var(--text-sub); font-weight: 900; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 5px; opacity: 0.6; transition: 0.2s; letter-spacing: 1px; text-transform: uppercase; z-index: 60; }
           .sidebar-toggle-btn:hover { opacity: 1; color: var(--accent-color); }
 
-          /* ✨ チームチャットを消去し、ブックマークを自然に広げる */
           .info-sidebar { display: flex; flex-direction: column; gap: 20px; height: 100%; }
           .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 18px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; }
           .info-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
@@ -566,7 +485,7 @@ export default function ThemeParkEntrance() {
           .script-box:hover { border-color: var(--card-hover-border); transform: translateX(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
           .script-title { font-weight: 900; font-size: 11px; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
 
-          /* ✨ ブックマークのポップオーバー（z-index強化で確実に手前に表示！） */
+          /* ✨ ブックマークのポップオーバー（クリック干渉解消！） */
           .bookmark-popover { position: absolute; top: 50%; left: calc(100% + 15px); transform: translateY(-50%) scale(0.9); transform-origin: left center; background: var(--modal-bg); backdrop-filter: blur(30px); border: 1px solid var(--card-hover-border); border-radius: 16px; padding: 12px; width: 260px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); z-index: 9999; opacity: 0; animation: popoverIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; display: flex; flex-direction: column; gap: 8px; pointer-events: auto; }
           .theme-dark .bookmark-popover { box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
           .bookmark-popover::before { content: ''; position: absolute; top: 50%; left: -6px; transform: translateY(-50%) rotate(45deg); width: 12px; height: 12px; background: var(--modal-bg); border-bottom: 1px solid var(--card-hover-border); border-left: 1px solid var(--card-hover-border); }
@@ -631,7 +550,6 @@ export default function ThemeParkEntrance() {
           .util-input:focus { border-color: var(--card-hover-border); }
           .util-result { margin-top: 15px; font-size: 14px; color: var(--text-main); background: var(--kpi-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--card-border); font-weight: 900; transition: 0.3s; cursor: pointer; }
 
-          /* ✨ Cmd+K モーダル（検索入力） */
           .cmdk-modal { width: 600px; padding: 25px; top: 15%; transform: translateY(-20px) scale(0.95); position: absolute; }
           .modal-overlay.open .cmdk-modal { transform: translateY(0) scale(1); }
           .cmdk-input { width: 100%; border: none; background: transparent; font-size: 20px; font-weight: 800; color: var(--text-main); outline: none; }
@@ -672,11 +590,11 @@ export default function ThemeParkEntrance() {
             </div>
             
             <div className="top-bar-actions">
-              <div className="cmdk-hint-bar btn-hover-shine" onClick={() => setIsCmdKOpen(true)}>
+              <div className="cmdk-hint-bar btn-hover-shine" onClick={(e) => { e.stopPropagation(); setIsCmdKOpen(true); }}>
                 <span style={{ opacity: 0.6 }}>🔍 Search or jump...</span>
                 <div className="cmdk-shortcut"><kbd>⌘</kbd><kbd>K</kbd></div>
               </div>
-              <button className="theme-toggle-btn btn-hover-shine" onClick={toggleTheme}>{isDarkMode ? "🎇" : "☀️"}</button>
+              <button className="theme-toggle-btn btn-hover-shine" onClick={(e) => { e.stopPropagation(); toggleTheme(); }}>{isDarkMode ? "🎇" : "☀️"}</button>
             </div>
           </div>
 
@@ -693,20 +611,20 @@ export default function ThemeParkEntrance() {
             <div className="park-sub-title" style={{ animationDelay: `${animDelayOffset + 0.6}s` }}>Central Operation Dashboard</div>
             
             <div className="quick-actions fade-up-element" style={{ "--delay": `${animDelayOffset + 0.3}s` } as any}>
-              <button className="btn-qa btn-sim btn-hover-shine" onClick={handleOpenSim}>⏳ 納期確認</button>
-              <button className="btn-qa btn-clockout btn-hover-shine" onClick={handleClockOut}>🏃‍♂️ 退勤する</button>
-              <button className="btn-qa btn-logout btn-hover-shine" onClick={handleLogout}>🚪 ログアウト</button>
+              <button className="btn-qa btn-sim btn-hover-shine" onClick={(e) => { e.stopPropagation(); handleOpenSim(); }}>⏳ 納期確認</button>
+              <button className="btn-qa btn-clockout btn-hover-shine" onClick={(e) => { e.stopPropagation(); handleClockOut(); }}>🏃‍♂️ 退勤する</button>
+              <button className="btn-qa btn-logout btn-hover-shine" onClick={(e) => { e.stopPropagation(); handleLogout(); }}>🚪 ログアウト</button>
             </div>
           </div>
 
           <div className="news-ticker-wrapper fade-up-element" style={{ "--delay": `${animDelayOffset + 0.4}s` } as any}>
             <div className="news-badge">📢 インフォメーション</div>
             <div className="news-scroll-container"><div className="news-text">{newsText}</div></div>
-            {isAdmin && <button className="btn-hover-shine" style={{background: "var(--card-bg)", border:"1px solid var(--card-border)", color:"var(--text-main)", fontSize:"12px", fontWeight:900, padding:"8px 16px", borderRadius:"12px", marginLeft:"15px", cursor:"pointer"}} onClick={() => { setTempNews(newsText); setIsEditingNews(!isEditingNews); }}>✏️ 編集</button>}
+            {isAdmin && <button className="btn-hover-shine" style={{background: "var(--card-bg)", border:"1px solid var(--card-border)", color:"var(--text-main)", fontSize:"12px", fontWeight:900, padding:"8px 16px", borderRadius:"12px", marginLeft:"15px", cursor:"pointer"}} onClick={(e) => { e.stopPropagation(); setTempNews(newsText); setIsEditingNews(!isEditingNews); }}>✏️ 編集</button>}
           </div>
 
           {isAdmin && isEditingNews && (
-            <div style={{display:"flex", gap:"10px", marginBottom:"40px", background:"var(--modal-bg)", padding:"20px", borderRadius:"16px", border:"2px dashed var(--card-border)", backdropFilter:"blur(15px)"}}>
+            <div style={{display:"flex", gap:"10px", marginBottom:"40px", background:"var(--modal-bg)", padding:"20px", borderRadius:"16px", border:"2px dashed var(--card-border)", backdropFilter:"blur(15px)"}} onClick={(e) => e.stopPropagation()}>
               <input type="text" className="util-input" value={tempNews} onChange={(e) => setTempNews(e.target.value)} />
               <button className="btn-hover-shine" style={{background:"linear-gradient(135deg, #0ea5e9, #4f46e5)", color:"#fff", border:"none", padding:"0 25px", borderRadius:"10px", fontWeight:900, cursor:"pointer", boxShadow:"0 4px 15px rgba(2,132,199,0.3)"}} onClick={handleSaveNews}>保存</button>
             </div>
@@ -714,9 +632,8 @@ export default function ThemeParkEntrance() {
 
           <div className="main-layout">
             
-            {/* ✨ チームチャットを消し去り、ブックマークだけになった左カラム */}
             <div className={`info-sidebar-wrapper ${!isSidebarOpen ? "collapsed" : ""}`}>
-              <button className="sidebar-toggle-btn" onClick={() => setIsSidebarOpen(false)}>◀ 隠す</button>
+              <button className="sidebar-toggle-btn" onClick={(e) => { e.stopPropagation(); setIsSidebarOpen(false); }}>◀ 隠す</button>
               
               <aside className="info-sidebar">
                 <div className="info-panel fade-up-element" style={{ "--delay": `${animDelayOffset + 0.5}s`, flex: 1 } as any}>
@@ -725,6 +642,7 @@ export default function ThemeParkEntrance() {
                     クリックして、コピーしたい内容を選択してください。
                   </div>
                   
+                  {/* ✨ ブックマーク管理（クリック干渉解消済み！） */}
                   {callTreeBookmarks.map(bm => (
                     <div key={bm.id} className="bookmark-wrapper">
                       <div className="script-box glitch-hover" onClick={(e) => { e.stopPropagation(); setActiveBookmark(activeBookmark === bm.id ? null : bm.id); }}>
@@ -758,7 +676,7 @@ export default function ThemeParkEntrance() {
               <button 
                 className="btn-hover-shine"
                 style={{ background: "var(--card-bg)", backdropFilter: "blur(10px)", border: "1px solid var(--card-border)", color: "var(--accent-color)", fontWeight: 900, padding: "10px 15px", borderRadius: "16px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "5px", zIndex: 50 }} 
-                onClick={() => setIsSidebarOpen(true)}
+                onClick={(e) => { e.stopPropagation(); setIsSidebarOpen(true); }}
               >
                 <span>▶</span><span style={{fontSize:"10px"}}>開く</span>
               </button>
@@ -766,28 +684,23 @@ export default function ThemeParkEntrance() {
 
             {/* ✨ 完全復活した10個のカード群 */}
             <div className="attraction-grid">
-              <MagicCard delay={animDelayOffset + 0.5} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="本日の目標まであと何件か、リアルタイムで確認。" liveData={`${progressPercent}% Achieved`} sparkline={true} onClick={() => router.push("/kpi-detail")}>
+              <MagicCard delay={animDelayOffset + 0.5} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="本日の目標まであと何件か、リアルタイムで確認。" liveData={`${progressPercent}% Achieved`} sparkline={true} onClick={(e: any) => { e.stopPropagation(); router.push("/kpi-detail"); }}>
                 <div className="kpi-widget">
                   <div className="kpi-numbers"><span className="kpi-current">{mockKpi.current}</span><span className="kpi-target">/ {mockKpi.target}件</span></div>
                   <div className="kpi-bar-bg"><div className="kpi-bar-fill" style={{ width: `${progressPercent}%` }}></div></div>
                 </div>
               </MagicCard>
 
-              {/* ✨ 復活：エリア判定ハブ */}
-              <MagicCard delay={animDelayOffset + 0.6} attraction="AREA CHECKER" title="🗺️ 提供エリア判定ハブ" badge="NEW" desc="住所から各事業者の判定ページをワンタップで開きます。" onClick={() => setIsAreaOpen(true)} />
-              
-              <MagicCard delay={animDelayOffset + 0.7} attraction="BULK REGISTER" title="📦 データ一括登録" desc="顧客データを高速でDBへ転送します。" liveData="Ready" onClick={() => router.push("/bulk-register")} />
-              <MagicCard delay={animDelayOffset + 0.8} attraction="NET TOSS" title="🌐 ネットトス連携" desc="回線のトスアップデータを指定シートへ送信。" onClick={() => router.push("/net-toss")} />
-              <MagicCard delay={animDelayOffset + 0.9} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="成約情報を専用フォームからシームレスに連携。" onClick={() => router.push("/self-close")} />
-              <MagicCard delay={animDelayOffset + 1.0} attraction="SMS KRAKEN" title="📱 SMS 送信" desc="Krakenを用いたSMS送信とテンプレート展開。" liveData="System Active" onClick={() => router.push("/sms-kraken")} />
-              <MagicCard delay={animDelayOffset + 1.1} attraction="EMAIL TEMPLATE" title="✉️ メールテンプレ" desc="用途に応じたメール文面を素早く作成。" onClick={() => router.push("/email-template")} />
-              
-              {/* ✨ 復活：Krakenマニュアル（procedure-wizard） */}
-              <MagicCard delay={animDelayOffset + 1.2} attraction="KRAKEN MANUAL" title="🐙 Kraken マニュアル" badge="NEW" desc="手続きに必要な情報を入力しフォーマット生成。" onClick={() => router.push("/procedure-wizard")} />
-              
-              <MagicCard delay={animDelayOffset + 1.3} attraction="COST SIMULATOR" title="🆚 料金シミュレーター" badge="NEW" desc="利用状況から乗り換え節約額を即座に算出します。" liveData="Avg. ¥4,200/mo" onClick={() => router.push("/simulator")} />
+              <MagicCard delay={animDelayOffset + 0.6} attraction="AREA CHECKER" title="🗺️ 提供エリア判定ハブ" badge="NEW" desc="住所から各事業者の判定ページをワンタップで開きます。" onClick={(e: any) => { e.stopPropagation(); setIsAreaOpen(true); }} />
+              <MagicCard delay={animDelayOffset + 0.7} attraction="BULK REGISTER" title="📦 データ一括登録" desc="顧客データを高速でDBへ転送します。" liveData="Ready" onClick={(e: any) => { e.stopPropagation(); router.push("/bulk-register"); }} />
+              <MagicCard delay={animDelayOffset + 0.8} attraction="NET TOSS" title="🌐 ネットトス連携" desc="回線のトスアップデータを指定シートへ送信。" onClick={(e: any) => { e.stopPropagation(); router.push("/net-toss"); }} />
+              <MagicCard delay={animDelayOffset + 0.9} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="成約情報を専用フォームからシームレスに連携。" onClick={(e: any) => { e.stopPropagation(); router.push("/self-close"); }} />
+              <MagicCard delay={animDelayOffset + 1.0} attraction="SMS KRAKEN" title="📱 SMS 送信" desc="Krakenを用いたSMS送信とテンプレート展開。" liveData="System Active" onClick={(e: any) => { e.stopPropagation(); router.push("/sms-kraken"); }} />
+              <MagicCard delay={animDelayOffset + 1.1} attraction="EMAIL TEMPLATE" title="✉️ メールテンプレ" desc="用途に応じたメール文面を素早く作成。" onClick={(e: any) => { e.stopPropagation(); router.push("/email-template"); }} />
+              <MagicCard delay={animDelayOffset + 1.2} attraction="KRAKEN MANUAL" title="🐙 Kraken マニュアル" badge="NEW" desc="手続きに必要な情報を入力しフォーマット生成。" onClick={(e: any) => { e.stopPropagation(); router.push("/procedure-wizard"); }} />
+              <MagicCard delay={animDelayOffset + 1.3} attraction="COST SIMULATOR" title="🆚 料金シミュレーター" badge="NEW" desc="利用状況から乗り換え節約額を即座に算出します。" liveData="Avg. ¥4,200/mo" onClick={(e: any) => { e.stopPropagation(); router.push("/simulator"); }} />
 
-              <MagicCard delay={animDelayOffset + 1.4} attraction="QUICK MEMO" title="🍯 クイックメモ" desc="通話中などの一時的な情報を置いておくメモパッド。" onClick={() => setIsMemoOpen(true)}>
+              <MagicCard delay={animDelayOffset + 1.4} attraction="QUICK MEMO" title="🍯 クイックメモ" desc="通話中などの一時的な情報を置いておくメモパッド。" onClick={(e: any) => { e.stopPropagation(); setIsMemoOpen(true); }}>
                 {memoText ? (
                   <div className="util-result" style={{marginTop:0, padding:"10px", fontSize:"11px", opacity: 0.8}}>
                     {memoText.length > 20 ? memoText.substring(0, 20) + "..." : memoText}
@@ -798,7 +711,6 @@ export default function ThemeParkEntrance() {
               </MagicCard>
             </div>
 
-            {/* ✨ 完璧に維持されている再架電タイムライン（右カラム） */}
             <div className="timeline-sidebar-wrapper fade-up-element" style={{ "--delay": `${animDelayOffset + 0.6}s` } as any}>
               <aside className="timeline-sidebar">
                 <div className="timeline-header">
@@ -806,29 +718,29 @@ export default function ThemeParkEntrance() {
                   <span style={{background: "#ef4444", color: "#fff", padding: "2px 6px", borderRadius: "10px", fontSize: "10px"}}>3 Tasks</span>
                 </div>
                 
-                <div className="timeline-item upcoming" onClick={() => router.push("/callback-board")}>
+                <div className="timeline-item upcoming" onClick={(e) => { e.stopPropagation(); router.push("/callback-board"); }}>
                   <div className="tl-time">16:30 <span style={{fontSize:"10px", color:"#ef4444"}}>In 15m</span></div>
                   <div className="tl-desc">山田様 / auひかり検討中</div>
                 </div>
                 
-                <div className="timeline-item" onClick={() => router.push("/callback-board")}>
+                <div className="timeline-item" onClick={(e) => { e.stopPropagation(); router.push("/callback-board"); }}>
                   <div className="tl-time">18:00</div>
                   <div className="tl-desc">鈴木様 / 家族に相談後</div>
                 </div>
 
-                <div className="timeline-item" onClick={() => router.push("/callback-board")}>
+                <div className="timeline-item" onClick={(e) => { e.stopPropagation(); router.push("/callback-board"); }}>
                   <div className="tl-time">19:30</div>
                   <div className="tl-desc">田中様 / 帰宅時間狙い</div>
                 </div>
                 
-                <button className="timeline-add-btn" onClick={() => router.push("/callback-board")}>＋ 新規追加</button>
+                <button className="timeline-add-btn" onClick={(e) => { e.stopPropagation(); router.push("/callback-board"); }}>＋ 新規追加</button>
               </aside>
             </div>
 
           </div>
         </div>
 
-        <details className="quick-utility hide-on-mobile fade-up-element" style={{ "--delay": `${animDelayOffset + 1.5}s` } as any}>
+        <details className="quick-utility hide-on-mobile fade-up-element" style={{ "--delay": `${animDelayOffset + 1.5}s` } as any} onClick={(e) => e.stopPropagation()}>
           <summary className="utility-fab btn-hover-shine" style={{listStyle:"none", border:"none", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"28px", cursor:"pointer"}}>
             🔍 <span style={{fontSize: "9px", fontWeight: 900, marginTop: "-5px", opacity: 0.8}}>Cmd+K</span>
           </summary>
