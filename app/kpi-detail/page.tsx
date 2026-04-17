@@ -40,49 +40,43 @@ export default function KpiDetailDashboard() {
   const [timeTheme, setTimeTheme] = useState("morning");
   
   const [data, setData] = useState<any>(null);
-  
-  // ✨ 【新規追加】エラーメッセージを表示するためのステート
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // 🛠️ ご主人様からいただいた社内用URL！
   const GAS_API_URL = "https://script.google.com/a/macros/octopusenergy.co.jp/s/AKfycbw6RG_EtOffqAPwIYuIoRpAHkfH865ktNkJ9nk9XxKZxEv1GfEcqvZAfsulkE_7LUHIzw/exec";
 
   useEffect(() => {
     const hour = new Date().getHours();
     if (hour >= 17 && hour < 20) setTimeTheme("evening");
+    setTimeout(() => setIsReady(true), 100);
 
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        // ✨ エラーを検知するために、JSONではなく一度「テキスト」として受け取る設定に変更！
-        const res = await fetch(GAS_API_URL, { redirect: "follow" });
-        const text = await res.text(); 
-        
-        try {
-          const json = JSON.parse(text);
-          if (json.success) {
-            setData(json);
-          } else {
-            // スプシの中で「セルが見つからない」等のエラーが起きた場合
-            setErrorMsg("スプレッドシートの処理エラー: " + json.error);
-          }
-        } catch (e) {
-          // 💡 これが「権限エラー（Googleのログイン画面等が返ってきている）」のパターンです！
-          console.error("受信したデータがJSONではありません:", text);
-          setErrorMsg("⚠️ セキュリティブロック：GASのデプロイ設定で「アクセスできるユーザー」が「全員」になっていないか、企業アカウントの制限でアクセスが弾かれています！");
-        }
+    // ✨ 【裏ルート】透明な小窓（Iframe）から送られてくるデータを待ち構えるリスナー！
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data && event.data.success) {
+        setData(event.data);
         setLoading(false);
-      } catch (err) {
-        console.error("Fetch Error:", err);
-        setErrorMsg("⚠️ 通信エラー：ネットワークの問題か、URLが間違っている可能性があります。");
+      } else if (event.data && event.data.success === false) {
+        setErrorMsg("スプレッドシート処理エラー: " + event.data.error);
         setLoading(false);
       }
     };
 
-    fetchData();
-    setTimeout(() => setIsReady(true), 100);
+    window.addEventListener("message", handleMessage);
+
+    // もし15秒経ってもデータが来なければ、会社のGoogleアカウントにログインしていない可能性が高い！
+    const timeoutId = setTimeout(() => {
+      if (loading && !data) {
+        setErrorMsg("⚠️ セキュリティブロック：データを受信できませんでした。お使いのブラウザで「Octopusenergy」のGoogleアカウントにログインしているか確認してください！");
+        setLoading(false);
+      }
+    }, 15000);
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+      clearTimeout(timeoutId);
+    };
   }, []);
 
-  // 🚨 エラーが発生した場合は、この真っ赤な画面が出ます！
   if (errorMsg) {
     return (
       <div style={{ background: "#020617", height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "25px", padding: "40px", textAlign: "center" }}>
@@ -99,15 +93,20 @@ export default function KpiDetailDashboard() {
   if (loading || !data) {
     return (
       <div style={{ background: "#020617", height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#38bdf8", flexDirection: "column", gap: "20px" }}>
+        {/* ✨ ここに透明な小窓を仕込んでおき、裏側でコッソリ通信させます！ */}
+        <iframe src={GAS_API_URL} style={{ display: "none" }} />
+        
         <div className="spinner"></div>
-        <p style={{ fontWeight: 900, letterSpacing: "3px" }}>SYNCING WITH SPREADSHEET...</p>
+        <p style={{ fontWeight: 900, letterSpacing: "3px" }}>SYNCING SECURELY WITH GOOGLE SHEETS...</p>
         <style>{`.spinner { width: 50px; height: 50px; border: 4px solid rgba(56,189,248,0.1); border-top-color: #38bdf8; border-radius: 50%; animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
   const currentStats = viewMode === "daily" ? data.daily : data.monthly;
-  const progressPercent = Math.min(100, Math.round((currentStats.total / currentStats.target) * 100)) || 0;
+  // 目標が0の場合はプログレスバーがエラーになるので、最低1とする安全策
+  const safeTarget = currentStats.target > 0 ? currentStats.target : 1;
+  const progressPercent = Math.min(100, Math.round((currentStats.total / safeTarget) * 100)) || 0;
 
   return (
     <div className={`global-theme-wrapper theme-dark`}>
@@ -139,8 +138,8 @@ export default function KpiDetailDashboard() {
 
         .cross-tab-wrap { overflow-x: auto; margin-top: 20px; }
         .cross-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .cross-table th { text-align: left; padding: 12px; color: #38bdf8; border-bottom: 2px solid rgba(255,255,255,0.1); }
-        .cross-table td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: 700; }
+        .cross-table th { text-align: left; padding: 12px; color: #38bdf8; border-bottom: 2px solid rgba(255,255,255,0.1); white-space: nowrap; }
+        .cross-table td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: 700; white-space: nowrap; }
         .cross-table tr:hover { background: rgba(255,255,255,0.02); }
         .cell-highlight { color: #fde047; font-weight: 900; }
 
@@ -154,7 +153,7 @@ export default function KpiDetailDashboard() {
           <button className="btn-back" onClick={() => router.push("/")}>◀ BACK TO HUB</button>
           <div style={{textAlign: "right"}}>
             <h1 style={{fontSize:"24px", fontWeight:900, margin:0, letterSpacing:"2px"}}>KPI COMMAND CENTER</h1>
-            <p style={{fontSize:"11px", color:"#94a3b8", fontWeight:800, margin:0}}>LIVE FROM ELECTRIC SPREADSHEET</p>
+            <p style={{fontSize:"11px", color:"#94a3b8", fontWeight:800, margin:0}}>SECURE SPREADSHEET SYNC</p>
           </div>
         </header>
 
@@ -164,6 +163,7 @@ export default function KpiDetailDashboard() {
         </div>
 
         <div className="dashboard-grid">
+          {/* 左：達成率リング & リスト別 */}
           <div style={{display:"flex", flexDirection:"column", gap:"30px"}}>
             <div className="glass-panel stat-card">
               <h3 style={{fontSize:"12px", fontWeight:900, color:"#94a3b8", letterSpacing:"3px", marginBottom:"20px"}}>TOTAL PERFORMANCE</h3>
@@ -177,7 +177,7 @@ export default function KpiDetailDashboard() {
                   <div style={{fontSize:"10px", fontWeight:800, color:"#64748b"}}>ACHIEVED</div>
                 </div>
               </div>
-              <div style={{fontSize:"20px", fontWeight:900, marginTop:"10px"}}>{currentStats.total} / {currentStats.target}</div>
+              <div style={{fontSize:"20px", fontWeight:900, marginTop:"10px"}}>{currentStats.total} <span style={{fontSize:"14px", color:"#64748b"}}>/ {currentStats.target}</span></div>
               <div style={{fontSize:"11px", color:"#64748b", fontWeight:800}}>TOTAL ACQUISITION</div>
             </div>
 
@@ -192,10 +192,13 @@ export default function KpiDetailDashboard() {
             </div>
           </div>
 
+          {/* 右：OPランキング */}
           <div className="glass-panel">
             <h3 style={{fontSize:"12px", fontWeight:900, color:"#94a3b8", letterSpacing:"3px", marginBottom:"20px"}}>OP RANKING</h3>
             {currentStats.ops.sort((a:any, b:any) => b.value - a.value).map((op:any, i:number) => {
-              const p = Math.min(100, Math.round((op.value / 10) * 100));
+              // 個人目標がないので、1位の数値を100%として相対的なバーを描画する（よりエモーショナル！）
+              const maxVal = currentStats.ops[0]?.value || 1;
+              const p = Math.min(100, Math.round((op.value / maxVal) * 100));
               return (
                 <div key={i} style={{marginBottom:"20px"}}>
                   <div style={{display:"flex", justifySelf:"space-between", fontWeight:900, fontSize:"14px", marginBottom:"8px"}}>
@@ -211,6 +214,7 @@ export default function KpiDetailDashboard() {
           </div>
         </div>
 
+        {/* 下：クロス集計マトリクス */}
         <div className="glass-panel">
           <h3 style={{fontSize:"12px", fontWeight:900, color:"#94a3b8", letterSpacing:"3px", marginBottom:"10px"}}>CROSS-TABULATION MATRIX (OP × LIST)</h3>
           <div className="cross-tab-wrap">
@@ -235,6 +239,7 @@ export default function KpiDetailDashboard() {
           </div>
         </div>
         
+        {/* 過去実績（ヒストリー） */}
         <div className="glass-panel" style={{marginTop:"30px"}}>
           <h3 style={{fontSize:"12px", fontWeight:900, color:"#94a3b8", letterSpacing:"3px", marginBottom:"20px"}}>PERFORMANCE HISTORY ({data.history.month})</h3>
           <div style={{display:"flex", gap:"10px", overflowX:"auto", paddingBottom:"10px"}}>
