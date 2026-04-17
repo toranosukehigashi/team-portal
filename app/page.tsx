@@ -3,13 +3,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// 🌟 3Dパララックス ＆ オーロラボーダー（✨ 引数エラー完全修正！）
+// 🌟 3Dパララックス ＆ オーロラボーダー
 const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, liveData, sparkline }: any) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const glareRef = useRef<HTMLDivElement>(null);
-  
-  // ✨ TypeScriptの厳格エラーを解消するため初期値(null)を追加！
   const requestRef = useRef<number | null>(null);
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -131,7 +129,6 @@ export default function ThemeParkEntrance() {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
-  // ⌨️ Cmd+K 検索用ステート
   const [isCmdKOpen, setIsCmdKOpen] = useState(false);
   const [cmdKQuery, setCmdKQuery] = useState("");
 
@@ -147,19 +144,44 @@ export default function ThemeParkEntrance() {
     { id: 'b3', icon: '🌐', title: 'ネットトス自動入力', copyName: 'ネットトス自動入力', copyUrl: 'javascript:(function(){/* 自動入力のスクリプト */ alert("自動入力しました");})();' }
   ];
 
-  // ✨ Cmd+K の動的リスト
+  // ✨ Cmd+K インテント（意図）検索用の超強化リスト！
   const allCmdKLinks = [
-    { id: 'sim', name: "🆚 料金シミュレーターへ移動", url: "/simulator", search: ["sim", "シミュレーター", "料金", "cost"] },
-    { id: 'toss', name: "🌐 ネットトス連携へ移動", url: "/net-toss", search: ["toss", "トス", "ネット", "net"] },
-    { id: 'kraken', name: "🐙 Kraken マニュアルを開く", url: "/procedure-wizard", search: ["kraken", "マニュアル", "手順", "manual"] },
-    { id: 'call', name: "🗓️ 再架電タイムラインを開く", url: "/callback-board", search: ["コール", "再架電", "タイムライン", "call", "callback"] },
-    { id: 'area', name: "🗺️ エリア判定ハブを開く", action: () => setIsAreaOpen(true), search: ["エリア", "判定", "area"] },
-    { id: 'memo', name: "🍯 クイックメモを開く", action: () => setIsMemoOpen(true), search: ["メモ", "memo", "クイック"] },
+    { 
+      id: 'sim', name: "🆚 料金シミュレーターへ移動", desc: "乗り換え費用、スマホセット割、違約金の計算", url: "/simulator", 
+      search: ["sim", "シミュレーター", "料金", "cost", "見積もり", "比較", "乗り換え", "違約金", "スマホ割", "安く", "解約金", "シミュ", "計算"] 
+    },
+    { 
+      id: 'toss', name: "🌐 ネットトス連携へ移動", desc: "フレッツ・光コラボ等の回線手配・情報送信", url: "/net-toss", 
+      search: ["toss", "トス", "ネット", "net", "フレッツ", "ドコモ光", "ソフトバンク光", "光コラボ", "事業者変更", "転用", "新規", "回線", "手配"] 
+    },
+    { 
+      id: 'area', name: "🗺️ 提供エリア判定ハブを開く", desc: "NTT東西・au・NUROの提供エリア・設備確認", action: () => setIsAreaOpen(true), 
+      search: ["エリア", "判定", "area", "フレッツ", "東日本", "西日本", "提供", "マンション", "戸建て", "番地", "設備", "引ける", "住所", "郵便番号"] 
+    },
+    { 
+      id: 'kraken', name: "🐙 Kraken マニュアルを開く", desc: "SMS送信、テンプレート、手続きの業務手順書", url: "/procedure-wizard", 
+      search: ["kraken", "マニュアル", "手順", "manual", "sms", "送信", "雛形", "テンプレ", "案内", "やり方", "ルール", "規定"] 
+    },
+    { 
+      id: 'call', name: "🗓️ 再架電タイムラインを開く", desc: "掛け直し、不在、検討中顧客のスケジュール", url: "/callback-board", 
+      search: ["コール", "再架電", "タイムライン", "call", "callback", "不在", "掛け直し", "後確", "予定", "スケジュール", "アポ", "保留"] 
+    },
+    { 
+      id: 'memo', name: "🍯 クイックメモを開く", desc: "通話中の情報一時退避、テキストコピー", action: () => setIsMemoOpen(true), 
+      search: ["メモ", "memo", "クイック", "一時保存", "コピペ", "テキスト", "控え", "ノート", "note"] 
+    },
   ];
 
-  const filteredCmdKLinks = allCmdKLinks.filter(link => 
-    cmdKQuery === "" || link.name.toLowerCase().includes(cmdKQuery.toLowerCase()) || link.search.some(keyword => keyword.includes(cmdKQuery.toLowerCase()))
-  );
+  // ✨ あいまい検索ロジック（ひらがな/カタカナ、部分一致などを賢く判定）
+  const query = cmdKQuery.trim().toLowerCase();
+  const filteredCmdKLinks = allCmdKLinks.filter(link => {
+    if (!query) return true;
+    const matchName = link.name.toLowerCase().includes(query);
+    const matchDesc = link.desc.toLowerCase().includes(query);
+    // query がキーワードに含まれるか、キーワードが query に含まれるかをチェック（例: 「フレ」で「フレッツ」がヒット）
+    const matchTags = link.search.some(keyword => keyword.toLowerCase().includes(query) || query.includes(keyword.toLowerCase()));
+    return matchName || matchDesc || matchTags;
+  });
 
   useEffect(() => {
     const savedUser = localStorage.getItem("team_portal_user");
@@ -254,6 +276,7 @@ export default function ThemeParkEntrance() {
   const handleClearMemo = () => { if(confirm("メモをクリアしますか？")){ setMemoText(""); localStorage.removeItem("team_portal_quick_memo"); } };
   const copyUtilResult = async () => { if (utilResult.includes("📍")) { try { await navigator.clipboard.writeText(utilResult.replace("📍 ", "")); showToast("📋 住所をコピーしました！"); } catch (err) { alert("コピー失敗"); } } };
 
+  // ✨ Cmd+K 検索実行ロジック（エンターキーで一番上の結果にジャンプ）
   const handleCmdKSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (filteredCmdKLinks.length > 0) {
@@ -282,7 +305,6 @@ export default function ThemeParkEntrance() {
   const welcomeChars = welcomeTextRaw.split("");
 
   return (
-    // ✨ ここをクリックするとブックマークが確実に閉じる！ネイティブイベントとの干渉を完全排除！
     <div className={`global-theme-wrapper ${isDarkMode ? "theme-dark" : "theme-light"}`} onClick={() => setActiveBookmark(null)}>
       
       {showMacWelcome && (
@@ -297,30 +319,30 @@ export default function ThemeParkEntrance() {
         </div>
       )}
 
-      {/* ⌨️ Cmd + K パレット */}
+      {/* ⌨️ Cmd + K パレット（✨ UIも情報量豊かに進化！） */}
       <div className={`modal-overlay ${isCmdKOpen ? "open" : ""}`} onClick={() => setIsCmdKOpen(false)} style={{zIndex: 99999}}>
         <div className="custom-modal cmdk-modal" onClick={(e) => e.stopPropagation()}>
           <form onSubmit={handleCmdKSearch} style={{display: "flex", alignItems: "center", borderBottom: "1px solid var(--card-border)", paddingBottom: "15px", marginBottom: "15px"}}>
             <span style={{fontSize: "24px", marginRight: "15px"}}>🔍</span>
-            <input type="text" autoFocus={isCmdKOpen} placeholder="Type a command or search..." className="cmdk-input" value={cmdKQuery} onChange={(e) => setCmdKQuery(e.target.value)} />
+            <input type="text" autoFocus={isCmdKOpen} placeholder="例: フレッツ、乗り換え、メモ..." className="cmdk-input" value={cmdKQuery} onChange={(e) => setCmdKQuery(e.target.value)} />
             <span className="cmdk-esc" onClick={() => setIsCmdKOpen(false)}>ESC</span>
           </form>
           <div className="cmdk-list">
-            <div className="cmdk-label">Quick Links</div>
+            <div className="cmdk-label">Suggested Links</div>
             {filteredCmdKLinks.length > 0 ? (
               filteredCmdKLinks.map(link => (
-                <div key={link.id} className="cmdk-item" onClick={() => { if(link.url) router.push(link.url); else if(link.action) link.action(); setIsCmdKOpen(false); setCmdKQuery(""); }}>
-                  {link.name}
+                <div key={link.id} className="cmdk-item glitch-hover" onClick={() => { if(link.url) router.push(link.url); else if(link.action) link.action(); setIsCmdKOpen(false); setCmdKQuery(""); }}>
+                  <div className="cmdk-item-title">{link.name}</div>
+                  <div className="cmdk-item-desc">{link.desc}</div>
                 </div>
               ))
             ) : (
-              <div style={{fontSize: "13px", color: "var(--text-sub)", padding: "10px"}}>一致する機能がありません</div>
+              <div style={{fontSize: "13px", color: "var(--text-sub)", padding: "10px", textAlign: "center"}}>一致する機能がありません😭</div>
             )}
           </div>
         </div>
       </div>
 
-      {/* 🌍 背景要素を上下左右に140%拡張し、バウンドスクロールの切れ目を完全に撲滅！！ */}
       <div className={`entrance-bg`} style={{ background: dynamicBg || "var(--bg-gradient)", transition: "background 2s ease" }}>
         <DataMesh isDarkMode={isDarkMode} />
       </div>
@@ -333,10 +355,9 @@ export default function ThemeParkEntrance() {
       <main className={`app-wrapper ${isReady ? "ready" : ""}`}>
         
         <style dangerouslySetInnerHTML={{ __html: `
-          /* ✨ 背景の切れ目を完全排除する CSS の神髄 */
           body { background-color: #020617; overflow-x: hidden; }
           .global-theme-wrapper * { box-sizing: border-box; }
-          .global-theme-wrapper { width: 100%; min-height: 100vh; position: relative; color: var(--text-main); transition: color 0.5s; font-family: 'Inter', 'Noto Sans JP', sans-serif; }
+          .global-theme-wrapper { width: 100%; min-height: 100vh; position: relative; overflow-x: clip; color: var(--text-main); transition: color 0.5s; font-family: 'Inter', 'Noto Sans JP', sans-serif; }
 
           .mac-welcome-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999999; display: flex; align-items: center; justify-content: center; animation: macFadeOut 0.6s cubic-bezier(0.8, 0, 0.2, 1) 2.6s forwards; }
           .mac-welcome-overlay.dark-fix-welcome { background: #000000; }
@@ -485,7 +506,7 @@ export default function ThemeParkEntrance() {
           .script-box:hover { border-color: var(--card-hover-border); transform: translateX(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
           .script-title { font-weight: 900; font-size: 11px; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
 
-          /* ✨ ブックマークのポップオーバー（クリック干渉解消！） */
+          /* ✨ ブックマークのポップオーバー */
           .bookmark-popover { position: absolute; top: 50%; left: calc(100% + 15px); transform: translateY(-50%) scale(0.9); transform-origin: left center; background: var(--modal-bg); backdrop-filter: blur(30px); border: 1px solid var(--card-hover-border); border-radius: 16px; padding: 12px; width: 260px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); z-index: 9999; opacity: 0; animation: popoverIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; display: flex; flex-direction: column; gap: 8px; pointer-events: auto; }
           .theme-dark .bookmark-popover { box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
           .bookmark-popover::before { content: ''; position: absolute; top: 50%; left: -6px; transform: translateY(-50%) rotate(45deg); width: 12px; height: 12px; background: var(--modal-bg); border-bottom: 1px solid var(--card-hover-border); border-left: 1px solid var(--card-hover-border); }
@@ -550,14 +571,18 @@ export default function ThemeParkEntrance() {
           .util-input:focus { border-color: var(--card-hover-border); }
           .util-result { margin-top: 15px; font-size: 14px; color: var(--text-main); background: var(--kpi-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--card-border); font-weight: 900; transition: 0.3s; cursor: pointer; }
 
+          /* ✨ Cmd+K モーダル（洗練されたUI） */
           .cmdk-modal { width: 600px; padding: 25px; top: 15%; transform: translateY(-20px) scale(0.95); position: absolute; }
           .modal-overlay.open .cmdk-modal { transform: translateY(0) scale(1); }
           .cmdk-input { width: 100%; border: none; background: transparent; font-size: 20px; font-weight: 800; color: var(--text-main); outline: none; }
           .cmdk-esc { font-size: 10px; font-weight: 900; background: var(--card-border); padding: 4px 8px; border-radius: 6px; cursor: pointer; }
           .cmdk-list { display: flex; flex-direction: column; gap: 8px; }
           .cmdk-label { font-size: 11px; font-weight: 900; color: var(--text-sub); margin-top: 10px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-          .cmdk-item { padding: 12px 15px; border-radius: 10px; font-weight: 800; font-size: 14px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; }
-          .cmdk-item:hover { background: var(--accent-color); color: #fff; transform: translateX(5px); }
+          .cmdk-item { padding: 12px 15px; border-radius: 10px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+          .cmdk-item-title { font-weight: 800; font-size: 14px; color: var(--text-main); }
+          .cmdk-item-desc { font-size: 11px; color: var(--text-sub); font-weight: 600; opacity: 0.8; }
+          .cmdk-item:hover { background: var(--accent-color); transform: translateX(5px); }
+          .cmdk-item:hover .cmdk-item-title, .cmdk-item:hover .cmdk-item-desc { color: #fff; opacity: 1; }
 
           /* エリア判定ボタン用 */
           .area-btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
@@ -642,7 +667,7 @@ export default function ThemeParkEntrance() {
                     クリックして、コピーしたい内容を選択してください。
                   </div>
                   
-                  {/* ✨ ブックマーク管理（クリック干渉解消済み！） */}
+                  {/* ✨ ブックマーク管理（クリック干渉完全解消！） */}
                   {callTreeBookmarks.map(bm => (
                     <div key={bm.id} className="bookmark-wrapper">
                       <div className="script-box glitch-hover" onClick={(e) => { e.stopPropagation(); setActiveBookmark(activeBookmark === bm.id ? null : bm.id); }}>
@@ -682,7 +707,6 @@ export default function ThemeParkEntrance() {
               </button>
             )}
 
-            {/* ✨ 完全復活した10個のカード群 */}
             <div className="attraction-grid">
               <MagicCard delay={animDelayOffset + 0.5} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="本日の目標まであと何件か、リアルタイムで確認。" liveData={`${progressPercent}% Achieved`} sparkline={true} onClick={(e: any) => { e.stopPropagation(); router.push("/kpi-detail"); }}>
                 <div className="kpi-widget">
