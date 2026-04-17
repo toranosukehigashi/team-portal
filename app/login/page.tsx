@@ -44,39 +44,40 @@ export default function Login() {
   };
 
   return (
-    // ✨ body レベルで背景色を担保する「テーマの箱」を一番外側に配置
-    <div className={`global-theme-wrapper ${isEntering ? "entering-magic" : ""}`} style={{ backgroundColor: "#020617", minHeight: "100vh" }}>
+    <div className={`global-login-container ${isEntering ? "entering-magic" : ""}`}>
       <style dangerouslySetInnerHTML={{ __html: `
-        .global-theme-wrapper * { box-sizing: border-box; }
+        .global-login-container * { box-sizing: border-box; }
         
-        /* 🎨 html, body レベルでスクロールと背景色を管理（オーバースクロールバグ撲滅） */
-        html, body {
-          background-color: #020617;
+        /* ✨ bodyの背景を真っ黒に固定してオーバースクロール時の切れ目を撲滅！ */
+        body {
+          background-color: #020617 !important;
           margin: 0; padding: 0;
-          height: 100%; overflow-x: hidden;
         }
 
-        /* ✨ 背景が絶対に切れない「真の」修正 */
-        .login-wrapper {
-          position: relative; /* fixed 撤廃 */
-          min-height: 100vh; /* 最低でも画面いっぱい */
+        .global-login-container {
+          position: relative;
+          min-height: 100vh;
           width: 100%;
-          display: flex; align-items: center; justify-content: center;
-          /* グリッド背景はコンテンツと一緒に伸びる */
+          font-family: 'Inter', 'Noto Sans JP', sans-serif;
+          overflow: hidden;
+        }
+
+        /* 🌐 完全に独立させたグリッド背景レイヤー（z-index: 0） */
+        .bg-grid {
+          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
           background-image: 
             linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
             linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
           background-size: 50px 50px;
           background-position: center center;
-          font-family: 'Inter', 'Noto Sans JP', sans-serif;
-          overflow: visible; /* 親の body でスクロールさせる */
-          padding: 80px 20px; /* 上下に余裕を持たせる */
-          perspective: 1500px;
-          z-index: 1;
+          z-index: 0; pointer-events: none;
         }
 
-        /* 🌊 流体オーロラ（画面に完全固定） */
-        .aurora-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: -1; pointer-events: none; filter: blur(80px); opacity: 0.6; }
+        /* 🌊 完全に独立させた流体オーロラレイヤー（z-index: 1） */
+        .aurora-container { 
+          position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+          z-index: 1; pointer-events: none; filter: blur(80px); opacity: 0.6; 
+        }
         .aurora-blob { position: absolute; border-radius: 50%; mix-blend-mode: screen; animation: fluid 20s infinite alternate ease-in-out; }
         .blob-1 { width: 60vw; height: 60vw; background: #c084fc; top: -10%; left: -10%; animation-delay: 0s; }
         .blob-2 { width: 50vw; height: 50vw; background: #38bdf8; bottom: -20%; right: -10%; animation-delay: -5s; }
@@ -87,18 +88,27 @@ export default function Login() {
           100% { transform: translate(-5vw, 15vh) scale(0.9); border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%; }
         }
 
-        /* 🎇 ログイン成功時のワープライン */
+        /* 🎇 ログイン成功時のワープライン（z-index: 900） */
         .warp-lines { position: fixed; top: 50%; left: 50%; width: 200vw; height: 200vw; transform: translate(-50%, -50%) scale(0); border-radius: 50%; background: repeating-radial-gradient(circle at center, transparent 0, transparent 40px, rgba(255,255,255,0.8) 41px, transparent 42px); opacity: 0; pointer-events: none; z-index: 900; }
-        .global-theme-wrapper.entering-magic .warp-lines { animation: hyperSpace 1.5s cubic-bezier(0.5, 0, 0.2, 1) forwards; }
+        .global-login-container.entering-magic .warp-lines { animation: hyperSpace 1.5s cubic-bezier(0.5, 0, 0.2, 1) forwards; }
         @keyframes hyperSpace { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translate(-50%, -50%) scale(3); opacity: 0; filter: blur(5px); } }
 
-        /* ホワイトアウト */
+        /* ホワイトアウト（z-index: 999） */
         .screen-flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.8s ease; transition-delay: 0.8s; }
-        .global-theme-wrapper.entering-magic .screen-flash { opacity: 1; }
+        .global-login-container.entering-magic .screen-flash { opacity: 1; }
 
-        /* 🪟 グラスモーフィズム・カード */
+        /* 🪟 カードを囲むコンテンツラッパー（z-index: 10） */
+        .login-wrapper {
+          position: relative;
+          z-index: 10;
+          min-height: 100vh; /* 最低でも画面いっぱい */
+          display: flex; align-items: center; justify-content: center;
+          padding: 40px 20px;
+          perspective: 1500px;
+        }
+
         .login-card-container {
-          position: relative; z-index: 10; width: 100%; max-width: 440px;
+          width: 100%; max-width: 440px;
           transition: all 1.2s cubic-bezier(0.5, 0, 0.2, 1);
         }
 
@@ -116,9 +126,9 @@ export default function Login() {
 
         .card-glare { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, rgba(255,255,255,0.08) 0%, transparent 60%); pointer-events: none; z-index: 1; mix-blend-mode: overlay; }
 
-        /* 🏰 魔法発動時：奥へ消え去る演出 */
-        .global-theme-wrapper.entering-magic .login-card-container { transform: translateZ(-500px) scale(0.8); opacity: 0; filter: blur(20px); }
-        .global-theme-wrapper.entering-magic .login-card { box-shadow: 0 0 100px 50px rgba(192, 132, 252, 0.8); border-color: rgba(255,255,255,0.8); }
+        /* 🏰 魔法発動時：カードが奥へ消え去る演出 */
+        .global-login-container.entering-magic .login-card-container { transform: translateZ(-500px) scale(0.8); opacity: 0; filter: blur(20px); }
+        .global-login-container.entering-magic .login-card { box-shadow: 0 0 100px 50px rgba(192, 132, 252, 0.8); border-color: rgba(255,255,255,0.8); }
 
         .login-content { position: relative; z-index: 2; }
 
@@ -156,6 +166,9 @@ export default function Login() {
         @keyframes blink { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
       `}} />
 
+      {/* 🌐 背景：データグリッド */}
+      <div className="bg-grid"></div>
+
       {/* 🌊 背景：流体オーロラ */}
       <div className="aurora-container">
         <div className="aurora-blob blob-1"></div>
@@ -167,7 +180,7 @@ export default function Login() {
       <div className="warp-lines"></div>
       <div className="screen-flash"></div>
 
-      {/* 🪟 カード本体（絶対切れないCSS構成） */}
+      {/* 🪟 カードを真ん中に配置するラッパー */}
       <div className="login-wrapper">
         <div className="login-card-container">
           <div className="login-card">
@@ -190,7 +203,10 @@ export default function Login() {
               </div>
 
               <form onSubmit={handleLogin}>
-                {errorMsg && <div className="error-message"><span>⚠️</span> {errorMsg}</div>}
+                {errorMsg && <div className="error-message">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                  {errorMsg}
+                </div>}
                 
                 <div className="input-group">
                   <label className="input-label">Cast Member ID</label>
