@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-// ✨ ここでさっき作ったカスタムカーソルを読み込みます！
-import CustomCursor from "./CustomCursor";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,11 +16,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // 💡 ついでに、ここを "en" から "ja" に変えて日本語サイトに最適化しました！
+    // 💡 日本語サイトに最適化！
     <html lang="ja">
       <body className={inter.className}>
-        {/* ✨ bodyの直下に置くことで、全てのページにカーソルが降臨します！ */}
-        <CustomCursor />
+        {/* ✨ 激重だったカスタムカーソルを完全に消し去りました！これで動作は超サクサクです！ */}
         {children}
       </body>
     </html>
