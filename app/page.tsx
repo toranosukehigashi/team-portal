@@ -50,7 +50,7 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, l
   );
 };
 
-// 🌐 案A: ライブ・データメッシュ (進化した背景アニメーション)
+// 🌐 案A: ライブ・データメッシュ (Canvas Animation)
 const DataMesh = ({ isDarkMode }: { isDarkMode: boolean }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
@@ -78,7 +78,7 @@ const DataMesh = ({ isDarkMode }: { isDarkMode: boolean }) => {
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const colorRGB = isDarkMode ? "56, 189, 248" : "14, 165, 233"; // テーマで色を変更
+      const colorRGB = isDarkMode ? "56, 189, 248" : "14, 165, 233"; 
       
       for (let i = 0; i < particleCount; i++) {
         let p = particles[i];
@@ -113,7 +113,7 @@ const DataMesh = ({ isDarkMode }: { isDarkMode: boolean }) => {
 // 🌊 案C: 流体ダッシュボード用 Gooey バックグラウンド
 const GooeyBackground = () => (
   <>
-    <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+    <svg style={{ position: 'fixed', width: 0, height: 0, pointerEvents: 'none' }}>
       <filter id="goo">
         <feGaussianBlur in="SourceGraphic" stdDeviation="30" result="blur" />
         <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 30 -15" result="goo" />
@@ -163,7 +163,29 @@ export default function ThemeParkEntrance() {
       setTimeout(() => setShowMacWelcome(false), 3000); 
     }
 
-    // 🌅 案D: 時間帯に応じた背景色と挨拶の自動変更
+    const savedMemo = localStorage.getItem("team_portal_quick_memo"); if (savedMemo) setMemoText(savedMemo);
+    const savedNews = localStorage.getItem("team_portal_news"); if (savedNews) setNewsText(savedNews);
+    
+    const loadChat = () => { const savedChat = localStorage.getItem("team_portal_chat_history"); if (savedChat) setChatMessages(JSON.parse(savedChat)); };
+    loadChat();
+    const handleStorageChange = (e: StorageEvent) => { if (e.key === "team_portal_chat_history") loadChat(); };
+    window.addEventListener("storage", handleStorageChange);
+    
+    setIsReady(true);
+
+    // ✨ 要素が表示されないバグを完全解消！（0.15秒だけ待ってから確実にアニメーションを発動）
+    const timer = setTimeout(() => {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("visible"); });
+      }, { threshold: 0.05, rootMargin: "0px 0px 50px 0px" });
+      document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
+    }, 150);
+    
+    return () => { clearTimeout(timer); window.removeEventListener("storage", handleStorageChange); };
+  }, []);
+
+  // 🌅 案D: 時間帯に応じた背景色と挨拶の自動変更
+  useEffect(() => {
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 12) {
       setGreeting("Good Morning ☀️");
@@ -178,20 +200,6 @@ export default function ThemeParkEntrance() {
       setGreeting("Good Night 🌙");
       setDynamicBg(isDarkMode ? "radial-gradient(ellipse at bottom, #1e1b4b 0%, #020617 100%)" : "linear-gradient(135deg, #312e81, #1e1b4b)");
     }
-
-    const savedMemo = localStorage.getItem("team_portal_quick_memo"); if (savedMemo) setMemoText(savedMemo);
-    const savedNews = localStorage.getItem("team_portal_news"); if (savedNews) setNewsText(savedNews);
-    
-    const loadChat = () => { const savedChat = localStorage.getItem("team_portal_chat_history"); if (savedChat) setChatMessages(JSON.parse(savedChat)); };
-    loadChat();
-    const handleStorageChange = (e: StorageEvent) => { if (e.key === "team_portal_chat_history") loadChat(); };
-    window.addEventListener("storage", handleStorageChange);
-    
-    setIsReady(true);
-    const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("visible"); }); }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
-    document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
-    
-    return () => { observer.disconnect(); window.removeEventListener("storage", handleStorageChange); };
   }, [isDarkMode]);
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -260,7 +268,7 @@ export default function ThemeParkEntrance() {
   return (
     <>
       {showMacWelcome && (
-        <div className={`mac-welcome-overlay ${isDarkMode ? "light-welcome" : "dark-welcome"}`}>
+        <div className={`mac-welcome-overlay ${isDarkMode ? "dark-welcome" : "light-welcome"}`}>
           <div className="mac-welcome-text-container">
             {welcomeChars.map((char, i) => (
               <span key={i} className="welcome-char-wrapper">
@@ -271,16 +279,18 @@ export default function ThemeParkEntrance() {
         </div>
       )}
 
-      {/* 🌅 案D: 状況連動型背景 */}
-      <div className={`entrance-bg`} style={{ background: dynamicBg, transition: "background 2s ease" }}>
-        {/* 🌐 案A: ライブ・データメッシュ */}
-        <DataMesh isDarkMode={isDarkMode} />
-      </div>
-      
-      {/* 🌊 案C: 流体エフェクトの背景要素 */}
-      <GooeyBackground />
-
+      {/* ✨ スライム背景やデータメッシュをテーマクラスの「内側」に入れることで、真っ黒になるバグを完全解消！ */}
       <main className={`app-wrapper ${isReady ? "ready" : ""} ${isDarkMode ? "theme-dark" : "theme-light"}`}>
+        
+        {/* 🌅 案D: 状況連動型背景 */}
+        <div className={`entrance-bg`} style={{ background: dynamicBg || "var(--bg-gradient)", transition: "background 2s ease" }}>
+          {/* 🌐 案A: ライブ・データメッシュ */}
+          <DataMesh isDarkMode={isDarkMode} />
+        </div>
+        
+        {/* 🌊 案C: 流体エフェクトの背景要素 */}
+        <GooeyBackground />
+
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
 
@@ -319,7 +329,7 @@ export default function ThemeParkEntrance() {
           .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -3; transition: background 2s ease; }
 
           /* 🌊 案C: 流体ダッシュボード Gooey エフェクト */
-          .gooey-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; pointer-events: none; filter: url(#goo); opacity: 0.4; }
+          .gooey-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; pointer-events: none; filter: url(#goo); opacity: 0.4; overflow: hidden; }
           .theme-dark .gooey-container { opacity: 0.15; }
           .gooey-blob { position: absolute; border-radius: 50%; background: var(--accent-color); filter: blur(20px); }
           .blob-1 { width: 300px; height: 300px; top: 20%; left: 20%; animation: floatBlob 15s ease-in-out infinite alternate; }
@@ -481,12 +491,6 @@ export default function ThemeParkEntrance() {
           #toast { visibility: hidden; position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px); padding: 16px 32px; background: rgba(15,23,42, 0.95); color: #fde047; border-radius: 30px; font-weight: 900; font-size: 15px; z-index: 2000; opacity: 0; transition: 0.4s; backdrop-filter: blur(20px); border: 2px solid #fde047; box-shadow: 0 20px 50px rgba(0,0,0,0.3); letter-spacing: 1px; }
           #toast.show { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
         `}} />
-
-        {/* 🌟 魔法のSVG背景（不要な場合は削除可ですが、今は流体と重なって綺麗です） */}
-        <svg className="magic-svg-bg" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <path className="magic-path" d="M -10,30 Q 30,80 50,50 T 110,40" />
-          <path className="magic-path" d="M -10,70 Q 40,20 70,60 T 110,80" style={{animationDelay: "4s", opacity: 0.5}} />
-        </svg>
 
         <div className="dashboard-inner">
           
