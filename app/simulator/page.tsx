@@ -47,6 +47,9 @@ export default function Simulator() {
   const [addPhone, setAddPhone] = useState<boolean>(true);
   const [cbAmount, setCbAmount] = useState<number | string>(30000);
   
+  // 🏗️ 工事費実質無料オプション（NEW!）
+  const [isConstructionFree, setIsConstructionFree] = useState<boolean>(false);
+  
   // ✅ フレッツ光専用オプション
   const [applyFletsFree, setApplyFletsFree] = useState<boolean>(false);
 
@@ -150,23 +153,37 @@ export default function Simulator() {
     const cPhone = Number(currentPhone) || 0;
     const currentMonthly = cNet + cPhone;
     const currentAnnual = currentMonthly * 12;
+    
     const baseFee = carrier[housingType];
     const phoneFee = addPhone ? carrier.phone : 0;
-    const firstYearExtraCosts = (Number(initialFee) || 0) + (Number(constructionFee) || 0) + (Number(cancellationFee) || 0);
+    
+    const actualConstructionFee = Number(constructionFee) || 0;
+    // 💡 工事費実質無料なら、純粋なお客様負担（手出し）から工事費を引く
+    const constructionDiscount = isConstructionFree ? actualConstructionFee : 0;
+    
+    // 一旦、初期費用として全額計上（内訳表示用）
+    const firstYearExtraCosts = (Number(initialFee) || 0) + actualConstructionFee + (Number(cancellationFee) || 0);
+    
+    // フレッツの「半年分＋初期費用」の計算。工事費無料なら必要なCB額から工事費を減額する！
     const fletsHalfYearCost = targetCarrier.startsWith("flets") ? (baseFee + phoneFee) * 6 : 0;
-    const requiredCbForFlets = fletsHalfYearCost + firstYearExtraCosts;
+    const effectiveExtraCostsForFlets = firstYearExtraCosts - constructionDiscount;
+    const requiredCbForFlets = fletsHalfYearCost + effectiveExtraCostsForFlets;
+    
     const setDiscountInfo = getSetDiscount(targetCarrier, mobileCarrier);
     const officialPromoInfo = getOfficialPromo(targetCarrier, baseFee);
+    
     const newMonthly = baseFee + phoneFee - setDiscountInfo.amount;
     const newAnnualBase = (newMonthly * 12) + firstYearExtraCosts;
-    const totalPromoDiscount = (Number(cbAmount) || 0) + officialPromoInfo.promoValue;
+    
+    // プロモ値引きの合計に「工事費実質無料」分を加算して相殺させる
+    const totalPromoDiscount = (Number(cbAmount) || 0) + officialPromoInfo.promoValue + constructionDiscount;
     const newAnnualTotal = newAnnualBase - totalPromoDiscount;
     const annualSavings = currentAnnual - newAnnualTotal;
 
     return { 
       baseFee, phoneFee, currentMonthly, newMonthly, currentAnnual, newAnnualBase, newAnnualTotal, annualSavings,
       totalPromoDiscount, carrierName: carrier.name, setDiscount: setDiscountInfo, officialPromo: officialPromoInfo,
-      fletsHalfYearCost, firstYearExtraCosts, requiredCbForFlets
+      fletsHalfYearCost, firstYearExtraCosts, requiredCbForFlets, constructionDiscount
     };
   };
 
@@ -381,7 +398,6 @@ export default function Simulator() {
           <a href="/email-template" className="side-link">✉️ メールテンプレート</a>
           <a href="/procedure-wizard" className="side-link">🗺️ Kraken 手順辞書</a>
           <a href="/simulator" className="side-link current-page">🆚 料金シミュレーター</a>
-          <a href="/trouble-nav" className="side-link">⚡ トラブル解決ナビ</a>
         </div>
 
         {/* 🎈 ナビゲーション & テーマ切り替え */}
@@ -504,6 +520,18 @@ export default function Simulator() {
               </label>
             </div>
 
+            {/* ✨ 🏗️ 工事費実質無料ボタン（NEW） */}
+            <div className="option-box" onClick={() => setIsConstructionFree(!isConstructionFree)}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                <span style={{ fontWeight: 800, color:"var(--text-main)" }}>🏗️ 工事費実質無料</span>
+                <span style={{ fontSize: "11px", color: "var(--text-sub)" }}>公式特典などで工事費が相殺される場合</span>
+              </div>
+              <label className="switch" onClick={(e) => e.stopPropagation()}>
+                <input type="checkbox" checked={isConstructionFree} onChange={() => setIsConstructionFree(!isConstructionFree)} />
+                <span className="slider" style={{ backgroundColor: isConstructionFree ? "#3b82f6" : "var(--input-border)", borderColor: isConstructionFree ? "#60a5fa" : "" }}></span>
+              </label>
+            </div>
+
             {targetCarrier.startsWith("flets") && (
               <div className="option-box" style={{ background: "rgba(16, 185, 129, 0.1)", borderColor: "rgba(16, 185, 129, 0.4)" }} onClick={() => setApplyFletsFree(!applyFletsFree)}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
@@ -521,7 +549,7 @@ export default function Simulator() {
               <div style={{ background: "rgba(225, 29, 72, 0.1)", borderLeft: "4px solid #e11d48", padding: "16px", borderRadius: "8px", fontSize: "13px", color: "#e11d48", fontWeight: 800, lineHeight: 1.6 }}>
                 💡 お客様負担を「0円」にするための条件<br/>
                 ・半年分の月額費用【{results.fletsHalfYearCost.toLocaleString()}円】<br/>
-                ・初期費用/工事費/解約金【{results.firstYearExtraCosts.toLocaleString()}円】<br/>
+                ・初期費用/工事費/解約金（※相殺後）【{(results.firstYearExtraCosts - results.constructionDiscount).toLocaleString()}円】<br/>
                 👉 <span style={{fontSize:"16px", fontWeight:900, color:"var(--text-main)"}}>合計【{results.requiredCbForFlets.toLocaleString()}円】</span> を下のキャッシュバック額にセットせよ。
               </div>
             )}
@@ -599,6 +627,14 @@ export default function Simulator() {
                 <div className="alert-box">
                   <span style={{color:"#e11d48", fontWeight:800, fontSize:"12px"}}>⚠️ 乗り換え時のみ発生（初期/工事/解約等）</span>
                   <span className="bd-val" style={{color:"#e11d48", fontSize:"15px"}}>+{results.firstYearExtraCosts.toLocaleString()} 円</span>
+                </div>
+              )}
+              
+              {/* ✨ 工事費実質無料の割引表示 */}
+              {isConstructionFree && Number(constructionFee) > 0 && (
+                <div className="promo-box" style={{ background: "rgba(59, 130, 246, 0.1)", borderColor: "rgba(59, 130, 246, 0.4)" }}>
+                  <span style={{color:"#3b82f6", fontSize:"13px", fontWeight:900}}>🏗️ 工事費実質無料適用</span>
+                  <span className="bd-val" style={{color:"#3b82f6"}}>-{Number(constructionFee).toLocaleString()} 円</span>
                 </div>
               )}
 
