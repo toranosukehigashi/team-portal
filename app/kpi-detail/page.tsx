@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// --- 背景・アニメーション用コンポーネント (HOMEと統一) ---
+// --- 背景・アニメーション用コンポーネント ---
 const DataMesh = ({ isDarkMode }: { isDarkMode: boolean }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
@@ -39,10 +39,11 @@ export default function KpiDetailDashboard() {
   const [viewMode, setViewMode] = useState<"daily" | "monthly">("daily");
   const [timeTheme, setTimeTheme] = useState("morning");
   
-  // 📈 スプシから取得するデータの初期値
   const [data, setData] = useState<any>(null);
+  
+  // ✨ 【新規追加】エラーメッセージを表示するためのステート
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // 🛠️ ご主人様からいただいた最強のAPI URL！
   const GAS_API_URL = "https://script.google.com/a/macros/octopusenergy.co.jp/s/AKfycbw6RG_EtOffqAPwIYuIoRpAHkfH865ktNkJ9nk9XxKZxEv1GfEcqvZAfsulkE_7LUHIzw/exec";
 
   useEffect(() => {
@@ -52,12 +53,27 @@ export default function KpiDetailDashboard() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await fetch(GAS_API_URL);
-        const json = await res.json();
-        if (json.success) setData(json);
+        // ✨ エラーを検知するために、JSONではなく一度「テキスト」として受け取る設定に変更！
+        const res = await fetch(GAS_API_URL, { redirect: "follow" });
+        const text = await res.text(); 
+        
+        try {
+          const json = JSON.parse(text);
+          if (json.success) {
+            setData(json);
+          } else {
+            // スプシの中で「セルが見つからない」等のエラーが起きた場合
+            setErrorMsg("スプレッドシートの処理エラー: " + json.error);
+          }
+        } catch (e) {
+          // 💡 これが「権限エラー（Googleのログイン画面等が返ってきている）」のパターンです！
+          console.error("受信したデータがJSONではありません:", text);
+          setErrorMsg("⚠️ セキュリティブロック：GASのデプロイ設定で「アクセスできるユーザー」が「全員」になっていないか、企業アカウントの制限でアクセスが弾かれています！");
+        }
         setLoading(false);
       } catch (err) {
         console.error("Fetch Error:", err);
+        setErrorMsg("⚠️ 通信エラー：ネットワークの問題か、URLが間違っている可能性があります。");
         setLoading(false);
       }
     };
@@ -65,6 +81,20 @@ export default function KpiDetailDashboard() {
     fetchData();
     setTimeout(() => setIsReady(true), 100);
   }, []);
+
+  // 🚨 エラーが発生した場合は、この真っ赤な画面が出ます！
+  if (errorMsg) {
+    return (
+      <div style={{ background: "#020617", height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "25px", padding: "40px", textAlign: "center" }}>
+        <div style={{fontSize: "60px"}}>🚨</div>
+        <h2 style={{color: "#ef4444", fontWeight: 900, letterSpacing: "2px", margin: 0}}>接続エラーが発生しました</h2>
+        <div style={{background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.4)", padding: "20px", borderRadius: "16px", color: "#f8fafc", fontWeight: 800, maxWidth: "600px", lineHeight: "1.6"}}>
+          {errorMsg}
+        </div>
+        <button onClick={() => router.push("/")} style={{padding: "12px 30px", background: "#f8fafc", color: "#0f172a", border: "none", borderRadius: "12px", cursor: "pointer", fontWeight: 900, marginTop: "20px"}}>◀ HOMEへ戻る</button>
+      </div>
+    );
+  }
 
   if (loading || !data) {
     return (
@@ -114,7 +144,6 @@ export default function KpiDetailDashboard() {
         .cross-table tr:hover { background: rgba(255,255,255,0.02); }
         .cell-highlight { color: #fde047; font-weight: 900; }
 
-        /* 夕方オレンジテーマ */
         .time-evening .mode-btn.active { background: #ea580c; box-shadow: 0 4px 15px rgba(234,88,12,0.4); }
         .time-evening .ring-fill { stroke: #ea580c; }
         .time-evening .list-label, .time-evening .cross-table th { color: #fb923c; }
@@ -135,7 +164,6 @@ export default function KpiDetailDashboard() {
         </div>
 
         <div className="dashboard-grid">
-          {/* 左：達成率リング & リスト別 */}
           <div style={{display:"flex", flexDirection:"column", gap:"30px"}}>
             <div className="glass-panel stat-card">
               <h3 style={{fontSize:"12px", fontWeight:900, color:"#94a3b8", letterSpacing:"3px", marginBottom:"20px"}}>TOTAL PERFORMANCE</h3>
@@ -164,11 +192,10 @@ export default function KpiDetailDashboard() {
             </div>
           </div>
 
-          {/* 右：OPランキング */}
           <div className="glass-panel">
             <h3 style={{fontSize:"12px", fontWeight:900, color:"#94a3b8", letterSpacing:"3px", marginBottom:"20px"}}>OP RANKING</h3>
             {currentStats.ops.sort((a:any, b:any) => b.value - a.value).map((op:any, i:number) => {
-              const p = Math.min(100, Math.round((op.value / 10) * 100)); // 仮で10件を100%とするバー
+              const p = Math.min(100, Math.round((op.value / 10) * 100));
               return (
                 <div key={i} style={{marginBottom:"20px"}}>
                   <div style={{display:"flex", justifySelf:"space-between", fontWeight:900, fontSize:"14px", marginBottom:"8px"}}>
@@ -184,7 +211,6 @@ export default function KpiDetailDashboard() {
           </div>
         </div>
 
-        {/* 下：クロス集計マトリクス */}
         <div className="glass-panel">
           <h3 style={{fontSize:"12px", fontWeight:900, color:"#94a3b8", letterSpacing:"3px", marginBottom:"10px"}}>CROSS-TABULATION MATRIX (OP × LIST)</h3>
           <div className="cross-tab-wrap">
@@ -209,7 +235,6 @@ export default function KpiDetailDashboard() {
           </div>
         </div>
         
-        {/* 過去実績（ヒストリー） */}
         <div className="glass-panel" style={{marginTop:"30px"}}>
           <h3 style={{fontSize:"12px", fontWeight:900, color:"#94a3b8", letterSpacing:"3px", marginBottom:"20px"}}>PERFORMANCE HISTORY ({data.history.month})</h3>
           <div style={{display:"flex", gap:"10px", overflowX:"auto", paddingBottom:"10px"}}>
