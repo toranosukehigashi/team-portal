@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// --- 背景・アニメーション用コンポーネント ---
 const DataMesh = ({ isDarkMode }: { isDarkMode: boolean }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
@@ -29,7 +28,7 @@ const DataMesh = ({ isDarkMode }: { isDarkMode: boolean }) => {
     animate();
     return () => { window.removeEventListener("resize", resize); cancelAnimationFrame(animationFrameId); };
   }, [isDarkMode]);
-  return <canvas ref={canvasRef} style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", zIndex: -2, pointerEvents: "none" }} />;
+  return <canvas ref={canvasRef} style={{ position: "fixed", top: "-50%", left: "-50%", width: "200%", height: "200%", zIndex: -2, pointerEvents: "none" }} />;
 };
 
 export default function KpiDetailDashboard() {
@@ -42,38 +41,32 @@ export default function KpiDetailDashboard() {
   const [data, setData] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // 🛠️ 新しくデプロイして発行された最新のURLをここに貼り付けてください！
-  const GAS_API_URL = "https://script.google.com/a/macros/octopusenergy.co.jp/s/AKfycbwZVKEPoal1XzHD-zunYWxD8gd4nJjeOXaok0u62kVzKbNsARViK_z_F1eOwUWtVAGcig/exec";
+  // 🛠️ 新しくデプロイした最新のURLをここに貼り付けてください！
+  const GAS_API_URL = "https://script.google.com/a/macros/octopusenergy.co.jp/s/AKfycbyTOdeP-55J1MaGGp5k5gUGswGmPsQ5tSJqVFhpBk2Yvu1B9nf50N-liX5LKSLwmcwF1Q/exec";
 
   useEffect(() => {
     const hour = new Date().getHours();
     if (hour >= 17 && hour < 20) setTimeTheme("evening");
     setTimeout(() => setIsReady(true), 100);
 
-    // ✨ 【最終奥義】JSONP通信（スクリプト注入）でセキュリティを完全突破！
     const fetchWithJSONP = () => {
       setLoading(true);
       const callbackName = 'jsonpCallback_' + Date.now();
       
-      // データの受け取り口をグローバルに用意
       (window as any)[callbackName] = (jsonData: any) => {
-        if(jsonData.success) {
-          setData(jsonData);
-        } else {
-          setErrorMsg("スプレッドシート処理エラー: " + jsonData.error);
-        }
+        if(jsonData.success) { setData(jsonData); } 
+        else { setErrorMsg("スプレッドシート処理エラー: " + jsonData.error); }
         setLoading(false);
-        delete (window as any)[callbackName]; // お掃除
+        delete (window as any)[callbackName]; 
         const scriptElem = document.getElementById(callbackName);
         if (scriptElem) scriptElem.remove();
       };
 
-      // プログラムのフリをしてGASを呼び出す（これなら絶対弾かれない！）
       const script = document.createElement('script');
       script.id = callbackName;
       script.src = `${GAS_API_URL}?callback=${callbackName}`;
       script.onerror = () => {
-        setErrorMsg("⚠️ セキュリティブロック：通信が弾かれました。お使いのブラウザで「Octopusenergy」のGoogleアカウントにログインしているか確認してください！");
+        setErrorMsg("⚠️ セキュリティブロック：通信が弾かれました。");
         setLoading(false);
         delete (window as any)[callbackName];
       };
@@ -81,7 +74,6 @@ export default function KpiDetailDashboard() {
     };
 
     fetchWithJSONP();
-
   }, []);
 
   if (errorMsg) {
@@ -89,9 +81,7 @@ export default function KpiDetailDashboard() {
       <div style={{ background: "#020617", height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "25px", padding: "40px", textAlign: "center" }}>
         <div style={{fontSize: "60px"}}>🚨</div>
         <h2 style={{color: "#ef4444", fontWeight: 900, letterSpacing: "2px", margin: 0}}>接続エラーが発生しました</h2>
-        <div style={{background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.4)", padding: "20px", borderRadius: "16px", color: "#f8fafc", fontWeight: 800, maxWidth: "600px", lineHeight: "1.6"}}>
-          {errorMsg}
-        </div>
+        <div style={{background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.4)", padding: "20px", borderRadius: "16px", color: "#f8fafc", fontWeight: 800, maxWidth: "600px", lineHeight: "1.6"}}>{errorMsg}</div>
         <button onClick={() => router.push("/")} style={{padding: "12px 30px", background: "#f8fafc", color: "#0f172a", border: "none", borderRadius: "12px", cursor: "pointer", fontWeight: 900, marginTop: "20px"}}>◀ HOMEへ戻る</button>
       </div>
     );
@@ -115,10 +105,19 @@ export default function KpiDetailDashboard() {
     <div className={`global-theme-wrapper theme-dark`}>
       <DataMesh isDarkMode={true} />
       <style dangerouslySetInnerHTML={{ __html: `
-        body { background-color: #020617; overflow-x: hidden; }
+        /* ✨ html, bodyレベルで背景固定して切れ目を完全撲滅！ */
+        html, body { background-color: #020617 !important; margin: 0; padding: 0; min-height: 100vh; overflow-x: hidden; }
         .app-wrapper { padding: 40px; position: relative; z-index: 10; opacity: 0; filter: blur(10px); transition: 0.8s ease; max-width: 1400px; margin: 0 auto; }
         .app-wrapper.ready { opacity: 1; filter: blur(0); }
         
+        /* 🌍 絶対に切れない 200% 背景 */
+        .entrance-bg { position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; z-index: -3; }
+        .gooey-container { position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; z-index: -2; pointer-events: none; opacity: 0.15; filter: blur(80px); }
+        .gooey-blob { position: absolute; border-radius: 50%; background: #38bdf8; width: 40vw; height: 40vw; }
+        .blob-1 { top: 10%; left: 10%; background: #c084fc; animation: float 20s infinite alternate; }
+        .blob-2 { bottom: 10%; right: 10%; background: #38bdf8; animation: float 15s infinite alternate-reverse; }
+        @keyframes float { 0% { transform: translate(0,0); } 100% { transform: translate(10vw, 10vh); } }
+
         .kpi-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
         .btn-back { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; padding: 10px 20px; border-radius: 12px; font-weight: 900; cursor: pointer; transition: 0.3s; }
         .btn-back:hover { background: #38bdf8; color: #fff; transform: translateX(-5px); }
@@ -137,10 +136,10 @@ export default function KpiDetailDashboard() {
         
         .list-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 12px 20px; background: rgba(255,255,255,0.03); border-radius: 12px; }
         .list-label { font-weight: 800; font-size: 14px; color: #38bdf8; }
-        .list-val { font-weight: 900; font-size: 18px; }
+        .list-val { font-weight: 900; font-size: 18px; color: #f8fafc; }
 
         .cross-tab-wrap { overflow-x: auto; margin-top: 20px; }
-        .cross-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .cross-table { width: 100%; border-collapse: collapse; font-size: 13px; color: #f8fafc; }
         .cross-table th { text-align: left; padding: 12px; color: #38bdf8; border-bottom: 2px solid rgba(255,255,255,0.1); white-space: nowrap; }
         .cross-table td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: 700; white-space: nowrap; }
         .cross-table tr:hover { background: rgba(255,255,255,0.02); }
@@ -154,7 +153,7 @@ export default function KpiDetailDashboard() {
       <main className={`app-wrapper ${isReady ? "ready" : ""} time-${timeTheme}`}>
         <header className="kpi-header">
           <button className="btn-back" onClick={() => router.push("/")}>◀ BACK TO HUB</button>
-          <div style={{textAlign: "right"}}>
+          <div style={{textAlign: "right", color: "#f8fafc"}}>
             <h1 style={{fontSize:"24px", fontWeight:900, margin:0, letterSpacing:"2px"}}>KPI COMMAND CENTER</h1>
             <p style={{fontSize:"11px", color:"#94a3b8", fontWeight:800, margin:0}}>SECURE SPREADSHEET SYNC</p>
           </div>
@@ -175,12 +174,12 @@ export default function KpiDetailDashboard() {
                   <path className="ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                   <path className="ring-fill" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                 </svg>
-                <div style={{position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", textAlign:"center"}}>
+                <div style={{position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", textAlign:"center", color: "#f8fafc"}}>
                   <div style={{fontSize:"32px", fontWeight:900}}>{progressPercent}%</div>
                   <div style={{fontSize:"10px", fontWeight:800, color:"#64748b"}}>ACHIEVED</div>
                 </div>
               </div>
-              <div style={{fontSize:"20px", fontWeight:900, marginTop:"10px"}}>{currentStats.total} <span style={{fontSize:"14px", color:"#64748b"}}>/ {currentStats.target}</span></div>
+              <div style={{fontSize:"20px", fontWeight:900, marginTop:"10px", color: "#f8fafc"}}>{currentStats.total} <span style={{fontSize:"14px", color:"#64748b"}}>/ {currentStats.target}</span></div>
               <div style={{fontSize:"11px", color:"#64748b", fontWeight:800}}>TOTAL ACQUISITION</div>
             </div>
 
@@ -202,7 +201,7 @@ export default function KpiDetailDashboard() {
               const maxVal = currentStats.ops[0]?.value || 1;
               const p = Math.min(100, Math.round((op.value / maxVal) * 100));
               return (
-                <div key={i} style={{marginBottom:"20px"}}>
+                <div key={i} style={{marginBottom:"20px", color: "#f8fafc"}}>
                   <div style={{display:"flex", justifySelf:"space-between", fontWeight:900, fontSize:"14px", marginBottom:"8px"}}>
                     <span>{i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "👤"} {op.name}</span>
                     <span style={{marginLeft:"auto"}}>{op.value} <span style={{fontSize:"10px", color:"#64748b"}}>件</span></span>
@@ -242,7 +241,7 @@ export default function KpiDetailDashboard() {
         </div>
         
         {/* 過去実績（ヒストリー） */}
-        <div className="glass-panel" style={{marginTop:"30px"}}>
+        <div className="glass-panel" style={{marginTop:"30px", color: "#f8fafc"}}>
           <h3 style={{fontSize:"12px", fontWeight:900, color:"#94a3b8", letterSpacing:"3px", marginBottom:"20px"}}>PERFORMANCE HISTORY ({data.history.month})</h3>
           <div style={{display:"flex", gap:"10px", overflowX:"auto", paddingBottom:"10px"}}>
             {data.history.stats.map((s:any, i:number) => (
