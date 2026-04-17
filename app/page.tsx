@@ -50,7 +50,7 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, l
   );
 };
 
-// 🌐 案A: ライブ・データメッシュ (Canvas Animation)
+// 🌐 案A: ライブ・データメッシュ (進化した背景アニメーション)
 const DataMesh = ({ isDarkMode }: { isDarkMode: boolean }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
@@ -89,7 +89,6 @@ const DataMesh = ({ isDarkMode }: { isDarkMode: boolean }) => {
         ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(${colorRGB}, 0.8)`; ctx.fill();
 
-        // 互いの距離が近ければ線を引く（データメッシュ効果）
         for (let j = i + 1; j < particleCount; j++) {
           let p2 = particles[j];
           let dist = Math.sqrt(Math.pow(p.x - p2.x, 2) + Math.pow(p.y - p2.y, 2));
@@ -145,7 +144,7 @@ export default function ThemeParkEntrance() {
   const [tempNews, setTempNews] = useState("");
 
   const [greeting, setGreeting] = useState("Hello");
-  const [dynamicBg, setDynamicBg] = useState(""); // 🌅 案D: 状況連動型背景シフト
+  const [dynamicBg, setDynamicBg] = useState("");
 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
@@ -417,19 +416,36 @@ export default function ThemeParkEntrance() {
           .attraction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; perspective: 1200px; align-content: flex-start; }
           .fade-up-element { opacity: 0; transform: translateY(50px) scale(0.95); transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: var(--delay); }
           .fade-up-element.visible { opacity: 1; transform: translateY(0) scale(1); }
+          
           .magic-card-wrapper.visible:hover { transform: translateY(0) scale(1.02); z-index: 10; }
 
-          .magic-card { position: relative; border-radius: 28px; padding: 25px; background: var(--card-bg); backdrop-filter: blur(25px); display: flex; flex-direction: column; gap: 12px; transform-style: preserve-3d; height: 100%; cursor: pointer; box-shadow: var(--card-shadow); }
-          .card-aurora-border { position: absolute; inset: 0; border-radius: 28px; padding: 2px; background: radial-gradient(400px circle at var(--mouse-x, 0) var(--mouse-y, 0), var(--card-hover-border), transparent 40%); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0.2; transition: opacity 0.3s; pointer-events: none; }
+          .magic-card { 
+            position: relative; border-radius: 28px; padding: 25px; 
+            background: var(--card-bg); backdrop-filter: blur(25px); 
+            display: flex; flex-direction: column; gap: 12px; 
+            transform-style: preserve-3d; height: 100%; cursor: pointer;
+            box-shadow: var(--card-shadow);
+          }
+          
+          .card-aurora-border {
+            position: absolute; inset: 0; border-radius: 28px; padding: 2px;
+            background: radial-gradient(400px circle at var(--mouse-x, 0) var(--mouse-y, 0), var(--card-hover-border), transparent 40%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude;
+            opacity: 0.2; transition: opacity 0.3s; pointer-events: none;
+          }
           .magic-card:hover .card-aurora-border { opacity: 1; }
 
           .card-glare { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, transparent 60%); pointer-events: none; z-index: 1; mix-blend-mode: overlay; transition: 0.5s; }
           .theme-dark .card-glare { background: radial-gradient(circle at center, rgba(255,255,255,0.15) 0%, transparent 60%); }
+          
           .card-content-3d { z-index: 2; position: relative; transform: translateZ(30px); transform-style: preserve-3d; display: flex; flex-direction: column; height: 100%; pointer-events: none; }
+          
           .attraction-name { font-size: 10px; color: var(--accent-color); font-weight: 900; letter-spacing: 3px; text-transform: uppercase; }
           .card-title { font-size: 18px; font-weight: 900; color: var(--title-color); margin: 0; line-height: 1.4; letter-spacing: 1px; transition: color 0.3s; }
           .card-desc { font-size: 12px; color: var(--text-sub); margin: 8px 0 0 0; line-height: 1.6; font-weight: 700; transform: translateZ(15px); transition: color 0.3s; flex: 1; }
           .card-custom-inner { margin-top: 15px; transform: translateZ(25px); pointer-events: auto; }
+          
           .badge-new { position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; font-size: 10px; font-weight: 900; padding: 4px 12px; border-radius: 20px; z-index: 3; box-shadow: 0 5px 15px rgba(225,29,72,0.5); letter-spacing: 2px; }
 
           .live-badge { font-size: 10px; font-weight: 900; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; gap: 4px; animation: pulseGreen 2s infinite; }
@@ -441,6 +457,7 @@ export default function ThemeParkEntrance() {
           .kpi-current { font-size: 24px; font-weight: 900; color: #38bdf8; }
           .kpi-target { font-size: 13px; font-weight: 800; color: var(--text-sub); }
           .kpi-bar-bg { width: 100%; height: 8px; background: rgba(0,0,0,0.1); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+          .theme-dark .kpi-bar-bg { background: rgba(255,255,255,0.1); }
           .kpi-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #818cf8); border-radius: 4px; }
 
           .quick-utility { position: fixed; bottom: 40px; right: 40px; z-index: 1000; }
@@ -464,6 +481,12 @@ export default function ThemeParkEntrance() {
           #toast { visibility: hidden; position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px); padding: 16px 32px; background: rgba(15,23,42, 0.95); color: #fde047; border-radius: 30px; font-weight: 900; font-size: 15px; z-index: 2000; opacity: 0; transition: 0.4s; backdrop-filter: blur(20px); border: 2px solid #fde047; box-shadow: 0 20px 50px rgba(0,0,0,0.3); letter-spacing: 1px; }
           #toast.show { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
         `}} />
+
+        {/* 🌟 魔法のSVG背景（不要な場合は削除可ですが、今は流体と重なって綺麗です） */}
+        <svg className="magic-svg-bg" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path className="magic-path" d="M -10,30 Q 30,80 50,50 T 110,40" />
+          <path className="magic-path" d="M -10,70 Q 40,20 70,60 T 110,80" style={{animationDelay: "4s", opacity: 0.5}} />
+        </svg>
 
         <div className="dashboard-inner">
           
