@@ -3,24 +3,41 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// 🌟 3Dパララックス ＆ オーロラボーダー ＆ 流体フロート・カード
+// 🌟 3Dパララックス ＆ オーロラボーダー（✨遅延ゼロの60fps駆動に完全書き換え！）
 const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, liveData, sparkline }: any) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const innerRef = useRef<HTMLDivElement>(null);
+  const glareRef = useRef<HTMLDivElement>(null);
+  const requestRef = useRef<number>();
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!cardRef.current) return;
+    if (!cardRef.current || !innerRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
     const y = e.clientY - rect.top - rect.height / 2;
-    setTilt({ x: -(y / 25), y: x / 25 });
-
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
-    cardRef.current.style.setProperty('--mouse-x', `${mouseX}px`);
-    cardRef.current.style.setProperty('--mouse-y', `${mouseY}px`);
+
+    // ReactのStateを使わず、DOMを直接操作して遅延ゼロ（ヌルヌル）を実現！
+    if (requestRef.current) cancelAnimationFrame(requestRef.current);
+    requestRef.current = requestAnimationFrame(() => {
+      if (innerRef.current) {
+        innerRef.current.style.transform = `perspective(1200px) rotateX(${-(y / 25)}deg) rotateY(${x / 25}deg)`;
+      }
+      if (cardRef.current) {
+        cardRef.current.style.setProperty('--mouse-x', `${mouseX}px`);
+        cardRef.current.style.setProperty('--mouse-y', `${mouseY}px`);
+      }
+      if (glareRef.current) {
+        glareRef.current.style.transform = `translate(${(x / 25) * 4}px, ${-(y / 25) * 4}px)`;
+      }
+    });
   };
-  const handleMouseLeave = () => setTilt({ x: 0, y: 0 });
+
+  const handleMouseLeave = () => {
+    if (requestRef.current) cancelAnimationFrame(requestRef.current);
+    if (innerRef.current) innerRef.current.style.transform = `perspective(1200px) rotateX(0deg) rotateY(0deg)`;
+  };
 
   return (
     <div
@@ -31,7 +48,7 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, l
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
     >
-      <div className="magic-card glitch-hover" style={{ transform: `perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)` }}>
+      <div ref={innerRef} className="magic-card glitch-hover" style={{ transition: "transform 0.1s ease-out" }}>
         <div className="card-aurora-border"></div>
         {/* 📉 マイクロ・チャート（Sparkline） */}
         {sparkline && (
@@ -46,7 +63,7 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, l
             </defs>
           </svg>
         )}
-        <div className="card-glare" style={{ transform: `translate(${tilt.y * 4}px, ${-tilt.x * 4}px)` }} />
+        <div ref={glareRef} className="card-glare" />
         <div className="card-wave-bg"></div>
         <div className="card-content-3d">
           {badge && <span className="badge-new">{badge}</span>}
@@ -120,13 +137,13 @@ const DataMesh = ({ isDarkMode }: { isDarkMode: boolean }) => {
     return () => { window.removeEventListener("resize", resize); cancelAnimationFrame(animationFrameId); };
   }, [isDarkMode]);
 
-  return <canvas ref={canvasRef} style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", zIndex: -2, pointerEvents: "none" }} />;
+  return <canvas ref={canvasRef} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: -2, pointerEvents: "none" }} />;
 };
 
 // 🌊 案C: 流体ダッシュボード用 Gooey バックグラウンド
 const GooeyBackground = () => (
   <>
-    <svg style={{ position: 'fixed', width: 0, height: 0, pointerEvents: 'none' }}>
+    <svg style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }}>
       <filter id="goo">
         <feGaussianBlur in="SourceGraphic" stdDeviation="30" result="blur" />
         <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 30 -15" result="goo" />
@@ -163,6 +180,8 @@ export default function ThemeParkEntrance() {
   const [activeBookmark, setActiveBookmark] = useState<string | null>(null);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  
+  // ⌨️ Cmd+K 検索用ステート
   const [isCmdKOpen, setIsCmdKOpen] = useState(false);
   const [cmdKQuery, setCmdKQuery] = useState("");
 
@@ -177,6 +196,23 @@ export default function ThemeParkEntrance() {
     { id: 'b2', icon: '📞', title: '電話番号一括コピー', copyName: '電話番号一括コピー', copyUrl: 'javascript:(function(){/* 電話番号抽出のスクリプト */ alert("電話番号を抽出しました");})();' },
     { id: 'b3', icon: '🌐', title: 'ネットトス自動入力', copyName: 'ネットトス自動入力', copyUrl: 'javascript:(function(){/* 自動入力のスクリプト */ alert("自動入力しました");})();' }
   ];
+
+  // ✨ Cmd+K の動的リスト
+  const allCmdKLinks = [
+    { id: 'sim', name: "🆚 料金シミュレーターへ移動", url: "/simulator", search: ["sim", "シミュレーター", "料金", "cost"] },
+    { id: 'toss', name: "🌐 ネットトス連携へ移動", url: "/net-toss", search: ["toss", "トス", "ネット", "net"] },
+    { id: 'kraken', name: "🐙 Kraken マニュアルを開く", url: "/procedure-wizard", search: ["kraken", "マニュアル", "手順", "manual"] },
+    { id: 'call', name: "🗓️ 再架電タイムラインを開く", url: "/callback-board", search: ["コール", "再架電", "タイムライン", "call"] },
+    { id: 'area', name: "🗺️ エリア判定ハブを開く", action: () => setIsAreaOpen(true), search: ["エリア", "判定", "area"] },
+    { id: 'memo', name: "🍯 クイックメモを開く", action: () => setIsMemoOpen(true), search: ["メモ", "memo", "クイック"] },
+  ];
+
+  // 入力された文字でリストを絞り込み
+  const filteredCmdKLinks = allCmdKLinks.filter(link => 
+    cmdKQuery === "" || 
+    link.name.toLowerCase().includes(cmdKQuery.toLowerCase()) || 
+    link.search.some(keyword => keyword.includes(cmdKQuery.toLowerCase()))
+  );
 
   useEffect(() => {
     const savedUser = localStorage.getItem("team_portal_user");
@@ -209,9 +245,6 @@ export default function ThemeParkEntrance() {
       document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
     }, justLoggedIn ? 3400 : 200);
 
-    const closeBookmark = () => setActiveBookmark(null);
-    document.addEventListener('click', closeBookmark);
-    
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
@@ -224,7 +257,6 @@ export default function ThemeParkEntrance() {
       if (welcomeTimeout) clearTimeout(welcomeTimeout);
       if (readyTimeout) clearTimeout(readyTimeout);
       clearTimeout(observerTimer); 
-      document.removeEventListener('click', closeBookmark);
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
@@ -296,17 +328,21 @@ export default function ThemeParkEntrance() {
   const handleClearMemo = () => { if(confirm("メモをクリアしますか？")){ setMemoText(""); localStorage.removeItem("team_portal_quick_memo"); } };
   const copyUtilResult = async () => { if (utilResult.includes("📍")) { try { await navigator.clipboard.writeText(utilResult.replace("📍 ", "")); showToast("📋 住所をコピーしました！"); } catch (err) { alert("コピー失敗"); } } };
 
+  // ✨ Cmd+K 検索実行ロジック（エンターキーを押した時に一番上の候補を実行）
   const handleCmdKSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    const query = cmdKQuery.toLowerCase();
-    if(query.includes("sim") || query.includes("シミュ")) { router.push("/simulator"); }
-    else if(query.includes("トス") || query.includes("toss")) { router.push("/net-toss"); }
-    else if(query.includes("コール") || query.includes("再架電") || query.includes("タイムライン")) { router.push("/callback-board"); }
-    else if(query.includes("エリア") || query.includes("判定") || query.includes("area")) { setIsAreaOpen(true); }
-    else if(query.includes("kraken") || query.includes("マニュアル") || query.includes("手順")) { router.push("/procedure-wizard"); }
-    else { showToast("該当する機能が見つかりません"); }
-    setIsCmdKOpen(false);
-    setCmdKQuery("");
+    if (filteredCmdKLinks.length > 0) {
+      const topLink = filteredCmdKLinks[0];
+      if (topLink.url) {
+        router.push(topLink.url);
+      } else if (topLink.action) {
+        topLink.action();
+      }
+      setIsCmdKOpen(false);
+      setCmdKQuery("");
+    } else {
+      showToast("該当する機能が見つかりません");
+    }
   };
 
   const openAreaSite = async (url: string, type: 'east' | 'west' | 'other') => {
@@ -326,7 +362,8 @@ export default function ThemeParkEntrance() {
   const welcomeChars = welcomeTextRaw.split("");
 
   return (
-    <div className={`global-theme-wrapper ${isDarkMode ? "theme-dark" : "theme-light"}`}>
+    // ✨ ここをクリックするとブックマークが閉じる！ネイティブイベントとの干渉を完全排除！
+    <div className={`global-theme-wrapper ${isDarkMode ? "theme-dark" : "theme-light"}`} onClick={() => setActiveBookmark(null)}>
       
       {showMacWelcome && (
         <div className={`mac-welcome-overlay dark-fix-welcome`}>
@@ -350,15 +387,20 @@ export default function ThemeParkEntrance() {
           </form>
           <div className="cmdk-list">
             <div className="cmdk-label">Quick Links</div>
-            <div className="cmdk-item" onClick={() => { router.push("/simulator"); setIsCmdKOpen(false); }}>🆚 料金シミュレーターへ移動</div>
-            <div className="cmdk-item" onClick={() => { router.push("/net-toss"); setIsCmdKOpen(false); }}>🌐 ネットトス連携へ移動</div>
-            <div className="cmdk-item" onClick={() => { router.push("/procedure-wizard"); setIsCmdKOpen(false); }}>🐙 Kraken マニュアルを開く</div>
-            <div className="cmdk-item" onClick={() => { router.push("/callback-board"); setIsCmdKOpen(false); }}>🗓️ 再架電タイムラインを開く</div>
-            <div className="cmdk-item" onClick={() => { setIsAreaOpen(true); setIsCmdKOpen(false); }}>🗺️ エリア判定ハブを開く</div>
+            {filteredCmdKLinks.length > 0 ? (
+              filteredCmdKLinks.map(link => (
+                <div key={link.id} className="cmdk-item" onClick={() => { if(link.url) router.push(link.url); else if(link.action) link.action(); setIsCmdKOpen(false); setCmdKQuery(""); }}>
+                  {link.name}
+                </div>
+              ))
+            ) : (
+              <div style={{fontSize: "13px", color: "var(--text-sub)", padding: "10px"}}>一致する機能がありません</div>
+            )}
           </div>
         </div>
       </div>
 
+      {/* 🌍 背景要素を上下左右に20%拡張（140vw / 140vh）し、バウンドスクロールの切れ目を完全に撲滅！！ */}
       <div className={`entrance-bg`} style={{ background: dynamicBg || "var(--bg-gradient)", transition: "background 2s ease" }}>
         <DataMesh isDarkMode={isDarkMode} />
       </div>
@@ -368,9 +410,11 @@ export default function ThemeParkEntrance() {
         <path className="magic-path" d="M -10,70 Q 40,20 70,60 T 110,80" style={{animationDelay: "4s", opacity: 0.5}} />
       </svg>
 
-      <main className={`app-wrapper ${isReady ? "ready" : ""}`} onClick={() => setActiveBookmark(null)}>
+      <main className={`app-wrapper ${isReady ? "ready" : ""}`}>
         
         <style dangerouslySetInnerHTML={{ __html: `
+          /* ✨ 背景の切れ目を完全排除する CSS の神髄 */
+          body { background-color: #020617; }
           .global-theme-wrapper * { box-sizing: border-box; }
           .global-theme-wrapper { width: 100%; min-height: 100vh; position: relative; overflow-x: clip; color: var(--text-main); transition: color 0.5s; font-family: 'Inter', 'Noto Sans JP', sans-serif; }
 
@@ -410,16 +454,17 @@ export default function ThemeParkEntrance() {
           }
           .app-wrapper.ready { opacity: 1; visibility: visible; filter: blur(0); transform: scale(1); }
           
-          .entrance-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -3; transition: background 2s ease; }
-          .gooey-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; pointer-events: none; filter: url(#goo); opacity: 0.4; overflow: hidden; }
+          /* ✨ 背景切れ防止！140%に拡張してバウンドしても見えないようにする */
+          .entrance-bg { position: fixed; top: -20vh; left: -20vw; width: 140vw; height: 140vh; z-index: -3; transition: background 2s ease; }
+          .gooey-container { position: fixed; top: -20vh; left: -20vw; width: 140vw; height: 140vh; z-index: -2; pointer-events: none; filter: url(#goo); opacity: 0.4; overflow: hidden; }
           .theme-dark .gooey-container { opacity: 0.15; }
           .gooey-blob { position: absolute; border-radius: 50%; background: var(--accent-color); filter: blur(20px); }
-          .blob-1 { width: 300px; height: 300px; top: 20%; left: 20%; animation: floatBlob 15s ease-in-out infinite alternate; }
-          .blob-2 { width: 400px; height: 400px; top: 50%; right: 10%; animation: floatBlob 20s ease-in-out infinite alternate-reverse; background: #8b5cf6; }
-          .blob-3 { width: 250px; height: 250px; bottom: 10%; left: 40%; animation: floatBlob 12s ease-in-out infinite alternate; background: #38bdf8; }
-          @keyframes floatBlob { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(150px, 100px) scale(1.2); } }
+          .blob-1 { width: 60vw; height: 60vw; top: 20%; left: 20%; animation: floatBlob 15s ease-in-out infinite alternate; }
+          .blob-2 { width: 70vw; height: 70vw; top: 50%; right: 10%; animation: floatBlob 20s ease-in-out infinite alternate-reverse; background: #8b5cf6; }
+          .blob-3 { width: 50vw; height: 50vw; bottom: 10%; left: 40%; animation: floatBlob 12s ease-in-out infinite alternate; background: #38bdf8; }
+          @keyframes floatBlob { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(100px, 100px) scale(1.2); } }
 
-          .magic-svg-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; opacity: 0.7; }
+          .magic-svg-bg { position: fixed; top: -20vh; left: -20vw; width: 140vw; height: 140vh; z-index: -1; pointer-events: none; opacity: 0.7; }
           .magic-path { fill: none; stroke: var(--svg-color); stroke-width: 3; stroke-dasharray: 3000; stroke-dashoffset: 3000; animation: drawMagic 10s ease-in-out infinite alternate; transition: stroke 0.5s; }
           @keyframes drawMagic { 0% { stroke-dashoffset: 3000; } 100% { stroke-dashoffset: 0; } }
 
@@ -490,7 +535,7 @@ export default function ThemeParkEntrance() {
           .news-text { display: inline-block; padding-left: 100%; animation: marquee 30s linear infinite; font-weight: 800; color: var(--text-main); font-size: 15px; letter-spacing: 1px; }
           @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
-          /* ✨ 3カラムレイアウト */
+          /* ✨ 3カラムレイアウト（左：サイド、中：グリッド、右：タイムライン） */
           .main-layout { display: flex; gap: 25px; margin-bottom: 50px; align-items: flex-start; justify-content: center; }
           .info-sidebar-wrapper { width: 280px; flex-shrink: 0; transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s; overflow: visible; position: relative; z-index: 50; }
           .info-sidebar-wrapper.collapsed { width: 0px; opacity: 0; pointer-events: none; overflow: hidden; }
@@ -511,7 +556,7 @@ export default function ThemeParkEntrance() {
           .sidebar-toggle-btn { position: absolute; top: -35px; left: 0; background: transparent; border: none; color: var(--text-sub); font-weight: 900; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 5px; opacity: 0.6; transition: 0.2s; letter-spacing: 1px; text-transform: uppercase; z-index: 60; }
           .sidebar-toggle-btn:hover { opacity: 1; color: var(--accent-color); }
 
-          /* ✨ チームチャット完全撤去・ブックマーク管理のスタイル */
+          /* ✨ チームチャットを消去し、ブックマークを自然に広げる */
           .info-sidebar { display: flex; flex-direction: column; gap: 20px; height: 100%; }
           .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 18px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; }
           .info-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
@@ -521,6 +566,7 @@ export default function ThemeParkEntrance() {
           .script-box:hover { border-color: var(--card-hover-border); transform: translateX(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
           .script-title { font-weight: 900; font-size: 11px; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
 
+          /* ✨ ブックマークのポップオーバー（z-index強化で確実に手前に表示！） */
           .bookmark-popover { position: absolute; top: 50%; left: calc(100% + 15px); transform: translateY(-50%) scale(0.9); transform-origin: left center; background: var(--modal-bg); backdrop-filter: blur(30px); border: 1px solid var(--card-hover-border); border-radius: 16px; padding: 12px; width: 260px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); z-index: 9999; opacity: 0; animation: popoverIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; display: flex; flex-direction: column; gap: 8px; pointer-events: auto; }
           .theme-dark .bookmark-popover { box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
           .bookmark-popover::before { content: ''; position: absolute; top: 50%; left: -6px; transform: translateY(-50%) rotate(45deg); width: 12px; height: 12px; background: var(--modal-bg); border-bottom: 1px solid var(--card-hover-border); border-left: 1px solid var(--card-hover-border); }
@@ -585,6 +631,7 @@ export default function ThemeParkEntrance() {
           .util-input:focus { border-color: var(--card-hover-border); }
           .util-result { margin-top: 15px; font-size: 14px; color: var(--text-main); background: var(--kpi-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--card-border); font-weight: 900; transition: 0.3s; cursor: pointer; }
 
+          /* ✨ Cmd+K モーダル（検索入力） */
           .cmdk-modal { width: 600px; padding: 25px; top: 15%; transform: translateY(-20px) scale(0.95); position: absolute; }
           .modal-overlay.open .cmdk-modal { transform: translateY(0) scale(1); }
           .cmdk-input { width: 100%; border: none; background: transparent; font-size: 20px; font-weight: 800; color: var(--text-main); outline: none; }
@@ -672,7 +719,6 @@ export default function ThemeParkEntrance() {
               <button className="sidebar-toggle-btn" onClick={() => setIsSidebarOpen(false)}>◀ 隠す</button>
               
               <aside className="info-sidebar">
-                {/* flex: 1 を当ててパネルを美しく伸ばす */}
                 <div className="info-panel fade-up-element" style={{ "--delay": `${animDelayOffset + 0.5}s`, flex: 1 } as any}>
                   <h3 className="info-title">📋 CallTree & ブックマーク管理</h3>
                   <div style={{ fontSize: "11px", color: "var(--text-sub)", fontWeight: 800, marginBottom: "12px", lineHeight: 1.4 }}>
@@ -752,7 +798,7 @@ export default function ThemeParkEntrance() {
               </MagicCard>
             </div>
 
-            {/* ✨ 完璧に維持されている再架電タイムライン */}
+            {/* ✨ 完璧に維持されている再架電タイムライン（右カラム） */}
             <div className="timeline-sidebar-wrapper fade-up-element" style={{ "--delay": `${animDelayOffset + 0.6}s` } as any}>
               <aside className="timeline-sidebar">
                 <div className="timeline-header">
