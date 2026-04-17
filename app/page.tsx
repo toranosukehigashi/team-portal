@@ -157,10 +157,21 @@ export default function ThemeParkEntrance() {
     const savedUser = localStorage.getItem("team_portal_user");
     if (savedUser) { setUserName(savedUser); if (savedUser.toLowerCase().trim().includes("toranosuke.higashi")) setIsAdmin(true); }
     
-    if (sessionStorage.getItem("just_logged_in") === "true") {
+    // ✨ 「チラつき」排除！getSessionStorageの値でWelcome画面の有無を判定
+    const justLoggedIn = sessionStorage.getItem("just_logged_in") === "true";
+    let welcomeTimeout: NodeJS.Timeout | null = null;
+    let readyTimeout: NodeJS.Timeout | null = null;
+
+    if (justLoggedIn) {
       setShowMacWelcome(true);
       sessionStorage.removeItem("just_logged_in");
-      setTimeout(() => setShowMacWelcome(false), 3000); 
+      welcomeTimeout = setTimeout(() => setShowMacWelcome(false), 3000); 
+      
+      // ✨ HOME画面の表示（Ready）タイミングを、Welcomeのアニメーションフェードアウト（2.6s+0.6s）に完璧に合わせる！
+      readyTimeout = setTimeout(() => setIsReady(true), 3200); 
+    } else {
+      // ログイン直後でない場合は、即座にReady（表示）にする
+      setIsReady(true);
     }
 
     const savedMemo = localStorage.getItem("team_portal_quick_memo"); if (savedMemo) setMemoText(savedMemo);
@@ -171,20 +182,23 @@ export default function ThemeParkEntrance() {
     const handleStorageChange = (e: StorageEvent) => { if (e.key === "team_portal_chat_history") loadChat(); };
     window.addEventListener("storage", handleStorageChange);
     
-    setIsReady(true);
-
-    // ✨ 要素が表示されないバグを完全解消！（0.15秒だけ待ってから確実にアニメーションを発動）
-    const timer = setTimeout(() => {
+    // ✨ Observerのアニメーション発動タイマーを、Ready（表示）になるタイミング（最短0.15s、Welcomeありなら3.2s）に同期
+    const observerTimer = setTimeout(() => {
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("visible"); });
       }, { threshold: 0.05, rootMargin: "0px 0px 50px 0px" });
       document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
-    }, 150);
+    }, justLoggedIn ? 3200 : 150);
     
-    return () => { clearTimeout(timer); window.removeEventListener("storage", handleStorageChange); };
-  }, []);
+    return () => { 
+      if (welcomeTimeout) clearTimeout(welcomeTimeout);
+      if (readyTimeout) clearTimeout(readyTimeout);
+      clearTimeout(observerTimer); 
+      window.removeEventListener("storage", handleStorageChange); 
+    };
+  }, []); // 🌅 案Dの useEffect と依存関係を切り離す
 
-  // 🌅 案D: 時間帯に応じた背景色と挨拶の自動変更
+  // 🌅 案D: 時間帯に応じた背景色と挨拶の自動変更（ Ready（表示）された後、テーマチェンジ時に再計算 ）
   useEffect(() => {
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 12) {
@@ -267,12 +281,13 @@ export default function ThemeParkEntrance() {
 
   return (
     <>
+      {/* 🍎 Mac風「ようこそ」アニメーション（完全色固定：文字白・背景黒！） */}
       {showMacWelcome && (
-        <div className={`mac-welcome-overlay ${isDarkMode ? "dark-welcome" : "light-welcome"}`}>
+        <div className={`mac-welcome-overlay dark-fix-welcome`}>
           <div className="mac-welcome-text-container">
             {welcomeChars.map((char, i) => (
               <span key={i} className="welcome-char-wrapper">
-                <span className="welcome-kinetic-char" style={{ animationDelay: `${i * 0.04}s` }}>{char === " " ? "\u00A0" : char}</span>
+                <span className="welcome-kinetic-char white-fix-char" style={{ animationDelay: `${i * 0.04}s` }}>{char === " " ? "\u00A0" : char}</span>
               </span>
             ))}
           </div>
@@ -280,6 +295,7 @@ export default function ThemeParkEntrance() {
       )}
 
       {/* ✨ スライム背景やデータメッシュをテーマクラスの「内側」に入れることで、真っ黒になるバグを完全解消！ */}
+      {/* ✨ 「チラつき」排除！Readyクラスで完全に表示/非表示を切り替え、フェードイン！ */}
       <main className={`app-wrapper ${isReady ? "ready" : ""} ${isDarkMode ? "theme-dark" : "theme-light"}`}>
         
         {/* 🌅 案D: 状況連動型背景 */}
@@ -295,13 +311,15 @@ export default function ThemeParkEntrance() {
           .app-wrapper * { box-sizing: border-box; }
 
           .mac-welcome-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999; display: flex; align-items: center; justify-content: center; animation: macFadeOut 0.6s cubic-bezier(0.8, 0, 0.2, 1) 2.6s forwards; }
-          .mac-welcome-overlay.dark-welcome { background: #000000; }
-          .mac-welcome-overlay.light-welcome { background: #ffffff; }
+          
+          /* ✨ Mac風ウェルカムを漆黒・白文字に完全固定！ */
+          .mac-welcome-overlay.dark-fix-welcome { background: #000000; }
+          .welcome-kinetic-char.white-fix-char { color: #ffffff; }
+          
           .mac-welcome-text-container { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 300; letter-spacing: 0.05em; display: flex; justify-content: center; flex-wrap: wrap; }
           .welcome-char-wrapper { display: inline-block; overflow: hidden; vertical-align: bottom; line-height: 1.2; padding-bottom: 5px; margin-bottom: -5px; }
           .welcome-kinetic-char { display: inline-block; transform: translateY(100%); opacity: 0; animation: slideUpWelcomeChar 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
-          .mac-welcome-overlay.dark-welcome .welcome-kinetic-char { color: #ffffff; }
-          .mac-welcome-overlay.light-welcome .welcome-kinetic-char { color: #000000; }
+          
           @keyframes slideUpWelcomeChar { to { transform: translateY(0); opacity: 1; } }
           @keyframes macFadeOut { to { opacity: 0; visibility: hidden; } }
 
@@ -325,7 +343,10 @@ export default function ThemeParkEntrance() {
             --input-bg: rgba(0, 0, 0, 0.4); --svg-color: rgba(255, 255, 255, 0.4); 
           }
 
-          .app-wrapper { min-height: 100vh; padding: 20px; font-family: 'Inter', 'Noto Sans JP', sans-serif; overflow-x: hidden; position: relative; color: var(--text-main); transition: color 0.5s; z-index: 1; }
+          /* ✨ 「チラつき」排除！Readyクラスで完全に表示/非表示を切り替え、フェードイン！ */
+          .app-wrapper { min-height: 100vh; padding: 20px; font-family: 'Inter', 'Noto Sans JP', sans-serif; overflow-x: hidden; position: relative; color: var(--text-main); z-index: 1; opacity: 0; visibility: hidden; transition: color 0.5s, opacity 0.5s, visibility 0.5s; }
+          .app-wrapper.ready { opacity: 1; visibility: visible; }
+          
           .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -3; transition: background 2s ease; }
 
           /* 🌊 案C: 流体ダッシュボード Gooey エフェクト */
@@ -355,7 +376,11 @@ export default function ThemeParkEntrance() {
           .dashboard-inner { max-width: 1200px; margin: 0 auto; position: relative; z-index: 10; }
           
           .context-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 15px; }
-          .context-greeting { font-size: 20px; font-weight: 900; color: var(--title-color); letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+          
+          /* ✨ 挨拶テキストに強い「黒い縁取り（text-shadow）」を追加し、どんな背景でもくっきり読めるように修正！ */
+          .context-greeting { font-size: 20px; font-weight: 900; color: var(--title-color); letter-spacing: 1px; display: flex; align-items: center; gap: 10px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); }
+          .context-greeting span { text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); }
+
           .context-ticker { background: var(--card-bg); backdrop-filter: blur(15px); padding: 8px 20px; border-radius: 30px; border: 1px solid var(--card-border); font-size: 12px; font-weight: 800; color: var(--text-main); display: flex; gap: 15px; box-shadow: var(--card-shadow); }
           .ticker-item { display: flex; align-items: center; gap: 6px; }
           .ticker-divider { width: 4px; height: 4px; background: var(--card-hover-border); border-radius: 50%; opacity: 0.5; }
@@ -460,7 +485,7 @@ export default function ThemeParkEntrance() {
 
           .live-badge { font-size: 10px; font-weight: 900; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; gap: 4px; animation: pulseGreen 2s infinite; }
           .live-badge::before { content:''; width:6px; height:6px; background:#10b981; border-radius:50%; }
-          @keyframes pulseGreen { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+          @keyframes pulseGreen { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); なぜ } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
 
           .kpi-widget { background: var(--kpi-bg); padding: 12px; border-radius: 16px; border: 1px solid var(--card-border); transition: 0.5s; pointer-events: auto; }
           .kpi-numbers { display: flex; align-items: baseline; gap: 5px; margin-bottom: 6px; }
@@ -496,6 +521,7 @@ export default function ThemeParkEntrance() {
           
           {/* ☀️ コンテキスト・ヘッダー */}
           <div className="context-header fade-up-element" style={{ "--delay": "0s" } as any}>
+            {/* ✨ 挨拶テキスト（text-shadowを追加） */}
             <div className="context-greeting">
               {greeting}, <span style={{ color: "var(--accent-color)" }}>{userName}</span>.
             </div>
