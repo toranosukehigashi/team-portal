@@ -63,7 +63,7 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, l
   );
 };
 
-// 🌐 案A: ライブ・データメッシュ (Canvas Animation)
+// 🌐 案A: ライブ・データメッシュ
 const DataMesh = ({ isDarkMode }: { isDarkMode: boolean }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
@@ -141,8 +141,6 @@ const GooeyBackground = () => (
   </>
 );
 
-interface ChatMessage { id: string; user: string; text: string; time: string; }
-
 export default function ThemeParkEntrance() {
   const router = useRouter();
   const [toast, setToast] = useState({ show: false, msg: "" });
@@ -160,10 +158,6 @@ export default function ThemeParkEntrance() {
 
   const [greeting, setGreeting] = useState("Hello");
   const [dynamicBg, setDynamicBg] = useState("");
-
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [chatInput, setChatInput] = useState("");
-  const chatScrollRef = useRef<HTMLDivElement>(null);
 
   const [animDelayOffset, setAnimDelayOffset] = useState(0.2);
   const [activeBookmark, setActiveBookmark] = useState<string | null>(null);
@@ -208,11 +202,6 @@ export default function ThemeParkEntrance() {
     const savedMemo = localStorage.getItem("team_portal_quick_memo"); if (savedMemo) setMemoText(savedMemo);
     const savedNews = localStorage.getItem("team_portal_news"); if (savedNews) setNewsText(savedNews);
     
-    const loadChat = () => { const savedChat = localStorage.getItem("team_portal_chat_history"); if (savedChat) setChatMessages(JSON.parse(savedChat)); };
-    loadChat();
-    const handleStorageChange = (e: StorageEvent) => { if (e.key === "team_portal_chat_history") loadChat(); };
-    window.addEventListener("storage", handleStorageChange);
-    
     const observerTimer = setTimeout(() => {
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("visible"); });
@@ -235,7 +224,6 @@ export default function ThemeParkEntrance() {
       if (welcomeTimeout) clearTimeout(welcomeTimeout);
       if (readyTimeout) clearTimeout(readyTimeout);
       clearTimeout(observerTimer); 
-      window.removeEventListener("storage", handleStorageChange); 
       document.removeEventListener('click', closeBookmark);
       window.removeEventListener('keydown', handleKeyDown);
     };
@@ -257,18 +245,6 @@ export default function ThemeParkEntrance() {
       setDynamicBg(isDarkMode ? "radial-gradient(ellipse at bottom, #1e1b4b 0%, #020617 100%)" : "linear-gradient(135deg, #312e81, #1e1b4b)");
     }
   }, [isDarkMode]);
-
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!chatInput.trim()) return;
-    const newMessage: ChatMessage = { id: Date.now().toString(), user: userName, text: chatInput.trim(), time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
-    const updatedMessages = [...chatMessages, newMessage].slice(-50);
-    setChatMessages(updatedMessages);
-    localStorage.setItem("team_portal_chat_history", JSON.stringify(updatedMessages));
-    setChatInput("");
-  };
-
-  useEffect(() => { if (chatScrollRef.current) chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight; }, [chatMessages]);
 
   const toggleTheme = () => { const newTheme = !isDarkMode; setIsDarkMode(newTheme); showToast(newTheme ? "🌙 ダークモードに切り替えました" : "☀️ ライトモードに切り替えました"); };
 
@@ -320,7 +296,6 @@ export default function ThemeParkEntrance() {
   const handleClearMemo = () => { if(confirm("メモをクリアしますか？")){ setMemoText(""); localStorage.removeItem("team_portal_quick_memo"); } };
   const copyUtilResult = async () => { if (utilResult.includes("📍")) { try { await navigator.clipboard.writeText(utilResult.replace("📍 ", "")); showToast("📋 住所をコピーしました！"); } catch (err) { alert("コピー失敗"); } } };
 
-  // ✨ Cmd+K 検索ロジック（Krakenマニュアル等に正しく対応）
   const handleCmdKSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const query = cmdKQuery.toLowerCase();
@@ -536,6 +511,7 @@ export default function ThemeParkEntrance() {
           .sidebar-toggle-btn { position: absolute; top: -35px; left: 0; background: transparent; border: none; color: var(--text-sub); font-weight: 900; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 5px; opacity: 0.6; transition: 0.2s; letter-spacing: 1px; text-transform: uppercase; z-index: 60; }
           .sidebar-toggle-btn:hover { opacity: 1; color: var(--accent-color); }
 
+          /* ✨ チームチャットを消去し、ブックマークを自然に広げる */
           .info-sidebar { display: flex; flex-direction: column; gap: 20px; }
           .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 18px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; }
           .info-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
@@ -565,23 +541,6 @@ export default function ThemeParkEntrance() {
           .popover-text { font-size: 11px; font-weight: 800; color: var(--text-main); flex: 1; margin: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
           .popover-copy-icon { font-size: 12px; opacity: 0.6; transition: 0.2s; }
           .popover-row:hover .popover-copy-icon { opacity: 1; color: var(--accent-color); transform: scale(1.1); }
-
-          .chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px; padding-right: 5px; height: 250px; }
-          .chat-messages::-webkit-scrollbar { width: 4px; }
-          .chat-messages::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 4px; }
-          .chat-bubble-wrap { display: flex; flex-direction: column; max-width: 90%; }
-          .chat-bubble-wrap.me { align-self: flex-end; align-items: flex-end; }
-          .chat-bubble-wrap.other { align-self: flex-start; align-items: flex-start; }
-          .chat-user { font-size: 10px; color: var(--text-sub); font-weight: 800; margin-bottom: 4px; margin-left: 6px; }
-          .chat-bubble { padding: 10px 14px; border-radius: 16px; display: flex; align-items: flex-end; gap: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-          .me .chat-bubble { background: linear-gradient(135deg, #0ea5e9, #3b82f6); color: #fff; border-bottom-right-radius: 4px; }
-          .other .chat-bubble { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--input-border); border-bottom-left-radius: 4px; }
-          .chat-text { font-size: 13px; font-weight: 700; line-height: 1.5; word-break: break-word; }
-          .chat-time { font-size: 9px; opacity: 0.8; font-weight: 800; white-space: nowrap; margin-bottom: -2px; }
-          .chat-input-area { display: flex; gap: 8px; margin-top: auto; }
-          .chat-input { flex: 1; padding: 12px 16px; border-radius: 20px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-main); font-size: 13px; font-weight: 700; outline: none; transition: 0.3s; }
-          .chat-input:focus { border-color: var(--card-hover-border); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); }
-          .chat-send-btn { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #0ea5e9, #3b82f6); color: #fff; border: none; font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.3); flex-shrink: 0; }
 
           .attraction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; perspective: 1200px; align-content: flex-start; flex: 1; width: 100%; transition: 0.4s; }
           .fade-up-element { opacity: 0; transform: translateY(50px) scale(0.95); transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: var(--delay); }
@@ -625,6 +584,15 @@ export default function ThemeParkEntrance() {
           .util-input { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid var(--card-border); font-size: 15px; outline: none; background: var(--input-bg); font-weight: 800; color: var(--text-main); transition: 0.3s; }
           .util-input:focus { border-color: var(--card-hover-border); }
           .util-result { margin-top: 15px; font-size: 14px; color: var(--text-main); background: var(--kpi-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--card-border); font-weight: 900; transition: 0.3s; cursor: pointer; }
+
+          .cmdk-modal { width: 600px; padding: 25px; top: 15%; transform: translateY(-20px) scale(0.95); position: absolute; }
+          .modal-overlay.open .cmdk-modal { transform: translateY(0) scale(1); }
+          .cmdk-input { width: 100%; border: none; background: transparent; font-size: 20px; font-weight: 800; color: var(--text-main); outline: none; }
+          .cmdk-esc { font-size: 10px; font-weight: 900; background: var(--card-border); padding: 4px 8px; border-radius: 6px; cursor: pointer; }
+          .cmdk-list { display: flex; flex-direction: column; gap: 8px; }
+          .cmdk-label { font-size: 11px; font-weight: 900; color: var(--text-sub); margin-top: 10px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+          .cmdk-item { padding: 12px 15px; border-radius: 10px; font-weight: 800; font-size: 14px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; }
+          .cmdk-item:hover { background: var(--accent-color); color: #fff; transform: translateX(5px); }
 
           /* エリア判定ボタン用 */
           .area-btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
@@ -703,7 +671,7 @@ export default function ThemeParkEntrance() {
               <button className="sidebar-toggle-btn" onClick={() => setIsSidebarOpen(false)}>◀ 隠す</button>
               
               <aside className="info-sidebar">
-                <div className="info-panel fade-up-element" style={{ "--delay": `${animDelayOffset + 0.5}s` } as any}>
+                <div className="info-panel fade-up-element" style={{ "--delay": `${animDelayOffset + 0.5}s`, flex: 1 } as any}>
                   <h3 className="info-title">📋 CallTree & ブックマーク管理</h3>
                   <div style={{ fontSize: "11px", color: "var(--text-sub)", fontWeight: 800, marginBottom: "12px", lineHeight: 1.4 }}>
                     クリックして、コピーしたい内容を選択してください。
@@ -735,33 +703,6 @@ export default function ThemeParkEntrance() {
                     </div>
                   ))}
                 </div>
-
-                <div className="info-panel fade-up-element" style={{ "--delay": `${animDelayOffset + 0.6}s`, flex: 1, paddingBottom: "20px" } as any}>
-                  <h3 className="info-title">💬 チーム内ミニチャット</h3>
-                  <div className="chat-messages" ref={chatScrollRef}>
-                    {chatMessages.length === 0 ? (
-                      <div style={{ textAlign: "center", color: "var(--text-sub)", fontSize: "12px", marginTop: "20px", fontWeight: 800 }}>メッセージはありません</div>
-                    ) : (
-                      chatMessages.map(msg => {
-                        const isMe = msg.user === userName;
-                        return (
-                          <div key={msg.id} className={`chat-bubble-wrap ${isMe ? "me" : "other"}`}>
-                            {!isMe && <div className="chat-user">{msg.user}</div>}
-                            <div className="chat-bubble">
-                              <div className="chat-text">{msg.text}</div>
-                              <div className="chat-time">{msg.time}</div>
-                            </div>
-                          </div>
-                        )
-                      })
-                    )}
-                  </div>
-
-                  <form className="chat-input-area" onSubmit={handleSendMessage}>
-                    <input type="text" className="chat-input" placeholder="メッセージ..." value={chatInput} onChange={(e) => setChatInput(e.target.value)} />
-                    <button type="submit" className="chat-send-btn btn-hover-shine">➤</button>
-                  </form>
-                </div>
               </aside>
             </div>
 
@@ -789,7 +730,6 @@ export default function ThemeParkEntrance() {
               <MagicCard delay={animDelayOffset + 0.9} attraction="SMS KRAKEN" title="📱 SMS 送信" desc="Krakenを用いたSMS送信とテンプレート展開。" liveData="System Active" onClick={() => router.push("/sms-kraken")} />
               <MagicCard delay={animDelayOffset + 1.0} attraction="EMAIL TEMPLATE" title="✉️ メールテンプレ" desc="用途に応じたメール文面を素早く作成。" onClick={() => router.push("/email-template")} />
               
-              {/* ✨ 完全復活！Krakenマニュアルカード */}
               <MagicCard delay={animDelayOffset + 1.1} attraction="KRAKEN MANUAL" title="🐙 Kraken マニュアル" badge="NEW" desc="手続きに必要な情報を入力しフォーマット生成。" onClick={() => router.push("/procedure-wizard")} />
               
               <MagicCard delay={animDelayOffset + 1.2} attraction="COST SIMULATOR" title="🆚 料金シミュレーター" badge="NEW" desc="利用状況から乗り換え節約額を即座に算出します。" liveData="Avg. ¥4,200/mo" onClick={() => router.push("/simulator")} />
@@ -805,7 +745,6 @@ export default function ThemeParkEntrance() {
               </MagicCard>
             </div>
 
-            {/* ✨ タイムラインを右端に設置 */}
             <div className="timeline-sidebar-wrapper fade-up-element" style={{ "--delay": `${animDelayOffset + 0.6}s` } as any}>
               <aside className="timeline-sidebar">
                 <div className="timeline-header">
