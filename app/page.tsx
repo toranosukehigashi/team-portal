@@ -3,8 +3,30 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// 🌟 3Dパララックス ＆ クリップパスマスク・カード
-const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children }: any) => {
+// 🧲 マグネティック（磁力）ボタンコンポーネント (エラー修正済！)
+const MagneticButton = ({ children, className, onClick, style }: { children: React.ReactNode, className?: string, onClick?: () => void, style?: React.CSSProperties }) => {
+  const btnRef = useRef<HTMLButtonElement>(null);
+  
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!btnRef.current) return;
+    const rect = btnRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left - rect.width / 2) * 0.4;
+    const y = (e.clientY - rect.top - rect.height / 2) * 0.4;
+    btnRef.current.style.transform = `translate(${x}px, ${y}px)`;
+  };
+  const handleMouseLeave = () => {
+    if (btnRef.current) btnRef.current.style.transform = `translate(0px, 0px)`;
+  };
+
+  return (
+    <button ref={btnRef} className={`magnetic-btn ${className || ""}`} onClick={onClick} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} style={style}>
+      {children}
+    </button>
+  );
+};
+
+// 🌟 3Dパララックス ＆ オーロラボーダー・カード
+const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, liveData }: any) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
@@ -14,6 +36,12 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children }:
     const x = e.clientX - rect.left - rect.width / 2;
     const y = e.clientY - rect.top - rect.height / 2;
     setTilt({ x: -(y / 25), y: x / 25 });
+
+    // ✨ マウス座標をCSS変数に渡す（オーロラボーダー用）
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    cardRef.current.style.setProperty('--mouse-x', `${mouseX}px`);
+    cardRef.current.style.setProperty('--mouse-y', `${mouseY}px`);
   };
   const handleMouseLeave = () => setTilt({ x: 0, y: 0 });
 
@@ -27,11 +55,16 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children }:
       onClick={onClick}
     >
       <div className="magic-card" style={{ transform: `perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)` }}>
+        <div className="card-aurora-border"></div> {/* オーロラボーダー */}
         <div className="card-glare" style={{ transform: `translate(${tilt.y * 4}px, ${-tilt.x * 4}px)` }} />
         <div className="card-wave-bg"></div>
         <div className="card-content-3d">
           {badge && <span className="badge-new">{badge}</span>}
-          <div className="attraction-name">{attraction}</div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+            <div className="attraction-name">{attraction}</div>
+            {/* 📊 ライブウィジェットのミニバッジ */}
+            {liveData && <div className="live-badge">{liveData}</div>}
+          </div>
           <h2 className="card-title">{title}</h2>
           <p className="card-desc">{desc}</p>
           {children && <div className="card-custom-inner">{children}</div>}
@@ -54,23 +87,14 @@ const PixieDust = () => {
     }));
     setStars(generatedStars);
   }, []);
-
   return (
     <div className="particles-container">
-      {stars.map(star => (
-        <div key={star.id} className="star" style={{ left: star.left, top: star.top, width: star.size, height: star.size, animationDelay: star.delay }} />
-      ))}
+      {stars.map(star => <div key={star.id} className="star" style={{ left: star.left, top: star.top, width: star.size, height: star.size, animationDelay: star.delay }} />)}
     </div>
   );
 };
 
-// 💬 チャットメッセージの型定義
-interface ChatMessage {
-  id: string;
-  user: string;
-  text: string;
-  time: string;
-}
+interface ChatMessage { id: string; user: string; text: string; time: string; }
 
 export default function ThemeParkEntrance() {
   const router = useRouter();
@@ -80,12 +104,15 @@ export default function ThemeParkEntrance() {
   const [isReady, setIsReady] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // 🍎 Mac風ウェルカム画面のステート（完全復活！）
+  // 🍎 Mac風ウェルカム画面のステート
   const [showMacWelcome, setShowMacWelcome] = useState(false);
 
   const [newsText, setNewsText] = useState("【お知らせ】本日はお疲れ様です！Team Portalへようこそ！");
   const [isEditingNews, setIsEditingNews] = useState(false);
   const [tempNews, setTempNews] = useState("");
+
+  // ☀️ コンテキスト（時間帯）ヘッダー用ステート
+  const [greeting, setGreeting] = useState("Hello");
 
   // 💬 チャット用ステート
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -96,25 +123,26 @@ export default function ThemeParkEntrance() {
     const savedUser = localStorage.getItem("team_portal_user");
     if (savedUser) { setUserName(savedUser); if (savedUser.toLowerCase().trim().includes("toranosuke.higashi")) setIsAdmin(true); }
     
-    // ✨ ログイン直後のみ、Mac風ウェルカム画面を発動！
     if (sessionStorage.getItem("just_logged_in") === "true") {
       setShowMacWelcome(true);
       sessionStorage.removeItem("just_logged_in");
-      setTimeout(() => setShowMacWelcome(false), 3500); // アニメーション終了後にDOMから削除
+      setTimeout(() => setShowMacWelcome(false), 3500); 
     }
+
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) setGreeting("Good Morning ☀️");
+    else if (hour >= 12 && hour < 18) setGreeting("Good Afternoon ☕");
+    else setGreeting("Good Evening 🌙");
 
     const savedMemo = localStorage.getItem("team_portal_quick_memo"); if (savedMemo) setMemoText(savedMemo);
     const savedNews = localStorage.getItem("team_portal_news"); if (savedNews) setNewsText(savedNews);
     
-    // 💬 チャット履歴のロード＆タブ間同期
     const loadChat = () => {
       const savedChat = localStorage.getItem("team_portal_chat_history");
       if (savedChat) setChatMessages(JSON.parse(savedChat));
     };
     loadChat();
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "team_portal_chat_history") loadChat();
-    };
+    const handleStorageChange = (e: StorageEvent) => { if (e.key === "team_portal_chat_history") loadChat(); };
     window.addEventListener("storage", handleStorageChange);
     
     setIsReady(true);
@@ -124,37 +152,22 @@ export default function ThemeParkEntrance() {
     }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
     document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
     
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("storage", handleStorageChange);
-    };
+    return () => { observer.disconnect(); window.removeEventListener("storage", handleStorageChange); };
   }, []);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
-    const newMessage: ChatMessage = {
-      id: Date.now().toString(),
-      user: userName,
-      text: chatInput.trim(),
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
+    const newMessage: ChatMessage = { id: Date.now().toString(), user: userName, text: chatInput.trim(), time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
     const updatedMessages = [...chatMessages, newMessage].slice(-50);
     setChatMessages(updatedMessages);
     localStorage.setItem("team_portal_chat_history", JSON.stringify(updatedMessages));
     setChatInput("");
   };
 
-  useEffect(() => {
-    if (chatScrollRef.current) {
-      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-    }
-  }, [chatMessages]);
+  useEffect(() => { if (chatScrollRef.current) chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight; }, [chatMessages]);
 
-  const toggleTheme = () => {
-    const newTheme = !isDarkMode; setIsDarkMode(newTheme);
-    showToast(newTheme ? "🌙 ダークモードに切り替えました" : "☀️ ライトモードに切り替えました");
-  };
+  const toggleTheme = () => { const newTheme = !isDarkMode; setIsDarkMode(newTheme); showToast(newTheme ? "🌙 ダークモードに切り替えました" : "☀️ ライトモードに切り替えました"); };
 
   const [isSimOpen, setIsSimOpen] = useState(false);
   const [targetDate, setTargetDate] = useState("");
@@ -186,10 +199,9 @@ export default function ThemeParkEntrance() {
     try { await navigator.clipboard.writeText(`${hours}:${minutes} 退勤いたします`); showToast(`✨ 退勤メッセージをコピーしました！`); } catch (err) { alert("コピーに失敗しました"); }
   };
 
-  const copyScriptCode = async (title: string, code: string) => {
-    try { await navigator.clipboard.writeText(code); showToast(`📋 ${title}のコードをコピーしました！`); } catch (err) { alert("コピーに失敗しました"); }
-  };
-
+  // 📝 復活させた関数群！！
+  const copyScriptCode = async (title: string, code: string) => { try { await navigator.clipboard.writeText(code); showToast(`📋 ${title}のコードをコピーしました！`); } catch (err) { alert("コピーに失敗しました"); } };
+  
   const calculateDeadlines = (dateStr: string) => {
     if (!dateStr) return;
     const holidays = ["2026/01/01", "2026/01/02", "2026/01/12", "2026/02/11", "2026/02/23", "2026/03/20", "2026/04/29", "2026/05/03", "2026/05/04", "2026/05/05", "2026/05/06"]; 
@@ -214,12 +226,16 @@ export default function ThemeParkEntrance() {
   const handleClearMemo = () => { if(confirm("メモをクリアしますか？")){ setMemoText(""); localStorage.removeItem("team_portal_quick_memo"); } };
   const copyUtilResult = async () => { if (utilResult.includes("📍")) { try { await navigator.clipboard.writeText(utilResult.replace("📍 ", "")); showToast("📋 住所をコピーしました！"); } catch (err) { alert("コピー失敗"); } } };
 
-  const mockKpi = { current: 12, target: 20, members: [{ name: "山田", count: 5 }, { name: "佐藤", count: 4 }] };
+  const mockKpi = { current: 12, target: 20 };
   const progressPercent = Math.min(100, Math.round((mockKpi.current / mockKpi.target) * 100));
+  
+  // 🔠 キネティック・タイポグラフィ用の文字分割
+  const titleString = "Team Portal Workspace";
+  const titleChars = titleString.split("");
 
   return (
     <>
-      {/* 🍎 Mac風「ようこそ」アニメーション・オーバーレイ（完全復活！） */}
+      {/* 🍎 Mac風「ようこそ」アニメーション */}
       {showMacWelcome && (
         <div className="mac-welcome-overlay">
           <div className="mac-welcome-text">
@@ -237,59 +253,23 @@ export default function ThemeParkEntrance() {
           .app-wrapper * { box-sizing: border-box; }
 
           /* 🍎 Mac風ウェルカムアニメーションCSS */
-          .mac-welcome-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #000000; z-index: 999999; display: flex; align-items: center; justify-content: center;
-            animation: macFadeOut 1s cubic-bezier(0.8, 0, 0.2, 1) 2.5s forwards;
-          }
-          .mac-welcome-text {
-            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-            font-size: clamp(2rem, 4vw, 4rem); font-weight: 300; letter-spacing: 0.1em; color: #ffffff;
-            opacity: 0; transform: translateY(15px); filter: blur(10px);
-            animation: macTextFlow 2s cubic-bezier(0.4, 0, 0.2, 1) 0.4s forwards;
-          }
-          @keyframes macTextFlow {
-            0% { opacity: 0; transform: translateY(15px); filter: blur(10px); }
-            20% { opacity: 1; transform: translateY(0); filter: blur(0); }
-            80% { opacity: 1; transform: translateY(0); filter: blur(0); }
-            100% { opacity: 0; transform: translateY(-15px); filter: blur(10px); }
-          }
-          @keyframes macFadeOut {
-            0% { opacity: 1; }
-            100% { opacity: 0; visibility: hidden; }
-          }
+          .mac-welcome-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000000; z-index: 999999; display: flex; align-items: center; justify-content: center; animation: macFadeOut 1s cubic-bezier(0.8, 0, 0.2, 1) 2.5s forwards; }
+          .mac-welcome-text { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; font-size: clamp(2rem, 4vw, 4rem); font-weight: 300; letter-spacing: 0.1em; color: #ffffff; opacity: 0; transform: translateY(15px); filter: blur(10px); animation: macTextFlow 2s cubic-bezier(0.4, 0, 0.2, 1) 0.4s forwards; }
+          @keyframes macTextFlow { 0% { opacity: 0; transform: translateY(15px); filter: blur(10px); } 20% { opacity: 1; transform: translateY(0); filter: blur(0); } 80% { opacity: 1; transform: translateY(0); filter: blur(0); } 100% { opacity: 0; transform: translateY(-15px); filter: blur(10px); } }
+          @keyframes macFadeOut { 0% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+
+          /* 🧲 マグネティックボタン（Concept 3） */
+          .magnetic-btn { display: inline-flex; justify-content: center; align-items: center; transition: transform 0.1s ease-out; will-change: transform; cursor: pointer; }
+          .magnetic-btn:hover { z-index: 10; }
 
           /* 🎨 テーマ */
-          .theme-light {
-            --bg-gradient: linear-gradient(180deg, #7dd3fc 0%, #e0f2fe 100%);
-            --text-main: #1e293b; --text-sub: #475569;
-            --card-bg: rgba(255, 255, 255, 0.7); --card-border: rgba(255, 255, 255, 1);
-            --card-hover-border: #38bdf8; --card-hover-bg: rgba(255, 255, 255, 0.95);
-            --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            --title-color: #0369a1; --accent-color: #db2777;
-            --modal-bg: rgba(255, 255, 255, 0.95); --kpi-bg: rgba(241, 245, 249, 0.8);
-            --input-bg: rgba(255, 255, 255, 0.8); --svg-color: rgba(2, 132, 199, 0.2);
-            --star-color: #f59e0b;
-          }
-          
-          .theme-dark {
-            --bg-gradient: radial-gradient(ellipse at bottom, #1e1b4b 0%, #020617 100%);
-            --text-main: #f8fafc; --text-sub: #cbd5e1;
-            --card-bg: rgba(15, 23, 42, 0.7); --card-border: rgba(255, 255, 255, 0.15);
-            --card-hover-border: #fde047; --card-hover-bg: rgba(30, 41, 59, 0.9);
-            --card-shadow: 0 20px 50px rgba(0,0,0,0.8);
-            --title-color: #fde047; --accent-color: #fde047;
-            --modal-bg: rgba(15, 23, 42, 0.9); --kpi-bg: rgba(0, 0, 0, 0.4);
-            --input-bg: rgba(0, 0, 0, 0.4); --svg-color: rgba(255, 255, 255, 0.4);
-            --star-color: #fef08a;
-          }
+          .theme-light { --bg-gradient: linear-gradient(180deg, #7dd3fc 0%, #e0f2fe 100%); --text-main: #1e293b; --text-sub: #475569; --card-bg: rgba(255, 255, 255, 0.6); --card-border: rgba(255, 255, 255, 0.8); --card-hover-border: #38bdf8; --card-hover-bg: rgba(255, 255, 255, 0.9); --card-shadow: 0 10px 30px rgba(0,0,0,0.05); --title-color: #0369a1; --accent-color: #db2777; --modal-bg: rgba(255, 255, 255, 0.95); --kpi-bg: rgba(241, 245, 249, 0.8); --input-bg: rgba(255, 255, 255, 0.8); --svg-color: rgba(2, 132, 199, 0.2); --star-color: #f59e0b; }
+          .theme-dark { --bg-gradient: radial-gradient(ellipse at bottom, #1e1b4b 0%, #020617 100%); --text-main: #f8fafc; --text-sub: #cbd5e1; --card-bg: rgba(15, 23, 42, 0.6); --card-border: rgba(255, 255, 255, 0.1); --card-hover-border: #fde047; --card-hover-bg: rgba(30, 41, 59, 0.8); --card-shadow: 0 20px 50px rgba(0,0,0,0.8); --title-color: #fde047; --accent-color: #fde047; --modal-bg: rgba(15, 23, 42, 0.9); --kpi-bg: rgba(0, 0, 0, 0.4); --input-bg: rgba(0, 0, 0, 0.4); --svg-color: rgba(255, 255, 255, 0.4); --star-color: #fef08a; }
 
           .app-wrapper { min-height: 100vh; padding: 20px; font-family: 'Inter', 'Noto Sans JP', sans-serif; overflow-x: hidden; position: relative; color: var(--text-main); transition: color 0.5s; }
-
           .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; transition: background 0.8s ease; }
           .entrance-bg.theme-light { background: var(--bg-gradient); }
           .entrance-bg.theme-dark { background: var(--bg-gradient); }
-
           .particles-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
           .star { position: absolute; border-radius: 50%; background: var(--star-color); box-shadow: 0 0 10px var(--star-color); animation: twinkle 4s infinite ease-in-out; transition: background 0.5s, box-shadow 0.5s; }
           @keyframes twinkle { 0% { opacity: 0.1; transform: scale(0.5) translateY(0); } 50% { opacity: 1; transform: scale(1.2) translateY(-20px); } 100% { opacity: 0.1; transform: scale(0.5) translateY(0); } }
@@ -300,66 +280,59 @@ export default function ThemeParkEntrance() {
 
           .dashboard-inner { max-width: 1200px; margin: 0 auto; position: relative; z-index: 10; }
           
-          .top-bar { display: flex; justify-content: flex-end; align-items: center; gap: 15px; margin-bottom: 30px; }
-          .theme-toggle-btn { background: var(--card-bg); border: 1px solid var(--card-border); padding: 10px 15px; border-radius: 20px; transition: 0.3s; font-size: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); backdrop-filter: blur(8px); color: var(--text-main); }
+          /* ☀️ コンテキスト・ヘッダー (Concept 4) */
+          .context-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 15px; }
+          .context-greeting { font-size: 20px; font-weight: 900; color: var(--title-color); letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+          .context-ticker { background: var(--card-bg); backdrop-filter: blur(15px); padding: 8px 20px; border-radius: 30px; border: 1px solid var(--card-border); font-size: 12px; font-weight: 800; color: var(--text-main); display: flex; gap: 15px; box-shadow: var(--card-shadow); }
+          .ticker-item { display: flex; align-items: center; gap: 6px; }
+          .ticker-divider { width: 4px; height: 4px; background: var(--card-hover-border); border-radius: 50%; opacity: 0.5; }
+
+          .top-bar-actions { display: flex; gap: 15px; align-items: center; }
+          .theme-toggle-btn { background: var(--card-bg); border: 1px solid var(--card-border); padding: 10px 15px; border-radius: 20px; transition: 0.3s; font-size: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); backdrop-filter: blur(8px); color: var(--text-main); cursor: pointer; }
           .theme-toggle-btn:hover { border-color: var(--card-hover-border); transform: scale(1.1); }
-
-          .user-profile { display: flex; align-items: center; gap: 12px; background: var(--card-bg); padding: 8px 25px 8px 8px; border-radius: 30px; backdrop-filter: blur(15px); border: 1px solid var(--card-border); box-shadow: 0 4px 15px rgba(0,0,0,0.1); color: var(--text-main); transition: 0.5s; }
-          .avatar-circle { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #fde047, #f59e0b); display: flex; align-items: center; justify-content: center; color: #451a03; font-weight: 900; font-size: 18px; box-shadow: 0 0 10px rgba(250,204,21,0.5); }
-          .greeting-text { font-size: 11px; color: var(--text-sub); font-weight: 800; display: flex; flex-direction: column; line-height: 1.2; text-transform: uppercase; letter-spacing: 2px; }
-          .user-id-text { font-size: 15px; font-weight: 900; color: var(--accent-color); letter-spacing: 1px; }
-
-          .park-title-container { text-align: center; margin-bottom: 50px; position: relative; }
           
-          .park-main-title { 
-            font-size: 65px; font-weight: 900; letter-spacing: 4px; margin: 0 0 15px 0;
-            background: linear-gradient(to right, #0284c7, #38bdf8, #8b5cf6, #0284c7);
-            background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            animation: shine 5s linear infinite; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1));
-          }
-          .theme-dark .park-main-title {
-            background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+          /* 🔠 キネティック・タイポグラフィ (Concept 5) */
+          .park-title-container { text-align: center; margin-bottom: 50px; position: relative; perspective: 1000px; }
+          .park-main-title { margin: 0 0 15px 0; display: flex; justify-content: center; flex-wrap: wrap; }
+          .kinetic-char {
+            font-size: 65px; font-weight: 900; letter-spacing: 2px;
+            background: linear-gradient(to bottom, var(--title-color), var(--accent-color));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            display: inline-block; clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0% 100%);
+            transform: translateY(20px); opacity: 0;
+            animation: textReveal 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1));
           }
-          @keyframes shine { to { background-position: 200% center; } }
+          @keyframes textReveal { to { clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%); transform: translateY(0); opacity: 1; } }
           
-          .park-sub-title { color: var(--text-sub); font-size: 18px; font-weight: 800; letter-spacing: 8px; text-transform: uppercase; }
+          .park-sub-title { color: var(--text-sub); font-size: 16px; font-weight: 800; letter-spacing: 8px; text-transform: uppercase; opacity: 0; animation: fadeIn 1s ease 1s forwards; }
+          @keyframes fadeIn { to { opacity: 1; } }
 
+          /* 🧲 ボタン群 (Magnetic Wrapper使用) */
           .quick-actions { display: flex; gap: 20px; justify-content: center; margin-top: 30px; }
-          .btn-qa { padding: 14px 30px; border: none; border-radius: 30px; font-size: 14px; font-weight: 900; transition: 0.3s; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 2px; position: relative; overflow: hidden; }
-          .btn-qa::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: 0.5s; }
-          .btn-qa:hover::before { left: 100%; }
-
+          .btn-qa { padding: 14px 30px; border: none; border-radius: 30px; font-size: 14px; font-weight: 900; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 2px; position: relative; overflow: hidden; }
           .btn-clockout { background: linear-gradient(135deg, #ef4444, #9f1239); color: #fff; box-shadow: 0 10px 25px rgba(225, 29, 72, 0.4); }
-          .btn-clockout:hover { transform: translateY(-3px) translateZ(10px); box-shadow: 0 15px 35px rgba(225, 29, 72, 0.6); }
           .btn-sim { background: var(--card-bg); color: var(--title-color); border: 1px solid var(--card-border); backdrop-filter: blur(10px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-          .btn-sim:hover { background: var(--card-hover-bg); transform: translateY(-3px) translateZ(10px); border-color: var(--card-hover-border); }
           .btn-logout { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
-          .btn-logout:hover { background: rgba(239, 68, 68, 0.2); }
 
-          /* 📢 インフォメーション（流れるティッカー） */
+          /* 📢 インフォメーション */
           .news-ticker-wrapper { display: flex; align-items: center; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; margin-bottom: 40px; padding: 12px 25px; box-shadow: var(--card-shadow); backdrop-filter: blur(20px); transition: 0.5s; }
-          .news-badge { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-weight: 900; font-size: 13px; padding: 8px 18px; border-radius: 12px; white-space: nowrap; margin-right: 25px; animation: pulseGold 2s infinite; box-shadow: 0 0 15px rgba(245,158,11,0.4); letter-spacing: 2px; }
-          @keyframes pulseGold { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
-          
+          .news-badge { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-weight: 900; font-size: 13px; padding: 8px 18px; border-radius: 12px; white-space: nowrap; margin-right: 25px; box-shadow: 0 0 15px rgba(245,158,11,0.4); letter-spacing: 2px; }
           .news-scroll-container { flex: 1; overflow: hidden; white-space: nowrap; position: relative; display: flex; align-items: center; }
-          .news-text { display: inline-block; padding-left: 100%; animation: marquee 30s linear infinite; font-weight: 800; color: var(--text-main); font-size: 16px; letter-spacing: 1px; }
+          .news-text { display: inline-block; padding-left: 100%; animation: marquee 30s linear infinite; font-weight: 800; color: var(--text-main); font-size: 15px; letter-spacing: 1px; }
           @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
-          /* 🌟 レイアウト（Bento UI）左幅を260pxに縮小 */
+          /* 🌟 レイアウト */
           .main-layout { display: grid; grid-template-columns: 260px 1fr; gap: 25px; margin-bottom: 50px; }
           @media (max-width: 950px) { .main-layout { grid-template-columns: 1fr; } }
 
-          /* ℹ️ 左側：設定パネル */
           .info-sidebar { display: flex; flex-direction: column; gap: 20px; }
           .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 18px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; }
           .info-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
 
-          /* 📋 クリップボードツール */
           .script-box { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
           .script-box:hover { border-color: var(--card-hover-border); transform: translateX(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
           .script-title { font-weight: 900; font-size: 11px; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
-          .script-icon { font-size: 14px; opacity: 0.7; }
 
           /* 💬 ミニチャット用スタイル */
           .chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px; padding-right: 5px; height: 250px; }
@@ -369,61 +342,61 @@ export default function ThemeParkEntrance() {
           .chat-bubble-wrap.me { align-self: flex-end; align-items: flex-end; }
           .chat-bubble-wrap.other { align-self: flex-start; align-items: flex-start; }
           .chat-user { font-size: 10px; color: var(--text-sub); font-weight: 800; margin-bottom: 4px; margin-left: 6px; }
-          .chat-bubble { padding: 10px 14px; border-radius: 16px; position: relative; display: flex; align-items: flex-end; gap: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+          .chat-bubble { padding: 10px 14px; border-radius: 16px; display: flex; align-items: flex-end; gap: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
           .me .chat-bubble { background: linear-gradient(135deg, #0ea5e9, #3b82f6); color: #fff; border-bottom-right-radius: 4px; }
           .other .chat-bubble { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--input-border); border-bottom-left-radius: 4px; }
           .chat-text { font-size: 13px; font-weight: 700; line-height: 1.5; word-break: break-word; }
           .chat-time { font-size: 9px; opacity: 0.8; font-weight: 800; white-space: nowrap; margin-bottom: -2px; }
-          .me .chat-time { color: #e0f2fe; }
-          .other .chat-time { color: var(--text-sub); }
+
           .chat-input-area { display: flex; gap: 8px; margin-top: auto; }
           .chat-input { flex: 1; padding: 12px 16px; border-radius: 20px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-main); font-size: 13px; font-weight: 700; outline: none; transition: 0.3s; }
           .chat-input:focus { border-color: var(--card-hover-border); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); }
           .chat-send-btn { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #0ea5e9, #3b82f6); color: #fff; border: none; font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.3); flex-shrink: 0; }
-          .chat-send-btn:hover { transform: scale(1.1); background: linear-gradient(135deg, #0284c7, #2563eb); }
 
-          /* 🎡 右側：アトラクショングリッド */
+          /* 🎡 ライブ・ベントー・ウィジェット (Concept 2 & 1) */
           .attraction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; perspective: 1200px; align-content: flex-start; }
           .fade-up-element { opacity: 0; transform: translateY(50px) scale(0.95); transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: var(--delay); }
           .fade-up-element.visible { opacity: 1; transform: translateY(0) scale(1); }
           
           .magic-card-wrapper.visible:hover { transform: translateY(0) scale(1.02); z-index: 10; }
 
-          /* ✨ 高度なホバーエフェクト ＆ マスククリップパス */
+          /* 🌈 オーロラ・グラスモーフィズム (Concept 1) */
           .magic-card { 
+            position: relative; border-radius: 28px; padding: 25px; 
             background: var(--card-bg); backdrop-filter: blur(25px); 
-            border: 1px solid var(--card-border); border-radius: 28px; padding: 25px; 
-            position: relative; overflow: hidden; transition: 0.4s ease-out; 
-            box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 12px; 
-            transform-style: preserve-3d; height: 100%; 
-          }
-          .magic-card-wrapper:hover .magic-card { 
-            background: var(--card-hover-bg); border-color: var(--card-hover-border); 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15); 
+            display: flex; flex-direction: column; gap: 12px; 
+            transform-style: preserve-3d; height: 100%; cursor: pointer;
+            box-shadow: var(--card-shadow);
           }
           
-          /* ホバーで広がるグラデーション波（Clip-Path） */
-          .card-wave-bg {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 0;
-            background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(139, 92, 246, 0.15));
-            clip-path: circle(0% at 50% 100%); transition: clip-path 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+          /* マウス連動のオーロラボーダー */
+          .card-aurora-border {
+            position: absolute; inset: 0; border-radius: 28px; padding: 2px; /* border thickness */
+            background: radial-gradient(400px circle at var(--mouse-x, 0) var(--mouse-y, 0), var(--card-hover-border), transparent 40%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude;
+            opacity: 0.2; transition: opacity 0.3s; pointer-events: none;
           }
-          .magic-card-wrapper:hover .card-wave-bg { clip-path: circle(150% at 50% 100%); }
-          .theme-dark .card-wave-bg { background: linear-gradient(135deg, rgba(253, 224, 71, 0.1), rgba(244, 63, 94, 0.1)); }
+          .magic-card:hover .card-aurora-border { opacity: 1; }
 
           .card-glare { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, transparent 60%); pointer-events: none; z-index: 1; mix-blend-mode: overlay; transition: 0.5s; }
           .theme-dark .card-glare { background: radial-gradient(circle at center, rgba(255,255,255,0.15) 0%, transparent 60%); }
           
-          .card-content-3d { z-index: 2; position: relative; transform: translateZ(30px); transform-style: preserve-3d; display: flex; flex-direction: column; height: 100%; }
+          .card-content-3d { z-index: 2; position: relative; transform: translateZ(30px); transform-style: preserve-3d; display: flex; flex-direction: column; height: 100%; pointer-events: none; }
           
-          .attraction-name { font-size: 11px; color: var(--accent-color); font-weight: 900; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
+          .attraction-name { font-size: 10px; color: var(--accent-color); font-weight: 900; letter-spacing: 3px; text-transform: uppercase; }
           .card-title { font-size: 18px; font-weight: 900; color: var(--title-color); margin: 0; line-height: 1.4; letter-spacing: 1px; transition: color 0.3s; }
-          .card-desc { font-size: 13px; color: var(--text-sub); margin: 8px 0 0 0; line-height: 1.6; font-weight: 700; transform: translateZ(15px); transition: color 0.3s; flex: 1; }
-          .card-custom-inner { margin-top: 15px; transform: translateZ(25px); }
+          .card-desc { font-size: 12px; color: var(--text-sub); margin: 8px 0 0 0; line-height: 1.6; font-weight: 700; transform: translateZ(15px); transition: color 0.3s; flex: 1; }
+          .card-custom-inner { margin-top: 15px; transform: translateZ(25px); pointer-events: auto; }
           
           .badge-new { position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; font-size: 10px; font-weight: 900; padding: 4px 12px; border-radius: 20px; z-index: 3; box-shadow: 0 5px 15px rgba(225,29,72,0.5); letter-spacing: 2px; }
 
-          .kpi-widget { background: var(--kpi-bg); padding: 12px; border-radius: 16px; border: 1px solid var(--card-border); transition: 0.5s; }
+          /* ライブ・バッジ (Concept 2) */
+          .live-badge { font-size: 10px; font-weight: 900; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; gap: 4px; animation: pulseGreen 2s infinite; }
+          .live-badge::before { content:''; width:6px; height:6px; background:#10b981; border-radius:50%; }
+          @keyframes pulseGreen { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+
+          .kpi-widget { background: var(--kpi-bg); padding: 12px; border-radius: 16px; border: 1px solid var(--card-border); transition: 0.5s; pointer-events: auto; }
           .kpi-numbers { display: flex; align-items: baseline; gap: 5px; margin-bottom: 6px; }
           .kpi-current { font-size: 24px; font-weight: 900; color: #38bdf8; }
           .kpi-target { font-size: 13px; font-weight: 800; color: var(--text-sub); }
@@ -433,14 +406,12 @@ export default function ThemeParkEntrance() {
 
           .quick-utility { position: fixed; bottom: 40px; right: 40px; z-index: 1000; }
           .utility-fab { width: 70px; height: 70px; background: linear-gradient(135deg, #fbbf24, #d97706); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(0,0,0,0.2), inset 0 0 15px rgba(255,255,255,0.6); transition: 0.3s; font-size: 28px; border: 2px solid rgba(255,255,255,0.6); list-style: none; }
-          .utility-fab:hover { transform: scale(1.1) rotate(-10deg); box-shadow: 0 15px 30px rgba(245,158,11,0.4); }
-          .utility-fab::-webkit-details-marker { display: none; }
           .utility-content { position: absolute; bottom: 95px; right: 0; width: 360px; background: var(--modal-bg); backdrop-filter: blur(30px); padding: 30px; border-radius: 28px; box-shadow: 0 30px 70px rgba(0,0,0,0.2); border: 2px solid var(--card-border); color: var(--text-main); transform-origin: bottom right; animation: popIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); transition: 0.5s; }
           @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
 
           .util-input { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid var(--card-border); font-size: 15px; outline: none; background: var(--input-bg); font-weight: 800; color: var(--text-main); transition: 0.3s; }
           .util-input:focus { border-color: var(--card-hover-border); }
-          .util-result { margin-top: 15px; font-size: 14px; color: var(--text-main); background: var(--kpi-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--card-border); font-weight: 900; transition: 0.3s; }
+          .util-result { margin-top: 15px; font-size: 14px; color: var(--text-main); background: var(--kpi-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--card-border); font-weight: 900; transition: 0.3s; cursor: pointer; }
 
           .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); z-index: 1000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; }
           .modal-overlay.open { opacity: 1; pointer-events: auto; }
@@ -448,7 +419,7 @@ export default function ThemeParkEntrance() {
           .modal-overlay.open .custom-modal { transform: translateY(0) scale(1); }
           .modal-title { font-size: 24px; font-weight: 900; text-align: center; margin-bottom: 30px; letter-spacing: 2px; color: var(--title-color); }
           
-          .btn-close-modal { width: 100%; margin-top: 30px; padding: 15px; background: var(--kpi-bg); color: var(--text-main); border: 2px solid var(--card-border); border-radius: 15px; font-weight: 900; transition: 0.2s; text-transform: uppercase; letter-spacing: 2px; }
+          .btn-close-modal { width: 100%; margin-top: 30px; padding: 15px; background: var(--kpi-bg); color: var(--text-main); border: 2px solid var(--card-border); border-radius: 15px; font-weight: 900; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 2px; }
           .btn-close-modal:hover { background: var(--card-hover-border); color: #fff; border-color: transparent; }
 
           #toast { visibility: hidden; position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px); padding: 16px 32px; background: rgba(15,23,42, 0.95); color: #fde047; border-radius: 30px; font-weight: 900; font-size: 15px; z-index: 2000; opacity: 0; transition: 0.4s; backdrop-filter: blur(20px); border: 2px solid #fde047; box-shadow: 0 20px 50px rgba(0,0,0,0.3); letter-spacing: 1px; }
@@ -461,67 +432,81 @@ export default function ThemeParkEntrance() {
         </svg>
 
         <div className="dashboard-inner">
-          <div className="top-bar">
-            <button className="theme-toggle-btn" onClick={toggleTheme} title="表示テーマを切り替え">{isDarkMode ? "🎇 NIGHT" : "☀️ DAY"}</button>
-            <div className="user-profile">
-              <div className="avatar-circle">{userName.charAt(0).toUpperCase()}</div>
-              <div className="greeting-text"><span>Welcome to</span><span className="user-id-text">{userName}'s Workspace</span></div>
+          
+          {/* ☀️ コンテキスト・ヘッダー (Concept 4) */}
+          <div className="context-header fade-up-element" style={{ "--delay": "0s" } as any}>
+            <div className="context-greeting">
+              {greeting}, <span style={{ color: "var(--accent-color)" }}>{userName}</span>.
+            </div>
+            <div className="context-ticker">
+              <div className="ticker-item"><span>🌤️</span> 24°C Tokyo</div>
+              <div className="ticker-divider"></div>
+              <div className="ticker-item"><span>🚀</span> Goal: {progressPercent}%</div>
+              <div className="ticker-divider"></div>
+              <div className="ticker-item"><span style={{color: "#10b981"}}>●</span> All Systems Active</div>
+            </div>
+            <div className="top-bar-actions">
+              <button className="theme-toggle-btn" onClick={toggleTheme}>{isDarkMode ? "🎇" : "☀️"}</button>
             </div>
           </div>
 
-          <div className="park-title-container fade-up-element" style={{ "--delay": "0s" } as any}>
-            <h1 className="park-main-title">Team Portal Workspace</h1>
+          {/* 🔠 キネティック・タイポグラフィ (Concept 5) */}
+          <div className="park-title-container">
+            <h1 className="park-main-title">
+              {titleChars.map((char, i) => (
+                <span key={i} className="kinetic-char" style={{ animationDelay: `${i * 0.03 + 0.5}s` }}>
+                  {char === " " ? "\u00A0" : char}
+                </span>
+              ))}
+            </h1>
             <div className="park-sub-title">Central Operation Dashboard</div>
+            
+            {/* 🧲 マグネティックボタン適用 (Concept 3) */}
             <div className="quick-actions">
-              <button className="btn-qa btn-sim" onClick={handleOpenSim}>⏳ 納期確認</button>
-              <button className="btn-qa btn-clockout" onClick={handleClockOut}>🏃‍♂️ 退勤する</button>
-              <button className="btn-qa btn-logout" onClick={handleLogout}>🚪 ログアウト</button>
+              <MagneticButton className="btn-qa btn-sim" onClick={handleOpenSim}>⏳ 納期確認</MagneticButton>
+              <MagneticButton className="btn-qa btn-clockout" onClick={handleClockOut}>🏃‍♂️ 退勤する</MagneticButton>
+              <MagneticButton className="btn-qa btn-logout" onClick={handleLogout}>🚪 ログアウト</MagneticButton>
             </div>
           </div>
 
           <div className="news-ticker-wrapper fade-up-element" style={{ "--delay": "0.1s" } as any}>
             <div className="news-badge">📢 インフォメーション</div>
             <div className="news-scroll-container"><div className="news-text">{newsText}</div></div>
-            {isAdmin && <button style={{background: "var(--card-bg)", border:"1px solid var(--card-border)", color:"var(--text-main)", fontSize:"12px", fontWeight:900, padding:"6px 12px", borderRadius:"8px", marginLeft:"15px"}} onClick={() => { setTempNews(newsText); setIsEditingNews(!isEditingNews); }}>✏️ 編集</button>}
+            {isAdmin && <button style={{background: "var(--card-bg)", border:"1px solid var(--card-border)", color:"var(--text-main)", fontSize:"12px", fontWeight:900, padding:"6px 12px", borderRadius:"8px", marginLeft:"15px", cursor:"pointer"}} onClick={() => { setTempNews(newsText); setIsEditingNews(!isEditingNews); }}>✏️ 編集</button>}
           </div>
 
           {isAdmin && isEditingNews && (
             <div style={{display:"flex", gap:"10px", marginBottom:"40px", background:"var(--modal-bg)", padding:"20px", borderRadius:"16px", border:"2px dashed var(--card-border)", backdropFilter:"blur(15px)"}}>
               <input type="text" className="util-input" value={tempNews} onChange={(e) => setTempNews(e.target.value)} />
-              <button style={{background:"linear-gradient(135deg, #0ea5e9, #4f46e5)", color:"#fff", border:"none", padding:"0 25px", borderRadius:"10px", fontWeight:900, boxShadow:"0 4px 15px rgba(2,132,199,0.3)"}} onClick={handleSaveNews}>保存</button>
+              <button style={{background:"linear-gradient(135deg, #0ea5e9, #4f46e5)", color:"#fff", border:"none", padding:"0 25px", borderRadius:"10px", fontWeight:900, boxShadow:"0 4px 15px rgba(2,132,199,0.3)", cursor:"pointer"}} onClick={handleSaveNews}>保存</button>
             </div>
           )}
 
           <div className="main-layout">
             
-            {/* ℹ️ 左カラム：ブックマークBOX ＆ チャット */}
             <aside className="info-sidebar">
               <div className="info-panel fade-up-element" style={{ transitionDelay: "0.2s" }}>
                 <h3 className="info-title">📋 CallTree & ブックマーク管理</h3>
                 <div style={{ fontSize: "11px", color: "var(--text-sub)", fontWeight: 800, marginBottom: "12px", lineHeight: 1.4 }}>
-                  クリックでコードをコピーし、ブックマークのURL欄に貼り付けてください。
+                  クリックでコードをコピーし、ブックマークに保存してください。
                 </div>
                 
-                <div className="script-box" onClick={() => copyScriptCode("データ一括取得", "javascript:(function(){/* ここに一括取得のスクリプトを記述 */ alert('Warpデータを取得しました');})();")}>
-                  <span className="script-title"><span className="script-icon">📦</span> データ一括取得（Warp）</span>
+                <div className="script-box" onClick={() => copyScriptCode("データ一括取得", "javascript:(function(){/* 一括取得 */ alert('Warpデータを取得しました');})();")}>
+                  <span className="script-title"><span className="script-icon">📦</span> 一括取得（Warp）</span>
                 </div>
-                
-                <div className="script-box" onClick={() => copyScriptCode("電話番号コピー", "javascript:(function(){/* ここに電話番号抽出のスクリプトを記述 */ alert('電話番号を抽出しました');})();")}>
+                <div className="script-box" onClick={() => copyScriptCode("電話番号コピー", "javascript:(function(){/* 電話番号抽出 */ alert('電話番号を抽出しました');})();")}>
                   <span className="script-title"><span className="script-icon">📞</span> 電話番号一括コピー</span>
                 </div>
-                
-                <div className="script-box" onClick={() => copyScriptCode("ネットトス自動入力", "javascript:(function(){/* ここに自動入力のスクリプトを記述 */ alert('自動入力しました');})();")}>
+                <div className="script-box" onClick={() => copyScriptCode("ネットトス自動入力", "javascript:(function(){/* 自動入力 */ alert('自動入力しました');})();")}>
                   <span className="script-title"><span className="script-icon">🌐</span> ネットトス自動入力</span>
                 </div>
               </div>
 
-              {/* 💬 新機能：チーム内ミニチャット */}
               <div className="info-panel fade-up-element" style={{ transitionDelay: "0.3s", flex: 1, paddingBottom: "20px" }}>
                 <h3 className="info-title">💬 チーム内ミニチャット</h3>
-                
                 <div className="chat-messages" ref={chatScrollRef}>
                   {chatMessages.length === 0 ? (
-                    <div style={{ textAlign: "center", color: "var(--text-sub)", fontSize: "12px", marginTop: "20px", fontWeight: 800 }}>まだメッセージはありません</div>
+                    <div style={{ textAlign: "center", color: "var(--text-sub)", fontSize: "12px", marginTop: "20px", fontWeight: 800 }}>メッセージはありません</div>
                   ) : (
                     chatMessages.map(msg => {
                       const isMe = msg.user === userName;
@@ -539,45 +524,47 @@ export default function ThemeParkEntrance() {
                 </div>
 
                 <form className="chat-input-area" onSubmit={handleSendMessage}>
-                  <input 
-                    type="text" 
-                    className="chat-input" 
-                    placeholder="メッセージを送信..." 
-                    value={chatInput} 
-                    onChange={(e) => setChatInput(e.target.value)} 
-                  />
+                  <input type="text" className="chat-input" placeholder="メッセージ..." value={chatInput} onChange={(e) => setChatInput(e.target.value)} />
                   <button type="submit" className="chat-send-btn">➤</button>
                 </form>
               </div>
             </aside>
 
-            {/* 🎡 右カラム：アトラクション グリッド */}
+            {/* 🎡 ライブ・ベントー・ウィジェット (Concept 2: リアルタイムデータの埋め込み) */}
             <div className="attraction-grid">
-              <MagicCard delay={0.1} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="チームの進捗やランキング状況をリアルタイムに確認。" onClick={() => router.push("/kpi-detail")}>
+              <MagicCard delay={0.1} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="本日の目標まであと何件か、リアルタイムで確認。" liveData={`${progressPercent}% Achieved`} onClick={() => router.push("/kpi-detail")}>
                 <div className="kpi-widget">
                   <div className="kpi-numbers"><span className="kpi-current">{mockKpi.current}</span><span className="kpi-target">/ {mockKpi.target}件</span></div>
                   <div className="kpi-bar-bg"><div className="kpi-bar-fill" style={{ width: `${progressPercent}%` }}></div></div>
                 </div>
               </MagicCard>
 
-              <MagicCard delay={0.2} attraction="BULK REGISTER" title="📦 データ一括登録" desc="複数の顧客データを一括で処理し、DBへ高速転送します。" onClick={() => router.push("/bulk-register")} />
-              <MagicCard delay={0.3} attraction="NET TOSS" title="🌐 ネットトス連携" desc="ネット回線のトスアップ用データを生成し、送信します。" onClick={() => router.push("/net-toss")} />
-              <MagicCard delay={0.4} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="成約後の情報を専用フォームからシームレスに連携します。" onClick={() => router.push("/self-close")} />
-              <MagicCard delay={0.5} attraction="SMS KRAKEN" title="📱 SMS 送信" desc="Kraken連携を用いたSMS送信・テンプレート展開を行います。" onClick={() => router.push("/sms-kraken")} />
-              <MagicCard delay={0.6} attraction="EMAIL TEMPLATE" title="✉️ メールテンプレ" desc="用途に応じたメール文面を素早く作成し、コピーします。" onClick={() => router.push("/email-template")} />
-              <MagicCard delay={0.7} attraction="KRAKEN PROCEDURE" title="🗺️ Kraken 手順辞書" badge="NEW" desc="プラン変更等、手続きに必要な情報を入力しフォーマット生成。" onClick={() => router.push("/procedure-wizard")} />
-              <MagicCard delay={0.8} attraction="COST SIMULATOR" title="🆚 料金シミュレーター" badge="NEW" desc="利用状況をヒアリングし、乗り換え時の節約額を即座に算出。" onClick={() => router.push("/simulator")} />
+              <MagicCard delay={0.2} attraction="BULK REGISTER" title="📦 データ一括登録" desc="顧客データを高速でDBへ転送します。" liveData="Ready" onClick={() => router.push("/bulk-register")} />
+              <MagicCard delay={0.3} attraction="NET TOSS" title="🌐 ネットトス連携" desc="回線のトスアップデータを指定シートへ送信。" onClick={() => router.push("/net-toss")} />
+              <MagicCard delay={0.4} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="成約情報を専用フォームからシームレスに連携。" onClick={() => router.push("/self-close")} />
+              <MagicCard delay={0.5} attraction="SMS KRAKEN" title="📱 SMS 送信" desc="Krakenを用いたSMS送信とテンプレート展開。" liveData="System Active" onClick={() => router.push("/sms-kraken")} />
+              <MagicCard delay={0.6} attraction="EMAIL TEMPLATE" title="✉️ メールテンプレ" desc="用途に応じたメール文面を素早く作成。" onClick={() => router.push("/email-template")} />
+              <MagicCard delay={0.7} attraction="KRAKEN PROCEDURE" title="🗺️ Kraken 手順辞書" badge="NEW" desc="手続きに必要な情報を入力しフォーマット生成。" onClick={() => router.push("/procedure-wizard")} />
+              <MagicCard delay={0.8} attraction="COST SIMULATOR" title="🆚 料金シミュレーター" badge="NEW" desc="利用状況から乗り換え節約額を即座に算出します。" liveData="Avg. ¥4,200/mo" onClick={() => router.push("/simulator")} />
 
-              <MagicCard delay={0.9} attraction="QUICK MEMO" title="🍯 クイックメモ" desc="通話中などの一時的な情報を置いておく、自動保存メモパッド。" onClick={() => setIsMemoOpen(true)}>
-                {memoText && <div className="util-result" style={{marginTop:0, padding:"10px", fontSize:"12px"}}>{memoText}</div>}
+              <MagicCard delay={0.9} attraction="QUICK MEMO" title="🍯 クイックメモ" desc="通話中などの一時的な情報を置いておくメモパッド。" onClick={() => setIsMemoOpen(true)}>
+                {memoText ? (
+                  <div className="util-result" style={{marginTop:0, padding:"10px", fontSize:"11px", opacity: 0.8}}>
+                    {memoText.length > 20 ? memoText.substring(0, 20) + "..." : memoText}
+                  </div>
+                ) : (
+                  <div className="util-result" style={{marginTop:0, padding:"10px", fontSize:"11px", opacity: 0.5}}>No active memo.</div>
+                )}
               </MagicCard>
             </div>
           </div>
         </div>
 
-        {/* 🔍 浮遊ユーティリティ */}
-        <details className="quick-utility">
-          <summary className="utility-fab">🔍</summary>
+        {/* 🧲 検索フローティングボタン (Magnetic適用) */}
+        <details className="quick-utility hide-on-mobile">
+          <summary className="utility-fab" style={{listStyle:"none"}}>
+            <MagneticButton className="" style={{background:"transparent", border:"none", width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"28px", cursor:"pointer"}}>🔍</MagneticButton>
+          </summary>
           <div className="utility-content">
             <h4 style={{margin: "0 0 15px 0", fontSize: "16px", fontWeight: 900, color: "var(--title-color)", borderBottom: "2px dashed var(--card-border)", paddingBottom: "10px"}}>📍 住所クイック検索</h4>
             <input type="text" className="util-input" placeholder="郵便番号を入力 (例: 1000001)" value={utilInput} onChange={(e) => setUtilInput(e.target.value)} />
@@ -608,8 +595,8 @@ export default function ThemeParkEntrance() {
             <div className="modal-title">📝 クイックメモ</div>
             <textarea className="util-input" style={{flex:1, resize:"none", lineHeight:1.6}} placeholder="電話中のメモや、一時的なテキストの退避に。&#10;入力した内容は自動でブラウザに保存されます。" value={memoText} onChange={handleMemoChange} />
             <div style={{display:"flex", gap:"15px", marginTop:"20px"}}>
-              <button style={{flex:1, padding:"14px", borderRadius:"14px", fontWeight:900, border:"2px solid #0ea5e9", background:"rgba(14, 165, 233, 0.1)", color:"#0ea5e9", transition:"0.2s"}} onClick={handleCopyMemo}>📋 全文コピー</button>
-              <button style={{flex:1, padding:"14px", borderRadius:"14px", fontWeight:900, border:"2px solid #ef4444", background:"rgba(239, 68, 68, 0.1)", color:"#ef4444", transition:"0.2s"}} onClick={handleClearMemo}>🗑️ 全消去</button>
+              <button style={{flex:1, padding:"14px", borderRadius:"14px", fontWeight:900, border:"2px solid #0ea5e9", background:"rgba(14, 165, 233, 0.1)", color:"#0ea5e9", transition:"0.2s", cursor:"pointer"}} onClick={handleCopyMemo}>📋 全文コピー</button>
+              <button style={{flex:1, padding:"14px", borderRadius:"14px", fontWeight:900, border:"2px solid #ef4444", background:"rgba(239, 68, 68, 0.1)", color:"#ef4444", transition:"0.2s", cursor:"pointer"}} onClick={handleClearMemo}>🗑️ 全消去</button>
             </div>
             <button className="btn-close-modal" onClick={() => setIsMemoOpen(false)}>閉じる</button>
           </div>
