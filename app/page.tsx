@@ -63,7 +63,7 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, l
   );
 };
 
-// 🌐 案A: ライブ・データメッシュ (Canvas Animation)
+// 🌐 案A: ライブ・データメッシュ
 const DataMesh = ({ isDarkMode }: { isDarkMode: boolean }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
@@ -169,9 +169,12 @@ export default function ThemeParkEntrance() {
   const [activeBookmark, setActiveBookmark] = useState<string | null>(null);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  
   const [isCmdKOpen, setIsCmdKOpen] = useState(false);
   const [cmdKQuery, setCmdKQuery] = useState("");
+
+  // ✨ エリア判定ハブのステート
+  const [isAreaOpen, setIsAreaOpen] = useState(false);
+  const [areaZip, setAreaZip] = useState("");
 
   const mockKpi = { current: 12, target: 20 };
   const progressPercent = Math.min(100, Math.round((mockKpi.current / mockKpi.target) * 100));
@@ -323,11 +326,39 @@ export default function ThemeParkEntrance() {
     const query = cmdKQuery.toLowerCase();
     if(query.includes("sim") || query.includes("シミュ")) { router.push("/simulator"); }
     else if(query.includes("トス") || query.includes("toss")) { router.push("/net-toss"); }
-    else if(query.includes("スクリプト") || query.includes("script")) { router.push("/talk-script"); }
-    else if(query.includes("辞書") || query.includes("faq")) { router.push("/smart-faq"); }
+    else if(query.includes("コール") || query.includes("再架電") || query.includes("タイムライン")) { router.push("/callback-board"); }
+    else if(query.includes("エリア") || query.includes("判定") || query.includes("area")) { setIsAreaOpen(true); }
     else { showToast("該当する機能が見つかりません"); }
     setIsCmdKOpen(false);
     setCmdKQuery("");
+  };
+
+  // ✨ エリア判定ハブの処理（東西でコピーする形式を変更！）
+  const openAreaSite = async (url: string, type: 'east' | 'west' | 'other') => {
+    const cleanZip = areaZip.replace(/[^0-9]/g, "");
+    if (cleanZip.length < 7 && type !== 'other') {
+      showToast("⚠️ 7桁の郵便番号を入力してください");
+      return;
+    }
+    
+    let copyText = cleanZip;
+    if (type === 'east') {
+      // 東日本はハイフン付きでコピー（多くの場合これで入力がスムーズ）
+      copyText = `${cleanZip.substring(0, 3)}-${cleanZip.substring(3)}`;
+    }
+    // 西日本はハイフンなしでコピー
+    
+    if (type !== 'other') {
+      try {
+        await navigator.clipboard.writeText(copyText);
+        showToast(`📋 ${type === 'east' ? '東日本' : '西日本'}用に「${copyText}」をコピーしました！`);
+      } catch (e) {
+        console.error("Copy failed", e);
+      }
+    }
+    
+    // 公式サイトを別タブで開く
+    window.open(url, "_blank");
   };
 
   const titleString = "Team Portal Workspace";
@@ -349,7 +380,7 @@ export default function ThemeParkEntrance() {
         </div>
       )}
 
-      {/* ⌨️ Cmd + K パレットのモーダル */}
+      {/* ⌨️ Cmd + K パレット */}
       <div className={`modal-overlay ${isCmdKOpen ? "open" : ""}`} onClick={() => setIsCmdKOpen(false)} style={{zIndex: 99999}}>
         <div className="custom-modal cmdk-modal" onClick={(e) => e.stopPropagation()}>
           <form onSubmit={handleCmdKSearch} style={{display: "flex", alignItems: "center", borderBottom: "1px solid var(--card-border)", paddingBottom: "15px", marginBottom: "15px"}}>
@@ -361,21 +392,26 @@ export default function ThemeParkEntrance() {
             <div className="cmdk-label">Quick Links</div>
             <div className="cmdk-item" onClick={() => { router.push("/simulator"); setIsCmdKOpen(false); }}>🆚 料金シミュレーターへ移動</div>
             <div className="cmdk-item" onClick={() => { router.push("/net-toss"); setIsCmdKOpen(false); }}>🌐 ネットトス連携へ移動</div>
-            <div className="cmdk-item" onClick={() => { router.push("/talk-script"); setIsCmdKOpen(false); }}>💬 トークスクリプトを開く</div>
-            <div className="cmdk-item" onClick={() => { router.push("/smart-faq"); setIsCmdKOpen(false); }}>📚 ナレッジ辞書を検索</div>
+            <div className="cmdk-item" onClick={() => { router.push("/callback-board"); setIsCmdKOpen(false); }}>🗓️ 再架電タイムラインを開く</div>
+            <div className="cmdk-item" onClick={() => { setIsAreaOpen(true); setIsCmdKOpen(false); }}>🗺️ エリア判定ハブを開く</div>
             <div className="cmdk-item" onClick={() => { setIsMemoOpen(true); setIsCmdKOpen(false); }}>🍯 クイックメモを開く</div>
           </div>
         </div>
       </div>
 
+      <div className={`entrance-bg`} style={{ background: dynamicBg || "var(--bg-gradient)", transition: "background 2s ease" }}>
+        <DataMesh isDarkMode={isDarkMode} />
+      </div>
+      
+      <GooeyBackground />
+
+      <svg className="magic-svg-bg" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path className="magic-path" d="M -10,30 Q 30,80 50,50 T 110,40" />
+        <path className="magic-path" d="M -10,70 Q 40,20 70,60 T 110,80" style={{animationDelay: "4s", opacity: 0.5}} />
+      </svg>
+
       <main className={`app-wrapper ${isReady ? "ready" : ""} ${isDarkMode ? "theme-dark" : "theme-light"}`} onClick={() => setActiveBookmark(null)}>
         
-        <div className={`entrance-bg`} style={{ background: dynamicBg || "var(--bg-gradient)", transition: "background 2s ease" }}>
-          <DataMesh isDarkMode={isDarkMode} />
-        </div>
-        
-        <GooeyBackground />
-
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
 
@@ -448,14 +484,7 @@ export default function ThemeParkEntrance() {
           .context-greeting { font-size: 20px; font-weight: 900; color: var(--title-color); letter-spacing: 1px; display: flex; align-items: center; gap: 12px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); }
           .context-greeting span { text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); }
 
-          /* ✨ Cmd+K ヒントバー（検索窓風）のスタイル */
-          .cmdk-hint-bar {
-            background: var(--input-bg); border: 1px solid var(--input-border);
-            padding: 8px 15px; border-radius: 20px; display: flex; align-items: center; gap: 30px;
-            font-size: 13px; font-weight: 800; color: var(--text-main); cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05); backdrop-filter: blur(10px);
-            transition: 0.3s;
-          }
+          .cmdk-hint-bar { background: var(--input-bg); border: 1px solid var(--input-border); padding: 8px 15px; border-radius: 20px; display: flex; align-items: center; gap: 30px; font-size: 13px; font-weight: 800; color: var(--text-main); cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.05); backdrop-filter: blur(10px); transition: 0.3s; }
           .cmdk-hint-bar:hover { border-color: var(--card-hover-border); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
           .cmdk-shortcut { display: flex; gap: 4px; }
           .cmdk-shortcut kbd { background: var(--card-bg); border: 1px solid var(--card-border); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-family: monospace; color: var(--text-sub); }
@@ -501,7 +530,6 @@ export default function ThemeParkEntrance() {
           .news-text { display: inline-block; padding-left: 100%; animation: marquee 30s linear infinite; font-weight: 800; color: var(--text-main); font-size: 15px; letter-spacing: 1px; }
           @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
-          /* ✨ 🗜️ サイドバー折りたたみ用のFlexレイアウト */
           .main-layout { display: flex; gap: 25px; margin-bottom: 50px; align-items: flex-start; }
           .info-sidebar-wrapper { width: 280px; flex-shrink: 0; transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s; overflow: visible; position: relative; z-index: 50; }
           .info-sidebar-wrapper.collapsed { width: 0px; opacity: 0; pointer-events: none; overflow: hidden; }
@@ -566,7 +594,6 @@ export default function ThemeParkEntrance() {
           .card-aurora-border { position: absolute; inset: 0; border-radius: 28px; padding: 2px; background: radial-gradient(400px circle at var(--mouse-x, 0) var(--mouse-y, 0), var(--card-hover-border), transparent 40%); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0.2; transition: opacity 0.3s; pointer-events: none; z-index: 2; }
           .magic-card:hover .card-aurora-border { opacity: 1; }
 
-          /* 📉 マイクロチャート用のCSS */
           .sparkline-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; pointer-events: none; z-index: 0; }
 
           .card-glare { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, transparent 60%); pointer-events: none; z-index: 1; mix-blend-mode: overlay; transition: 0.5s; }
@@ -601,7 +628,6 @@ export default function ThemeParkEntrance() {
           .util-input:focus { border-color: var(--card-hover-border); }
           .util-result { margin-top: 15px; font-size: 14px; color: var(--text-main); background: var(--kpi-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--card-border); font-weight: 900; transition: 0.3s; cursor: pointer; }
 
-          /* ⌨️ Cmd+K モーダル専用CSS */
           .cmdk-modal { width: 600px; padding: 25px; top: 15%; transform: translateY(-20px) scale(0.95); position: absolute; }
           .modal-overlay.open .cmdk-modal { transform: translateY(0) scale(1); }
           .cmdk-input { width: 100%; border: none; background: transparent; font-size: 20px; font-weight: 800; color: var(--text-main); outline: none; }
@@ -610,6 +636,15 @@ export default function ThemeParkEntrance() {
           .cmdk-label { font-size: 11px; font-weight: 900; color: var(--text-sub); margin-top: 10px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
           .cmdk-item { padding: 12px 15px; border-radius: 10px; font-weight: 800; font-size: 14px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; }
           .cmdk-item:hover { background: var(--accent-color); color: #fff; transform: translateX(5px); }
+
+          /* ✨ エリア判定モーダルのボタン用 */
+          .area-btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+          .area-btn { padding: 15px; border-radius: 12px; font-weight: 900; font-size: 14px; display: flex; align-items: center; justify-content: space-between; border: 2px solid var(--card-border); background: var(--input-bg); color: var(--text-main); cursor: pointer; transition: 0.3s; }
+          .area-btn:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-color: var(--accent-color); }
+          .area-btn.east:hover { border-color: #0284c7; color: #0284c7; }
+          .area-btn.west:hover { border-color: #ea580c; color: #ea580c; }
+          .area-btn.au:hover { border-color: #ea580c; color: #ea580c; }
+          .area-btn.nuro:hover { border-color: #10b981; color: #10b981; }
 
           .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); z-index: 1000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; }
           .modal-overlay.open { opacity: 1; pointer-events: auto; }
@@ -624,11 +659,6 @@ export default function ThemeParkEntrance() {
           #toast.show { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
         `}} />
 
-        <svg className="magic-svg-bg" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <path className="magic-path" d="M -10,30 Q 30,80 50,50 T 110,40" />
-          <path className="magic-path" d="M -10,70 Q 40,20 70,60 T 110,80" style={{animationDelay: "4s", opacity: 0.5}} />
-        </svg>
-
         <div className="dashboard-inner">
           
           <div className="context-header fade-up-element" style={{ "--delay": `${animDelayOffset}s` } as any}>
@@ -638,7 +668,6 @@ export default function ThemeParkEntrance() {
             </div>
             
             <div className="top-bar-actions">
-              {/* ✨ Cmd+K 検索ダミー窓（オシャレUI！） */}
               <div className="cmdk-hint-bar btn-hover-shine" onClick={() => setIsCmdKOpen(true)}>
                 <span style={{ opacity: 0.6 }}>🔍 Search or jump...</span>
                 <div className="cmdk-shortcut"><kbd>⌘</kbd><kbd>K</kbd></div>
@@ -681,9 +710,7 @@ export default function ThemeParkEntrance() {
 
           <div className="main-layout">
             
-            {/* 🗜️ 折りたたみ式サイドバーラッパー */}
             <div className={`info-sidebar-wrapper ${!isSidebarOpen ? "collapsed" : ""}`}>
-              {/* ⬅️ 折りたたみボタン */}
               <button className="sidebar-toggle-btn" onClick={() => setIsSidebarOpen(false)}>◀ 隠す</button>
               
               <aside className="info-sidebar">
@@ -749,7 +776,6 @@ export default function ThemeParkEntrance() {
               </aside>
             </div>
 
-            {/* 🗜️ 隠したサイドバーを再表示するボタン */}
             {!isSidebarOpen && (
               <button 
                 className="btn-hover-shine"
@@ -761,7 +787,6 @@ export default function ThemeParkEntrance() {
             )}
 
             <div className="attraction-grid">
-              {/* 📉 KPIカードに Sparkline（折れ線グラフ）を追加！ */}
               <MagicCard delay={animDelayOffset + 0.5} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="本日の目標まであと何件か、リアルタイムで確認。" liveData={`${progressPercent}% Achieved`} sparkline={true} onClick={() => router.push("/kpi-detail")}>
                 <div className="kpi-widget">
                   <div className="kpi-numbers"><span className="kpi-current">{mockKpi.current}</span><span className="kpi-target">/ {mockKpi.target}件</span></div>
@@ -769,19 +794,17 @@ export default function ThemeParkEntrance() {
                 </div>
               </MagicCard>
 
-              <MagicCard delay={animDelayOffset + 0.6} attraction="BULK REGISTER" title="📦 データ一括登録" desc="顧客データを高速でDBへ転送します。" liveData="Ready" onClick={() => router.push("/bulk-register")} />
-              <MagicCard delay={animDelayOffset + 0.7} attraction="NET TOSS" title="🌐 ネットトス連携" desc="回線のトスアップデータを指定シートへ送信。" onClick={() => router.push("/net-toss")} />
-              <MagicCard delay={animDelayOffset + 0.8} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="成約情報を専用フォームからシームレスに連携。" onClick={() => router.push("/self-close")} />
-              <MagicCard delay={animDelayOffset + 0.9} attraction="SMS KRAKEN" title="📱 SMS 送信" desc="Krakenを用いたSMS送信とテンプレート展開。" liveData="System Active" onClick={() => router.push("/sms-kraken")} />
-              <MagicCard delay={animDelayOffset + 1.0} attraction="EMAIL TEMPLATE" title="✉️ メールテンプレ" desc="用途に応じたメール文面を素早く作成。" onClick={() => router.push("/email-template")} />
-              <MagicCard delay={animDelayOffset + 1.1} attraction="KRAKEN PROCEDURE" title="🗺️ Kraken 手順辞書" badge="NEW" desc="手続きに必要な情報を入力しフォーマット生成。" onClick={() => router.push("/procedure-wizard")} />
+              {/* ✨ ナレッジやトークを削除し、タイムラインとエリア判定を設置！！ */}
+              <MagicCard delay={animDelayOffset + 0.6} attraction="CALL BACK TIMELINE" title="🗓️ 再架電タイムライン" badge="NEW" desc="時間軸でコールバック案件を視覚的に管理・通知します。" liveData="3 Tasks" onClick={() => router.push("/callback-board")} />
+              <MagicCard delay={animDelayOffset + 0.7} attraction="AREA CHECKER" title="🗺️ 提供エリア判定ハブ" badge="NEW" desc="住所から各事業者の判定ページをワンタップで開きます。" onClick={() => setIsAreaOpen(true)} />
+              
+              <MagicCard delay={animDelayOffset + 0.8} attraction="BULK REGISTER" title="📦 データ一括登録" desc="顧客データを高速でDBへ転送します。" liveData="Ready" onClick={() => router.push("/bulk-register")} />
+              <MagicCard delay={animDelayOffset + 0.9} attraction="NET TOSS" title="🌐 ネットトス連携" desc="回線のトスアップデータを指定シートへ送信。" onClick={() => router.push("/net-toss")} />
+              <MagicCard delay={animDelayOffset + 1.0} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="成約情報を専用フォームからシームレスに連携。" onClick={() => router.push("/self-close")} />
+              <MagicCard delay={animDelayOffset + 1.1} attraction="SMS KRAKEN" title="📱 SMS 送信" desc="Krakenを用いたSMS送信とテンプレート展開。" liveData="System Active" onClick={() => router.push("/sms-kraken")} />
               <MagicCard delay={animDelayOffset + 1.2} attraction="COST SIMULATOR" title="🆚 料金シミュレーター" badge="NEW" desc="利用状況から乗り換え節約額を即座に算出します。" liveData="Avg. ¥4,200/mo" onClick={() => router.push("/simulator")} />
 
-              {/* ✨ 新しいツールの入り口を追加！！ */}
-              <MagicCard delay={animDelayOffset + 1.3} attraction="DYNAMIC SCRIPT" title="💬 トークスクリプト" badge="NEW" desc="顧客の回答に合わせて最適な案内フローを自動提示します。" liveData="v1.0" onClick={() => router.push("/talk-script")} />
-              <MagicCard delay={animDelayOffset + 1.4} attraction="SMART FAQ" title="📚 ナレッジ辞書" badge="NEW" desc="業務の疑問をコマンド式で即座に自己解決します。" liveData="Updated" onClick={() => router.push("/smart-faq")} />
-
-              <MagicCard delay={animDelayOffset + 1.5} attraction="QUICK MEMO" title="🍯 クイックメモ" desc="通話中などの一時的な情報を置いておくメモパッド。" onClick={() => setIsMemoOpen(true)}>
+              <MagicCard delay={animDelayOffset + 1.3} attraction="QUICK MEMO" title="🍯 クイックメモ" desc="通話中などの一時的な情報を置いておくメモパッド。" onClick={() => setIsMemoOpen(true)}>
                 {memoText ? (
                   <div className="util-result" style={{marginTop:0, padding:"10px", fontSize:"11px", opacity: 0.8}}>
                     {memoText.length > 20 ? memoText.substring(0, 20) + "..." : memoText}
@@ -794,7 +817,7 @@ export default function ThemeParkEntrance() {
           </div>
         </div>
 
-        <details className="quick-utility hide-on-mobile fade-up-element" style={{ "--delay": `${animDelayOffset + 1.6}s` } as any}>
+        <details className="quick-utility hide-on-mobile fade-up-element" style={{ "--delay": `${animDelayOffset + 1.5}s` } as any}>
           <summary className="utility-fab btn-hover-shine" style={{listStyle:"none", border:"none", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"28px", cursor:"pointer"}}>
             🔍 <span style={{fontSize: "9px", fontWeight: 900, marginTop: "-5px", opacity: 0.8}}>Cmd+K</span>
           </summary>
@@ -804,6 +827,40 @@ export default function ThemeParkEntrance() {
             <div className="util-result glitch-hover" onClick={copyUtilResult}>{utilResult}</div>
           </div>
         </details>
+
+        {/* 🗺️ エリア判定ハブ モーダル */}
+        <div className={`modal-overlay ${isAreaOpen ? "open" : ""}`} onClick={() => setIsAreaOpen(false)}>
+          <div className="custom-modal" style={{maxWidth: "500px"}} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-title">🗺️ エリア判定ハブ</div>
+            <p style={{fontSize: "13px", color: "var(--text-sub)", marginBottom: "20px", lineHeight: 1.6, fontWeight: 800}}>
+              郵便番号を入力して各事業者のボタンを押すと、<br/>
+              <b>最適な形式でクリップボードにコピーされ、判定ページが開きます。</b>
+            </p>
+            
+            <input type="text" className="util-input" style={{marginBottom:"10px", fontSize:"20px", textAlign:"center", letterSpacing:"2px"}} placeholder="郵便番号 (ハイフンなし7桁)" value={areaZip} onChange={(e) => setAreaZip(e.target.value)} />
+            
+            <div className="area-btn-group">
+              <div className="area-btn east" onClick={() => openAreaSite('https://flets.com/app_new/cao/SelectAddress', 'east')}>
+                <span>🔵 NTT東日本で判定</span>
+                <span style={{fontSize:"11px", fontWeight:800, color:"var(--text-sub)"}}>自動コピー: 123-4567</span>
+              </div>
+              <div className="area-btn west" onClick={() => openAreaSite('https://flets.ntt-west.co.jp/area/areaSearch?_gl=1*1wzcbm2*_ga*Nzg0MDY3MTc3LjE3NjMxMDM3OTM.*_ga_83NMYZFEHR*czE3NzY0MDgyODQkbzIxOSRnMCR0MTc3NjQwODI4NCRqNjAkbDAkaDA.', 'west')}>
+                <span>🟠 NTT西日本で判定</span>
+                <span style={{fontSize:"11px", fontWeight:800, color:"var(--text-sub)"}}>自動コピー: 1234567</span>
+              </div>
+              <div className="area-btn au" onClick={() => openAreaSite('https://bb-application.au.com/auhikari/area-check', 'other')}>
+                <span>🟠 auひかりで判定</span>
+                <span style={{fontSize:"11px", fontWeight:800, color:"var(--text-sub)"}}>自動コピー: そのまま</span>
+              </div>
+              <div className="area-btn nuro" onClick={() => openAreaSite('https://nuro.jp/hikari/area/', 'other')}>
+                <span>🟢 NURO光で判定</span>
+                <span style={{fontSize:"11px", fontWeight:800, color:"var(--text-sub)"}}>自動コピー: そのまま</span>
+              </div>
+            </div>
+
+            <button className="btn-close-modal btn-hover-shine" onClick={() => setIsAreaOpen(false)}>閉じる</button>
+          </div>
+        </div>
 
         <div className={`modal-overlay ${isSimOpen ? "open" : ""}`} onClick={() => setIsSimOpen(false)}>
           <div className="custom-modal" style={{maxWidth: "400px"}} onClick={(e) => e.stopPropagation()}>
