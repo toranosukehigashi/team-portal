@@ -490,7 +490,7 @@ export default function ThemeParkEntrance() {
           .news-text { display: inline-block; padding-left: 100%; animation: marquee 30s linear infinite; font-weight: 800; color: var(--text-main); font-size: 15px; letter-spacing: 1px; }
           @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
-          /* ✨ 3カラムレイアウト（左：サイド、中：グリッド、右：タイムライン） */
+          /* ✨ 3カラムレイアウト */
           .main-layout { display: flex; gap: 25px; margin-bottom: 50px; align-items: flex-start; justify-content: center; }
           .info-sidebar-wrapper { width: 280px; flex-shrink: 0; transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s; overflow: visible; position: relative; z-index: 50; }
           .info-sidebar-wrapper.collapsed { width: 0px; opacity: 0; pointer-events: none; overflow: hidden; }
@@ -511,8 +511,8 @@ export default function ThemeParkEntrance() {
           .sidebar-toggle-btn { position: absolute; top: -35px; left: 0; background: transparent; border: none; color: var(--text-sub); font-weight: 900; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 5px; opacity: 0.6; transition: 0.2s; letter-spacing: 1px; text-transform: uppercase; z-index: 60; }
           .sidebar-toggle-btn:hover { opacity: 1; color: var(--accent-color); }
 
-          /* ✨ チームチャットを消去し、ブックマークを自然に広げる */
-          .info-sidebar { display: flex; flex-direction: column; gap: 20px; }
+          /* ✨ チームチャット完全撤去・ブックマーク管理のスタイル */
+          .info-sidebar { display: flex; flex-direction: column; gap: 20px; height: 100%; }
           .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 18px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; }
           .info-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
 
@@ -667,10 +667,12 @@ export default function ThemeParkEntrance() {
 
           <div className="main-layout">
             
+            {/* ✨ チームチャットを消し去り、ブックマークだけになった左カラム */}
             <div className={`info-sidebar-wrapper ${!isSidebarOpen ? "collapsed" : ""}`}>
               <button className="sidebar-toggle-btn" onClick={() => setIsSidebarOpen(false)}>◀ 隠す</button>
               
               <aside className="info-sidebar">
+                {/* flex: 1 を当ててパネルを美しく伸ばす */}
                 <div className="info-panel fade-up-element" style={{ "--delay": `${animDelayOffset + 0.5}s`, flex: 1 } as any}>
                   <h3 className="info-title">📋 CallTree & ブックマーク管理</h3>
                   <div style={{ fontSize: "11px", color: "var(--text-sub)", fontWeight: 800, marginBottom: "12px", lineHeight: 1.4 }}>
@@ -716,6 +718,7 @@ export default function ThemeParkEntrance() {
               </button>
             )}
 
+            {/* ✨ 完全復活した10個のカード群 */}
             <div className="attraction-grid">
               <MagicCard delay={animDelayOffset + 0.5} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="本日の目標まであと何件か、リアルタイムで確認。" liveData={`${progressPercent}% Achieved`} sparkline={true} onClick={() => router.push("/kpi-detail")}>
                 <div className="kpi-widget">
@@ -724,17 +727,21 @@ export default function ThemeParkEntrance() {
                 </div>
               </MagicCard>
 
-              <MagicCard delay={animDelayOffset + 0.6} attraction="BULK REGISTER" title="📦 データ一括登録" desc="顧客データを高速でDBへ転送します。" liveData="Ready" onClick={() => router.push("/bulk-register")} />
-              <MagicCard delay={animDelayOffset + 0.7} attraction="NET TOSS" title="🌐 ネットトス連携" desc="回線のトスアップデータを指定シートへ送信。" onClick={() => router.push("/net-toss")} />
-              <MagicCard delay={animDelayOffset + 0.8} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="成約情報を専用フォームからシームレスに連携。" onClick={() => router.push("/self-close")} />
-              <MagicCard delay={animDelayOffset + 0.9} attraction="SMS KRAKEN" title="📱 SMS 送信" desc="Krakenを用いたSMS送信とテンプレート展開。" liveData="System Active" onClick={() => router.push("/sms-kraken")} />
-              <MagicCard delay={animDelayOffset + 1.0} attraction="EMAIL TEMPLATE" title="✉️ メールテンプレ" desc="用途に応じたメール文面を素早く作成。" onClick={() => router.push("/email-template")} />
+              {/* ✨ 復活：エリア判定ハブ */}
+              <MagicCard delay={animDelayOffset + 0.6} attraction="AREA CHECKER" title="🗺️ 提供エリア判定ハブ" badge="NEW" desc="住所から各事業者の判定ページをワンタップで開きます。" onClick={() => setIsAreaOpen(true)} />
               
-              <MagicCard delay={animDelayOffset + 1.1} attraction="KRAKEN MANUAL" title="🐙 Kraken マニュアル" badge="NEW" desc="手続きに必要な情報を入力しフォーマット生成。" onClick={() => router.push("/procedure-wizard")} />
+              <MagicCard delay={animDelayOffset + 0.7} attraction="BULK REGISTER" title="📦 データ一括登録" desc="顧客データを高速でDBへ転送します。" liveData="Ready" onClick={() => router.push("/bulk-register")} />
+              <MagicCard delay={animDelayOffset + 0.8} attraction="NET TOSS" title="🌐 ネットトス連携" desc="回線のトスアップデータを指定シートへ送信。" onClick={() => router.push("/net-toss")} />
+              <MagicCard delay={animDelayOffset + 0.9} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="成約情報を専用フォームからシームレスに連携。" onClick={() => router.push("/self-close")} />
+              <MagicCard delay={animDelayOffset + 1.0} attraction="SMS KRAKEN" title="📱 SMS 送信" desc="Krakenを用いたSMS送信とテンプレート展開。" liveData="System Active" onClick={() => router.push("/sms-kraken")} />
+              <MagicCard delay={animDelayOffset + 1.1} attraction="EMAIL TEMPLATE" title="✉️ メールテンプレ" desc="用途に応じたメール文面を素早く作成。" onClick={() => router.push("/email-template")} />
               
-              <MagicCard delay={animDelayOffset + 1.2} attraction="COST SIMULATOR" title="🆚 料金シミュレーター" badge="NEW" desc="利用状況から乗り換え節約額を即座に算出します。" liveData="Avg. ¥4,200/mo" onClick={() => router.push("/simulator")} />
+              {/* ✨ 復活：Krakenマニュアル（procedure-wizard） */}
+              <MagicCard delay={animDelayOffset + 1.2} attraction="KRAKEN MANUAL" title="🐙 Kraken マニュアル" badge="NEW" desc="手続きに必要な情報を入力しフォーマット生成。" onClick={() => router.push("/procedure-wizard")} />
+              
+              <MagicCard delay={animDelayOffset + 1.3} attraction="COST SIMULATOR" title="🆚 料金シミュレーター" badge="NEW" desc="利用状況から乗り換え節約額を即座に算出します。" liveData="Avg. ¥4,200/mo" onClick={() => router.push("/simulator")} />
 
-              <MagicCard delay={animDelayOffset + 1.3} attraction="QUICK MEMO" title="🍯 クイックメモ" desc="通話中などの一時的な情報を置いておくメモパッド。" onClick={() => setIsMemoOpen(true)}>
+              <MagicCard delay={animDelayOffset + 1.4} attraction="QUICK MEMO" title="🍯 クイックメモ" desc="通話中などの一時的な情報を置いておくメモパッド。" onClick={() => setIsMemoOpen(true)}>
                 {memoText ? (
                   <div className="util-result" style={{marginTop:0, padding:"10px", fontSize:"11px", opacity: 0.8}}>
                     {memoText.length > 20 ? memoText.substring(0, 20) + "..." : memoText}
@@ -745,6 +752,7 @@ export default function ThemeParkEntrance() {
               </MagicCard>
             </div>
 
+            {/* ✨ 完璧に維持されている再架電タイムライン */}
             <div className="timeline-sidebar-wrapper fade-up-element" style={{ "--delay": `${animDelayOffset + 0.6}s` } as any}>
               <aside className="timeline-sidebar">
                 <div className="timeline-header">
