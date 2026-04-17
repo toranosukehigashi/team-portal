@@ -139,6 +139,9 @@ export default function ThemeParkEntrance() {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   const [showMacWelcome, setShowMacWelcome] = useState(false);
+  // ✨ ログイン直後かどうかを判定するステートを追加
+  const [isInitialLogin, setIsInitialLogin] = useState(false);
+
   const [newsText, setNewsText] = useState("【お知らせ】本日はお疲れ様です！Team Portalへようこそ！");
   const [isEditingNews, setIsEditingNews] = useState(false);
   const [tempNews, setTempNews] = useState("");
@@ -171,12 +174,14 @@ export default function ThemeParkEntrance() {
     let readyTimeout: NodeJS.Timeout | null = null;
 
     if (justLoggedIn) {
+      setIsInitialLogin(true); // ✨ アニメーション発動フラグON
       setShowMacWelcome(true);
       sessionStorage.removeItem("just_logged_in");
       welcomeTimeout = setTimeout(() => setShowMacWelcome(false), 3200); 
       readyTimeout = setTimeout(() => setIsReady(true), 2600); 
       setAnimDelayOffset(3.2);
     } else {
+      setIsInitialLogin(false); // ✨ アニメーション発動フラグOFF（即表示）
       setIsReady(true);
       setAnimDelayOffset(0.2);
     }
@@ -195,12 +200,16 @@ export default function ThemeParkEntrance() {
       }, { threshold: 0.05, rootMargin: "0px 0px 50px 0px" });
       document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
     }, justLoggedIn ? 3400 : 200);
+
+    const closeBookmark = () => setActiveBookmark(null);
+    document.addEventListener('click', closeBookmark);
     
     return () => { 
       if (welcomeTimeout) clearTimeout(welcomeTimeout);
       if (readyTimeout) clearTimeout(readyTimeout);
       clearTimeout(observerTimer); 
       window.removeEventListener("storage", handleStorageChange); 
+      document.removeEventListener('click', closeBookmark);
     };
   }, []);
 
@@ -290,6 +299,7 @@ export default function ThemeParkEntrance() {
 
   return (
     <>
+      {/* 🍎 Mac風「ようこそ」アニメーション */}
       {showMacWelcome && (
         <div className={`mac-welcome-overlay dark-fix-welcome`}>
           <div className="mac-welcome-text-container">
@@ -302,15 +312,19 @@ export default function ThemeParkEntrance() {
         </div>
       )}
 
-      {/* ✨ 画面のどこかをクリックしたら吹き出しが閉じるように onClick を追加！ */}
+      {/* ✨ 背景コンポーネントを main の「外側」に救出！ これで上下が切れるバグが完全に直ります！！ */}
+      <div className={`entrance-bg`} style={{ background: dynamicBg || "var(--bg-gradient)", transition: "background 2s ease" }}>
+        <DataMesh isDarkMode={isDarkMode} />
+      </div>
+      <GooeyBackground />
+      <svg className="magic-svg-bg" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path className="magic-path" d="M -10,30 Q 30,80 50,50 T 110,40" />
+        <path className="magic-path" d="M -10,70 Q 40,20 70,60 T 110,80" style={{animationDelay: "4s", opacity: 0.5}} />
+      </svg>
+
+      {/* メインの箱 */}
       <main className={`app-wrapper ${isReady ? "ready" : ""} ${isDarkMode ? "theme-dark" : "theme-light"}`} onClick={() => setActiveBookmark(null)}>
         
-        <div className={`entrance-bg`} style={{ background: dynamicBg || "var(--bg-gradient)", transition: "background 2s ease" }}>
-          <DataMesh isDarkMode={isDarkMode} />
-        </div>
-        
-        <GooeyBackground />
-
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
 
@@ -394,6 +408,7 @@ export default function ThemeParkEntrance() {
           .park-main-title { margin: 0 0 15px 0; display: flex; justify-content: center; flex-wrap: wrap; }
           .char-wrapper { display: inline-block; overflow: hidden; vertical-align: bottom; line-height: 1.3; margin-bottom: -10px; padding-bottom: 10px; }
           
+          /* ✨ タイトル文字のCSS：アニメーションON版と、OFF版（固定）を分ける */
           .kinetic-char { 
             display: inline-block; font-size: clamp(40px, 6vw, 65px); font-weight: 900; letter-spacing: 2px; 
             transform: translateY(120%); opacity: 0; 
@@ -404,6 +419,15 @@ export default function ThemeParkEntrance() {
           }
           .theme-dark .kinetic-char { background: linear-gradient(to bottom, #fde047, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
           @keyframes slideUpChar { to { transform: translateY(0); opacity: 1; } }
+
+          /* ログイン時以外は最初からドン！と表示する用 */
+          .static-char {
+            display: inline-block; font-size: clamp(40px, 6vw, 65px); font-weight: 900; letter-spacing: 2px; 
+            background: linear-gradient(to bottom, #0284c7, #2563eb); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); 
+          }
+          .theme-dark .static-char { background: linear-gradient(to bottom, #fde047, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
           
           .park-sub-title { color: var(--text-sub); font-size: 16px; font-weight: 800; letter-spacing: 8px; text-transform: uppercase; opacity: 0; animation: fadeIn 1s ease forwards; }
           @keyframes fadeIn { to { opacity: 1; } }
@@ -432,12 +456,10 @@ export default function ThemeParkEntrance() {
           .main-layout { display: grid; grid-template-columns: 260px 1fr; gap: 25px; margin-bottom: 50px; }
           @media (max-width: 950px) { .main-layout { grid-template-columns: 1fr; } }
 
-          /* ✨ 左カラムのz-indexを50にして最前面に！これで吹き出しが隠れない！ */
           .info-sidebar { display: flex; flex-direction: column; gap: 20px; position: relative; z-index: 50; }
           .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 18px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; }
           .info-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
 
-          /* ✨ ブックマーク管理：ボタン＆吹き出し用スタイル */
           .bookmark-wrapper { position: relative; margin-bottom: 8px; }
           .script-box { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 12px; padding: 10px 12px; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
           .script-box:hover { border-color: var(--card-hover-border); transform: translateX(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
@@ -497,21 +519,8 @@ export default function ThemeParkEntrance() {
           
           .magic-card-wrapper.visible:hover { transform: translateY(0) scale(1.02); z-index: 10; }
 
-          .magic-card { 
-            position: relative; border-radius: 28px; padding: 25px; 
-            background: var(--card-bg); backdrop-filter: blur(25px); 
-            display: flex; flex-direction: column; gap: 12px; 
-            transform-style: preserve-3d; height: 100%; cursor: pointer;
-            box-shadow: var(--card-shadow);
-          }
-          
-          .card-aurora-border {
-            position: absolute; inset: 0; border-radius: 28px; padding: 2px;
-            background: radial-gradient(400px circle at var(--mouse-x, 0) var(--mouse-y, 0), var(--card-hover-border), transparent 40%);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor; mask-composite: exclude;
-            opacity: 0.2; transition: opacity 0.3s; pointer-events: none;
-          }
+          .magic-card { position: relative; border-radius: 28px; padding: 25px; background: var(--card-bg); backdrop-filter: blur(25px); display: flex; flex-direction: column; gap: 12px; transform-style: preserve-3d; height: 100%; cursor: pointer; box-shadow: var(--card-shadow); }
+          .card-aurora-border { position: absolute; inset: 0; border-radius: 28px; padding: 2px; background: radial-gradient(400px circle at var(--mouse-x, 0) var(--mouse-y, 0), var(--card-hover-border), transparent 40%); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0.2; transition: opacity 0.3s; pointer-events: none; }
           .magic-card:hover .card-aurora-border { opacity: 1; }
 
           .card-glare { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, transparent 60%); pointer-events: none; z-index: 1; mix-blend-mode: overlay; transition: 0.5s; }
@@ -560,11 +569,6 @@ export default function ThemeParkEntrance() {
           #toast.show { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
         `}} />
 
-        <svg className="magic-svg-bg" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <path className="magic-path" d="M -10,30 Q 30,80 50,50 T 110,40" />
-          <path className="magic-path" d="M -10,70 Q 40,20 70,60 T 110,80" style={{animationDelay: "4s", opacity: 0.5}} />
-        </svg>
-
         <div className="dashboard-inner">
           
           <div className="context-header fade-up-element" style={{ "--delay": `${animDelayOffset}s` } as any}>
@@ -586,9 +590,10 @@ export default function ThemeParkEntrance() {
 
           <div className="park-title-container">
             <h1 className="park-main-title">
+              {/* ✨ ログイン直後のみキネティックアニメーションを適用！それ以外はそのまま表示！ */}
               {titleChars.map((char, i) => (
-                <span key={i} className="char-wrapper">
-                  <span className="kinetic-char" style={{ animationDelay: `${i * 0.03 + animDelayOffset}s` }}>
+                <span key={i} className={isInitialLogin ? "char-wrapper" : ""}>
+                  <span className={isInitialLogin ? "kinetic-char" : "static-char"} style={isInitialLogin ? { animationDelay: `${i * 0.03 + animDelayOffset}s` } : {}}>
                     {char === " " ? "\u00A0" : char}
                   </span>
                 </span>
