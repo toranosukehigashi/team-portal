@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// 🌟 3Dパララックス ＆ オーロラボーダー・カード
+// 🌟 3Dパララックス ＆ オーロラボーダー ＆ 流体フロート・カード
 const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, liveData }: any) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
@@ -25,13 +25,13 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, l
   return (
     <div
       ref={cardRef}
-      className="magic-card-wrapper fade-up-element"
+      className="magic-card-wrapper fade-up-element fluid-card"
       style={{ "--delay": `${delay}s` } as React.CSSProperties}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
     >
-      <div className="magic-card" style={{ transform: `perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)` }}>
+      <div className="magic-card glitch-hover" style={{ transform: `perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)` }}>
         <div className="card-aurora-border"></div>
         <div className="card-glare" style={{ transform: `translate(${tilt.y * 4}px, ${-tilt.x * 4}px)` }} />
         <div className="card-wave-bg"></div>
@@ -50,25 +50,84 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, l
   );
 };
 
-// ✨ 背景のパーティクル
-const PixieDust = () => {
-  const [stars, setStars] = useState<{ id: number; left: string; top: string; delay: string; size: string }[]>([]);
+// 🌐 案A: ライブ・データメッシュ (Canvas Animation)
+const DataMesh = ({ isDarkMode }: { isDarkMode: boolean }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  
   useEffect(() => {
-    const generatedStars = Array.from({ length: 50 }).map((_, i) => ({
-      id: i,
-      left: `${Math.random() * 100}vw`,
-      top: `${Math.random() * 100}vh`,
-      delay: `${Math.random() * 5}s`,
-      size: `${Math.random() * 3 + 1}px`
-    }));
-    setStars(generatedStars);
-  }, []);
-  return (
-    <div className="particles-container">
-      {stars.map(star => <div key={star.id} className="star" style={{ left: star.left, top: star.top, width: star.size, height: star.size, animationDelay: star.delay }} />)}
-    </div>
-  );
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    
+    let animationFrameId: number;
+    let particles: { x: number, y: number, vx: number, vy: number, size: number }[] = [];
+    const particleCount = 40;
+    
+    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+    window.addEventListener("resize", resize);
+    resize();
+
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 1.0, vy: (Math.random() - 0.5) * 1.0,
+        size: Math.random() * 2 + 1
+      });
+    }
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const colorRGB = isDarkMode ? "56, 189, 248" : "14, 165, 233"; // テーマで色を変更
+      
+      for (let i = 0; i < particleCount; i++) {
+        let p = particles[i];
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${colorRGB}, 0.8)`; ctx.fill();
+
+        // 互いの距離が近ければ線を引く（データメッシュ効果）
+        for (let j = i + 1; j < particleCount; j++) {
+          let p2 = particles[j];
+          let dist = Math.sqrt(Math.pow(p.x - p2.x, 2) + Math.pow(p.y - p2.y, 2));
+          if (dist < 150) {
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(${colorRGB}, ${1 - dist / 150})`;
+            ctx.lineWidth = 1;
+            ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
+        }
+      }
+      animationFrameId = requestAnimationFrame(animate);
+    };
+    animate();
+    return () => { window.removeEventListener("resize", resize); cancelAnimationFrame(animationFrameId); };
+  }, [isDarkMode]);
+
+  return <canvas ref={canvasRef} style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: -2, pointerEvents: "none" }} />;
 };
+
+// 🌊 案C: 流体ダッシュボード用 Gooey バックグラウンド
+const GooeyBackground = () => (
+  <>
+    <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+      <filter id="goo">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="30" result="blur" />
+        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 30 -15" result="goo" />
+        <feBlend in="SourceGraphic" in2="goo" />
+      </filter>
+    </svg>
+    <div className="gooey-container">
+      <div className="gooey-blob blob-1"></div>
+      <div className="gooey-blob blob-2"></div>
+      <div className="gooey-blob blob-3"></div>
+    </div>
+  </>
+);
 
 interface ChatMessage { id: string; user: string; text: string; time: string; }
 
@@ -80,18 +139,20 @@ export default function ThemeParkEntrance() {
   const [isReady, setIsReady] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // 🍎 Mac風ウェルカム画面のステート
   const [showMacWelcome, setShowMacWelcome] = useState(false);
-
   const [newsText, setNewsText] = useState("【お知らせ】本日はお疲れ様です！Team Portalへようこそ！");
   const [isEditingNews, setIsEditingNews] = useState(false);
   const [tempNews, setTempNews] = useState("");
 
   const [greeting, setGreeting] = useState("Hello");
+  const [dynamicBg, setDynamicBg] = useState(""); // 🌅 案D: 状況連動型背景シフト
 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const chatScrollRef = useRef<HTMLDivElement>(null);
+
+  const mockKpi = { current: 12, target: 20 };
+  const progressPercent = Math.min(100, Math.round((mockKpi.current / mockKpi.target) * 100));
 
   useEffect(() => {
     const savedUser = localStorage.getItem("team_portal_user");
@@ -103,31 +164,36 @@ export default function ThemeParkEntrance() {
       setTimeout(() => setShowMacWelcome(false), 3000); 
     }
 
+    // 🌅 案D: 時間帯に応じた背景色と挨拶の自動変更
     const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) setGreeting("Good Morning ☀️");
-    else if (hour >= 12 && hour < 18) setGreeting("Good Afternoon ☕");
-    else setGreeting("Good Evening 🌙");
+    if (hour >= 5 && hour < 12) {
+      setGreeting("Good Morning ☀️");
+      setDynamicBg(isDarkMode ? "linear-gradient(135deg, #0f172a, #1e1b4b)" : "linear-gradient(135deg, #f0f9ff, #fdf4ff)");
+    } else if (hour >= 12 && hour < 17) {
+      setGreeting("Good Afternoon ☕");
+      setDynamicBg(isDarkMode ? "linear-gradient(135deg, #1e1b4b, #312e81)" : "linear-gradient(135deg, #e0f2fe, #e0e7ff)");
+    } else if (hour >= 17 && hour < 20) {
+      setGreeting("Good Evening 🌇");
+      setDynamicBg(isDarkMode ? "linear-gradient(135deg, #31111d, #1e1b4b)" : "linear-gradient(135deg, #ffedd5, #ffe4e6)");
+    } else {
+      setGreeting("Good Night 🌙");
+      setDynamicBg(isDarkMode ? "radial-gradient(ellipse at bottom, #1e1b4b 0%, #020617 100%)" : "linear-gradient(135deg, #312e81, #1e1b4b)");
+    }
 
     const savedMemo = localStorage.getItem("team_portal_quick_memo"); if (savedMemo) setMemoText(savedMemo);
     const savedNews = localStorage.getItem("team_portal_news"); if (savedNews) setNewsText(savedNews);
     
-    const loadChat = () => {
-      const savedChat = localStorage.getItem("team_portal_chat_history");
-      if (savedChat) setChatMessages(JSON.parse(savedChat));
-    };
+    const loadChat = () => { const savedChat = localStorage.getItem("team_portal_chat_history"); if (savedChat) setChatMessages(JSON.parse(savedChat)); };
     loadChat();
     const handleStorageChange = (e: StorageEvent) => { if (e.key === "team_portal_chat_history") loadChat(); };
     window.addEventListener("storage", handleStorageChange);
     
     setIsReady(true);
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("visible"); });
-    }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+    const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("visible"); }); }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
     document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
     
     return () => { observer.disconnect(); window.removeEventListener("storage", handleStorageChange); };
-  }, []);
+  }, [isDarkMode]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,10 +223,7 @@ export default function ThemeParkEntrance() {
       setUtilResult("🔍 検索中...");
       fetch(`https://zipcloud.ibsnet.co.jp/api/search?zipcode=${zipCode}`)
         .then(res => res.json())
-        .then(data => {
-          if (data.results && data.results.length > 0) setUtilResult(`📍 ${data.results[0].address1} ${data.results[0].address2} ${data.results[0].address3}`);
-          else setUtilResult("⚠️ 該当する住所が見つかりませんでした");
-        }).catch(() => setUtilResult("⚠️ 通信エラーが発生しました"));
+        .then(data => { if (data.results && data.results.length > 0) setUtilResult(`📍 ${data.results[0].address1} ${data.results[0].address2} ${data.results[0].address3}`); else setUtilResult("⚠️ 該当する住所が見つかりませんでした"); }).catch(() => setUtilResult("⚠️ 通信エラーが発生しました"));
     } else if (utilInput.length > 0 && !utilInput.match(/[0-9]/)) setUtilResult(`🔤 カナ変換APIは現在オフラインです`);
     else if (utilInput.length === 0) setUtilResult("郵便番号を入力してエリアを検索します。");
     else setUtilResult("入力中...");
@@ -168,11 +231,7 @@ export default function ThemeParkEntrance() {
 
   const showToast = (msg: string) => { setToast({ show: true, msg }); setTimeout(() => setToast({ show: false, msg: "" }), 3000); };
   const handleLogout = () => { localStorage.removeItem("team_portal_user"); router.push("/login"); };
-  const handleClockOut = async () => {
-    const now = new Date(); const hours = String(now.getHours()).padStart(2, "0"); const minutes = String(now.getMinutes()).padStart(2, "0");
-    try { await navigator.clipboard.writeText(`${hours}:${minutes} 退勤いたします`); showToast(`✨ 退勤メッセージをコピーしました！`); } catch (err) { alert("コピーに失敗しました"); }
-  };
-
+  const handleClockOut = async () => { const now = new Date(); const hours = String(now.getHours()).padStart(2, "0"); const minutes = String(now.getMinutes()).padStart(2, "0"); try { await navigator.clipboard.writeText(`${hours}:${minutes} 退勤いたします`); showToast(`✨ 退勤メッセージをコピーしました！`); } catch (err) { alert("コピーに失敗しました"); } };
   const copyScriptCode = async (title: string, code: string) => { try { await navigator.clipboard.writeText(code); showToast(`📋 ${title}のコードをコピーしました！`); } catch (err) { alert("コピーに失敗しました"); } };
   
   const calculateDeadlines = (dateStr: string) => {
@@ -187,111 +246,105 @@ export default function ThemeParkEntrance() {
     };
     setResult({ day3: getDeadline(3, false), day5Before: getDeadline(5, false), day5After: getDeadline(5, true) });
   };
-
-  const handleOpenSim = () => {
-    const today = new Date(); const y = today.getFullYear(); const m = String(today.getMonth() + 1).padStart(2, '0'); const d = String(today.getDate()).padStart(2, '0');
-    const todayStr = `${y}-${m}-${d}`; setTargetDate(todayStr); calculateDeadlines(todayStr); setIsSimOpen(true);
-  };
-
+  const handleOpenSim = () => { const today = new Date(); const y = today.getFullYear(); const m = String(today.getMonth() + 1).padStart(2, '0'); const d = String(today.getDate()).padStart(2, '0'); const todayStr = `${y}-${m}-${d}`; setTargetDate(todayStr); calculateDeadlines(todayStr); setIsSimOpen(true); };
   const handleSaveNews = () => { setNewsText(tempNews); localStorage.setItem("team_portal_news", tempNews); setIsEditingNews(false); showToast("📢 お知らせを更新しました！"); };
   const handleMemoChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => { const val = e.target.value; setMemoText(val); localStorage.setItem("team_portal_quick_memo", val); };
   const handleCopyMemo = async () => { if(memoText){ await navigator.clipboard.writeText(memoText); showToast("📋 メモをコピーしました！"); } };
   const handleClearMemo = () => { if(confirm("メモをクリアしますか？")){ setMemoText(""); localStorage.removeItem("team_portal_quick_memo"); } };
   const copyUtilResult = async () => { if (utilResult.includes("📍")) { try { await navigator.clipboard.writeText(utilResult.replace("📍 ", "")); showToast("📋 住所をコピーしました！"); } catch (err) { alert("コピー失敗"); } } };
 
-  const mockKpi = { current: 12, target: 20 };
-  const progressPercent = Math.min(100, Math.round((mockKpi.current / mockKpi.target) * 100));
-  
-  // 🔠 キネティック・タイポグラフィ用の文字分割
   const titleString = "Team Portal Workspace";
   const titleChars = titleString.split("");
+  const welcomeTextRaw = `Welcome, ${userName}.`;
+  const welcomeChars = welcomeTextRaw.split("");
 
   return (
     <>
-      {/* 🍎 Mac風「ようこそ」アニメーション（テーマ追従の真・完全版！） */}
       {showMacWelcome && (
-        <div className={`mac-welcome-overlay ${isDarkMode ? "dark-welcome" : "light-welcome"}`}>
-          <div className="mac-welcome-text">
-            Welcome, <span style={{fontWeight: 600}}>{userName}</span>.
+        <div className={`mac-welcome-overlay ${isDarkMode ? "light-welcome" : "dark-welcome"}`}>
+          <div className="mac-welcome-text-container">
+            {welcomeChars.map((char, i) => (
+              <span key={i} className="welcome-char-wrapper">
+                <span className="welcome-kinetic-char" style={{ animationDelay: `${i * 0.04}s` }}>{char === " " ? "\u00A0" : char}</span>
+              </span>
+            ))}
           </div>
         </div>
       )}
 
-      <div className={`entrance-bg ${isDarkMode ? "theme-dark" : "theme-light"}`}>
-        <PixieDust />
+      {/* 🌅 案D: 状況連動型背景 */}
+      <div className={`entrance-bg`} style={{ background: dynamicBg, transition: "background 2s ease" }}>
+        {/* 🌐 案A: ライブ・データメッシュ */}
+        <DataMesh isDarkMode={isDarkMode} />
       </div>
+      
+      {/* 🌊 案C: 流体エフェクトの背景要素 */}
+      <GooeyBackground />
 
       <main className={`app-wrapper ${isReady ? "ready" : ""} ${isDarkMode ? "theme-dark" : "theme-light"}`}>
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
 
-          /* 🍎 新生 Mac風ウェルカムアニメーション（テーマに合わせて背景色と文字色を自動変更！） */
-          .mac-welcome-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: 999999; display: flex; align-items: center; justify-content: center;
-            animation: macFadeOut 0.8s cubic-bezier(0.8, 0, 0.2, 1) 2.2s forwards;
-          }
-          /* ライトモード時のウェルカム */
-          .mac-welcome-overlay.light-welcome { background: #ffffff; }
-          .mac-welcome-overlay.light-welcome .mac-welcome-text { color: #0f172a; }
-          /* ダークモード時のウェルカム */
+          .mac-welcome-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999; display: flex; align-items: center; justify-content: center; animation: macFadeOut 0.6s cubic-bezier(0.8, 0, 0.2, 1) 2.6s forwards; }
           .mac-welcome-overlay.dark-welcome { background: #000000; }
-          .mac-welcome-overlay.dark-welcome .mac-welcome-text { color: #ffffff; }
-
-          .mac-welcome-text {
-            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-            font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 300; letter-spacing: 0.05em;
-            opacity: 0; transform: scale(0.95);
-            animation: macTextFlow 2.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-          }
-          @keyframes macTextFlow {
-            0% { opacity: 0; transform: scale(0.95); filter: blur(5px); }
-            20% { opacity: 1; transform: scale(1); filter: blur(0); }
-            80% { opacity: 1; transform: scale(1); filter: blur(0); }
-            100% { opacity: 0; transform: scale(1.05); filter: blur(5px); }
-          }
+          .mac-welcome-overlay.light-welcome { background: #ffffff; }
+          .mac-welcome-text-container { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 300; letter-spacing: 0.05em; display: flex; justify-content: center; flex-wrap: wrap; }
+          .welcome-char-wrapper { display: inline-block; overflow: hidden; vertical-align: bottom; line-height: 1.2; padding-bottom: 5px; margin-bottom: -5px; }
+          .welcome-kinetic-char { display: inline-block; transform: translateY(100%); opacity: 0; animation: slideUpWelcomeChar 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+          .mac-welcome-overlay.dark-welcome .welcome-kinetic-char { color: #ffffff; }
+          .mac-welcome-overlay.light-welcome .welcome-kinetic-char { color: #000000; }
+          @keyframes slideUpWelcomeChar { to { transform: translateY(0); opacity: 1; } }
           @keyframes macFadeOut { to { opacity: 0; visibility: hidden; } }
 
-          /* 🎨 テーマ定義 */
+          /* 🎨 テーマ */
           .theme-light { 
-            --bg-gradient: linear-gradient(180deg, #7dd3fc 0%, #e0f2fe 100%); 
             --text-main: #1e293b; --text-sub: #475569; 
-            --card-bg: rgba(255, 255, 255, 0.7); --card-border: rgba(255, 255, 255, 1); 
+            --card-bg: rgba(255, 255, 255, 0.65); --card-border: rgba(255, 255, 255, 1); 
             --card-hover-border: #38bdf8; --card-hover-bg: rgba(255, 255, 255, 0.95); 
             --card-shadow: 0 10px 30px rgba(0,0,0,0.05); 
-            /* ✨ ライトモードのタイトルを澄み切った青に変更！ */
             --title-color: #0284c7; --accent-color: #0ea5e9; 
             --modal-bg: rgba(255, 255, 255, 0.95); --kpi-bg: rgba(241, 245, 249, 0.8); 
             --input-bg: rgba(255, 255, 255, 0.8); --svg-color: rgba(2, 132, 199, 0.2); 
-            --star-color: #f59e0b; 
           }
           .theme-dark { 
-            --bg-gradient: radial-gradient(ellipse at bottom, #1e1b4b 0%, #020617 100%); 
             --text-main: #f8fafc; --text-sub: #cbd5e1; 
-            --card-bg: rgba(15, 23, 42, 0.7); --card-border: rgba(255, 255, 255, 0.15); 
-            --card-hover-border: #fde047; --card-hover-bg: rgba(30, 41, 59, 0.9); 
+            --card-bg: rgba(15, 23, 42, 0.6); --card-border: rgba(255, 255, 255, 0.1); 
+            --card-hover-border: #fde047; --card-hover-bg: rgba(30, 41, 59, 0.8); 
             --card-shadow: 0 20px 50px rgba(0,0,0,0.8); 
             --title-color: #fde047; --accent-color: #fde047; 
             --modal-bg: rgba(15, 23, 42, 0.9); --kpi-bg: rgba(0, 0, 0, 0.4); 
             --input-bg: rgba(0, 0, 0, 0.4); --svg-color: rgba(255, 255, 255, 0.4); 
-            --star-color: #fef08a; 
           }
 
-          .app-wrapper { min-height: 100vh; padding: 20px; font-family: 'Inter', 'Noto Sans JP', sans-serif; overflow-x: hidden; position: relative; color: var(--text-main); transition: color 0.5s; }
-          .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; transition: background 0.8s ease; }
-          .entrance-bg.theme-light { background: var(--bg-gradient); }
-          .entrance-bg.theme-dark { background: var(--bg-gradient); }
-          .particles-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
-          .star { position: absolute; border-radius: 50%; background: var(--star-color); box-shadow: 0 0 10px var(--star-color); animation: twinkle 4s infinite ease-in-out; transition: background 0.5s, box-shadow 0.5s; }
-          @keyframes twinkle { 0% { opacity: 0.1; transform: scale(0.5) translateY(0); } 50% { opacity: 1; transform: scale(1.2) translateY(-20px); } 100% { opacity: 0.1; transform: scale(0.5) translateY(0); } }
+          .app-wrapper { min-height: 100vh; padding: 20px; font-family: 'Inter', 'Noto Sans JP', sans-serif; overflow-x: hidden; position: relative; color: var(--text-main); transition: color 0.5s; z-index: 1; }
+          .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -3; transition: background 2s ease; }
 
-          .magic-svg-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.7; }
-          .magic-path { fill: none; stroke: var(--svg-color); stroke-width: 3; stroke-dasharray: 3000; stroke-dashoffset: 3000; animation: drawMagic 10s ease-in-out infinite alternate; transition: stroke 0.5s; }
-          @keyframes drawMagic { 0% { stroke-dashoffset: 3000; } 100% { stroke-dashoffset: 0; } }
+          /* 🌊 案C: 流体ダッシュボード Gooey エフェクト */
+          .gooey-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; pointer-events: none; filter: url(#goo); opacity: 0.4; }
+          .theme-dark .gooey-container { opacity: 0.15; }
+          .gooey-blob { position: absolute; border-radius: 50%; background: var(--accent-color); filter: blur(20px); }
+          .blob-1 { width: 300px; height: 300px; top: 20%; left: 20%; animation: floatBlob 15s ease-in-out infinite alternate; }
+          .blob-2 { width: 400px; height: 400px; top: 50%; right: 10%; animation: floatBlob 20s ease-in-out infinite alternate-reverse; background: #8b5cf6; }
+          .blob-3 { width: 250px; height: 250px; bottom: 10%; left: 40%; animation: floatBlob 12s ease-in-out infinite alternate; background: #38bdf8; }
+          @keyframes floatBlob { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(150px, 100px) scale(1.2); } }
+
+          /* カードのフワフワ流体アニメーション */
+          .fluid-card { animation: fluidFloat 6s ease-in-out infinite alternate; }
+          @keyframes fluidFloat { 0% { transform: translateY(0px); } 100% { transform: translateY(-8px); } }
+
+          /* 💎 案B: ホログラフィック・グリッチ (Hover) */
+          .glitch-hover:hover { animation: holoGlitch 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+          .btn-hover-shine:hover { animation: holoGlitch 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+          @keyframes holoGlitch {
+            0% { transform: translate(0); text-shadow: 0 0 0 transparent; }
+            20% { transform: translate(-2px, 1px); text-shadow: 2px 0 0 rgba(255,0,0,0.5), -2px 0 0 rgba(0,255,255,0.5); }
+            40% { transform: translate(2px, -1px); text-shadow: -2px 0 0 rgba(255,0,0,0.5), 2px 0 0 rgba(0,255,255,0.5); }
+            60% { transform: translate(-1px, 2px); text-shadow: 2px 0 0 rgba(255,0,0,0.5), -2px 0 0 rgba(0,255,255,0.5); }
+            100% { transform: translate(0); text-shadow: 0 0 0 transparent; }
+          }
 
           .dashboard-inner { max-width: 1200px; margin: 0 auto; position: relative; z-index: 10; }
           
-          /* ☀️ コンテキスト・ヘッダー */
           .context-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 15px; }
           .context-greeting { font-size: 20px; font-weight: 900; color: var(--title-color); letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
           .context-ticker { background: var(--card-bg); backdrop-filter: blur(15px); padding: 8px 20px; border-radius: 30px; border: 1px solid var(--card-border); font-size: 12px; font-weight: 800; color: var(--text-main); display: flex; gap: 15px; box-shadow: var(--card-shadow); }
@@ -300,73 +353,38 @@ export default function ThemeParkEntrance() {
 
           .top-bar-actions { display: flex; gap: 15px; align-items: center; }
           .theme-toggle-btn { background: var(--card-bg); border: 1px solid var(--card-border); padding: 10px 15px; border-radius: 20px; transition: 0.3s; font-size: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); backdrop-filter: blur(8px); color: var(--text-main); cursor: pointer; }
-          .theme-toggle-btn:hover { border-color: var(--card-hover-border); transform: scale(1.1); }
           
-          /* 🔠 新生キネティック・タイポグラフィ（文字欠け問題を完全解決！） */
           .park-title-container { text-align: center; margin-bottom: 50px; }
           .park-main-title { margin: 0 0 15px 0; display: flex; justify-content: center; flex-wrap: wrap; }
-          
-          /* 文字の「隠し枠（スリット）」となるラッパー */
-          .char-wrapper {
-            display: inline-block; overflow: hidden; vertical-align: bottom;
-            line-height: 1.3; margin-bottom: -10px; padding-bottom: 10px;
-          }
-          /* 枠の下から文字が飛び出してくるアニメーション */
-          .kinetic-char {
-            display: inline-block; font-size: clamp(40px, 6vw, 65px); font-weight: 900; letter-spacing: 2px;
-            transform: translateY(100%); opacity: 0;
-            background: linear-gradient(to bottom, #0284c7, #2563eb); /* ライトモード用の澄んだ青 */
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            animation: slideUpChar 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1));
-          }
-          .theme-dark .kinetic-char {
-            background: linear-gradient(to bottom, #fde047, #f59e0b); /* ダークモード用の黄金 */
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-          }
+          .char-wrapper { display: inline-block; overflow: hidden; vertical-align: bottom; line-height: 1.3; margin-bottom: -10px; padding-bottom: 10px; }
+          .kinetic-char { display: inline-block; font-size: clamp(40px, 6vw, 65px); font-weight: 900; letter-spacing: 2px; transform: translateY(100%); opacity: 0; background: linear-gradient(to bottom, #0284c7, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: slideUpChar 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); }
+          .theme-dark .kinetic-char { background: linear-gradient(to bottom, #fde047, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
           @keyframes slideUpChar { to { transform: translateY(0); opacity: 1; } }
           
           .park-sub-title { color: var(--text-sub); font-size: 16px; font-weight: 800; letter-spacing: 8px; text-transform: uppercase; opacity: 0; animation: fadeIn 1s ease 1s forwards; }
           @keyframes fadeIn { to { opacity: 1; } }
 
-          /* ✨ 新提案！ホログラフィック・グレア＆リフト（洗練されたホバーエフェクト） */
           .quick-actions { display: flex; gap: 20px; justify-content: center; margin-top: 30px; }
           .btn-qa { padding: 14px 30px; border: none; border-radius: 30px; font-size: 14px; font-weight: 900; cursor: pointer; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 2px; }
           
-          /* ボタンの光の反射と浮き上がり */
-          .btn-hover-shine {
-            position: relative; overflow: hidden; 
-            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s;
-          }
-          .btn-hover-shine::after {
-            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            transform: skewX(-20deg); transition: 0s;
-          }
-          .btn-hover-shine:hover {
-            transform: translateY(-4px) scale(1.02); /* フワッと浮き上がる */
-          }
-          .btn-hover-shine:hover::after {
-            left: 200%; transition: left 0.6s ease-out; /* 光の帯がサッと走る */
-          }
+          .btn-hover-shine { position: relative; overflow: hidden; transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s; }
+          .btn-hover-shine::after { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); transform: skewX(-20deg); transition: 0s; }
+          .btn-hover-shine:hover { transform: translateY(-4px) scale(1.02); }
+          .btn-hover-shine:hover::after { left: 200%; transition: left 0.6s ease-out; }
 
           .btn-clockout { background: linear-gradient(135deg, #ef4444, #9f1239); color: #fff; box-shadow: 0 5px 15px rgba(225, 29, 72, 0.3); }
           .btn-clockout:hover { box-shadow: 0 15px 35px rgba(225, 29, 72, 0.5); }
-          
           .btn-sim { background: var(--card-bg); color: var(--title-color); border: 1px solid var(--card-border); backdrop-filter: blur(10px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
           .btn-sim:hover { background: var(--card-hover-bg); border-color: var(--card-hover-border); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-          
           .btn-logout { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
           .btn-logout:hover { background: rgba(239, 68, 68, 0.2); }
 
-          /* 📢 インフォメーション */
           .news-ticker-wrapper { display: flex; align-items: center; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; margin-bottom: 40px; padding: 12px 25px; box-shadow: var(--card-shadow); backdrop-filter: blur(20px); transition: 0.5s; }
           .news-badge { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-weight: 900; font-size: 13px; padding: 8px 18px; border-radius: 12px; white-space: nowrap; margin-right: 25px; box-shadow: 0 0 15px rgba(245,158,11,0.4); letter-spacing: 2px; }
           .news-scroll-container { flex: 1; overflow: hidden; white-space: nowrap; position: relative; display: flex; align-items: center; }
           .news-text { display: inline-block; padding-left: 100%; animation: marquee 30s linear infinite; font-weight: 800; color: var(--text-main); font-size: 15px; letter-spacing: 1px; }
           @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
-          /* 🌟 レイアウト */
           .main-layout { display: grid; grid-template-columns: 260px 1fr; gap: 25px; margin-bottom: 50px; }
           @media (max-width: 950px) { .main-layout { grid-template-columns: 1fr; } }
 
@@ -378,7 +396,6 @@ export default function ThemeParkEntrance() {
           .script-box:hover { border-color: var(--card-hover-border); transform: translateX(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
           .script-title { font-weight: 900; font-size: 11px; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
 
-          /* 💬 ミニチャット用スタイル */
           .chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px; padding-right: 5px; height: 250px; }
           .chat-messages::-webkit-scrollbar { width: 4px; }
           .chat-messages::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 4px; }
@@ -397,44 +414,24 @@ export default function ThemeParkEntrance() {
           .chat-input:focus { border-color: var(--card-hover-border); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); }
           .chat-send-btn { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #0ea5e9, #3b82f6); color: #fff; border: none; font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.3); flex-shrink: 0; }
 
-          /* 🎡 ライブ・ベントー・ウィジェット */
           .attraction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; perspective: 1200px; align-content: flex-start; }
           .fade-up-element { opacity: 0; transform: translateY(50px) scale(0.95); transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: var(--delay); }
           .fade-up-element.visible { opacity: 1; transform: translateY(0) scale(1); }
-          
           .magic-card-wrapper.visible:hover { transform: translateY(0) scale(1.02); z-index: 10; }
 
-          /* 🌈 オーロラ・グラスモーフィズム */
-          .magic-card { 
-            position: relative; border-radius: 28px; padding: 25px; 
-            background: var(--card-bg); backdrop-filter: blur(25px); 
-            display: flex; flex-direction: column; gap: 12px; 
-            transform-style: preserve-3d; height: 100%; cursor: pointer;
-            box-shadow: var(--card-shadow);
-          }
-          
-          .card-aurora-border {
-            position: absolute; inset: 0; border-radius: 28px; padding: 2px;
-            background: radial-gradient(400px circle at var(--mouse-x, 0) var(--mouse-y, 0), var(--card-hover-border), transparent 40%);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor; mask-composite: exclude;
-            opacity: 0.2; transition: opacity 0.3s; pointer-events: none;
-          }
+          .magic-card { position: relative; border-radius: 28px; padding: 25px; background: var(--card-bg); backdrop-filter: blur(25px); display: flex; flex-direction: column; gap: 12px; transform-style: preserve-3d; height: 100%; cursor: pointer; box-shadow: var(--card-shadow); }
+          .card-aurora-border { position: absolute; inset: 0; border-radius: 28px; padding: 2px; background: radial-gradient(400px circle at var(--mouse-x, 0) var(--mouse-y, 0), var(--card-hover-border), transparent 40%); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0.2; transition: opacity 0.3s; pointer-events: none; }
           .magic-card:hover .card-aurora-border { opacity: 1; }
 
           .card-glare { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, transparent 60%); pointer-events: none; z-index: 1; mix-blend-mode: overlay; transition: 0.5s; }
           .theme-dark .card-glare { background: radial-gradient(circle at center, rgba(255,255,255,0.15) 0%, transparent 60%); }
-          
           .card-content-3d { z-index: 2; position: relative; transform: translateZ(30px); transform-style: preserve-3d; display: flex; flex-direction: column; height: 100%; pointer-events: none; }
-          
           .attraction-name { font-size: 10px; color: var(--accent-color); font-weight: 900; letter-spacing: 3px; text-transform: uppercase; }
           .card-title { font-size: 18px; font-weight: 900; color: var(--title-color); margin: 0; line-height: 1.4; letter-spacing: 1px; transition: color 0.3s; }
           .card-desc { font-size: 12px; color: var(--text-sub); margin: 8px 0 0 0; line-height: 1.6; font-weight: 700; transform: translateZ(15px); transition: color 0.3s; flex: 1; }
           .card-custom-inner { margin-top: 15px; transform: translateZ(25px); pointer-events: auto; }
-          
           .badge-new { position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; font-size: 10px; font-weight: 900; padding: 4px 12px; border-radius: 20px; z-index: 3; box-shadow: 0 5px 15px rgba(225,29,72,0.5); letter-spacing: 2px; }
 
-          /* ライブ・バッジ */
           .live-badge { font-size: 10px; font-weight: 900; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; gap: 4px; animation: pulseGreen 2s infinite; }
           .live-badge::before { content:''; width:6px; height:6px; background:#10b981; border-radius:50%; }
           @keyframes pulseGreen { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
@@ -468,11 +465,6 @@ export default function ThemeParkEntrance() {
           #toast.show { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
         `}} />
 
-        <svg className="magic-svg-bg" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <path className="magic-path" d="M -10,30 Q 30,80 50,50 T 110,40" />
-          <path className="magic-path" d="M -10,70 Q 40,20 70,60 T 110,80" style={{animationDelay: "4s", opacity: 0.5}} />
-        </svg>
-
         <div className="dashboard-inner">
           
           {/* ☀️ コンテキスト・ヘッダー */}
@@ -492,7 +484,7 @@ export default function ThemeParkEntrance() {
             </div>
           </div>
 
-          {/* 🔠 新生キネティック・タイポグラフィ（文字欠け問題を完全解決！） */}
+          {/* 🔠 新生キネティック・タイポグラフィ */}
           <div className="park-title-container">
             <h1 className="park-main-title">
               {titleChars.map((char, i) => (
@@ -535,13 +527,13 @@ export default function ThemeParkEntrance() {
                   クリックでコードをコピーし、ブックマークに保存してください。
                 </div>
                 
-                <div className="script-box" onClick={() => copyScriptCode("データ一括取得", "javascript:(function(){/* 一括取得 */ alert('Warpデータを取得しました');})();")}>
+                <div className="script-box glitch-hover" onClick={() => copyScriptCode("データ一括取得", "javascript:(function(){/* 一括取得 */ alert('Warpデータを取得しました');})();")}>
                   <span className="script-title"><span className="script-icon">📦</span> 一括取得（Warp）</span>
                 </div>
-                <div className="script-box" onClick={() => copyScriptCode("電話番号コピー", "javascript:(function(){/* 電話番号抽出 */ alert('電話番号を抽出しました');})();")}>
+                <div className="script-box glitch-hover" onClick={() => copyScriptCode("電話番号コピー", "javascript:(function(){/* 電話番号抽出 */ alert('電話番号を抽出しました');})();")}>
                   <span className="script-title"><span className="script-icon">📞</span> 電話番号一括コピー</span>
                 </div>
-                <div className="script-box" onClick={() => copyScriptCode("ネットトス自動入力", "javascript:(function(){/* 自動入力 */ alert('自動入力しました');})();")}>
+                <div className="script-box glitch-hover" onClick={() => copyScriptCode("ネットトス自動入力", "javascript:(function(){/* 自動入力 */ alert('自動入力しました');})();")}>
                   <span className="script-title"><span className="script-icon">🌐</span> ネットトス自動入力</span>
                 </div>
               </div>
@@ -610,7 +602,7 @@ export default function ThemeParkEntrance() {
           <div className="utility-content">
             <h4 style={{margin: "0 0 15px 0", fontSize: "16px", fontWeight: 900, color: "var(--title-color)", borderBottom: "2px dashed var(--card-border)", paddingBottom: "10px"}}>📍 住所クイック検索</h4>
             <input type="text" className="util-input" placeholder="郵便番号を入力 (例: 1000001)" value={utilInput} onChange={(e) => setUtilInput(e.target.value)} />
-            <div className="util-result" onClick={copyUtilResult}>{utilResult}</div>
+            <div className="util-result glitch-hover" onClick={copyUtilResult}>{utilResult}</div>
           </div>
         </details>
 
