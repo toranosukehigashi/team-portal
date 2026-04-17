@@ -3,36 +3,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// 🌟 魔法のカスタムカーソル
-const CustomCursor = () => {
-  const cursorRef = useRef<HTMLDivElement>(null);
-  
-  useEffect(() => {
-    if (window.matchMedia("(pointer: coarse)").matches) return;
-    const onMouseMove = (e: MouseEvent) => {
-      if (cursorRef.current) {
-        cursorRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
-      }
-    };
-    const onMouseOver = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.closest('button') || target.closest('a') || target.closest('.magic-card') || target.closest('.script-box') || target.closest('summary') || target.closest('input')) {
-        cursorRef.current?.classList.add('hover');
-      } else {
-        cursorRef.current?.classList.remove('hover');
-      }
-    };
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseover', onMouseOver);
-    return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseover', onMouseOver);
-    };
-  }, []);
-
-  return <div ref={cursorRef} className="custom-cursor hide-on-mobile" />;
-};
-
 // 🌟 3Dパララックス ＆ クリップパスマスク・カード
 const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children }: any) => {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -249,8 +219,6 @@ export default function ThemeParkEntrance() {
 
   return (
     <>
-      <CustomCursor />
-      
       {/* 🍎 Mac風「ようこそ」アニメーション・オーバーレイ（完全復活！） */}
       {showMacWelcome && (
         <div className="mac-welcome-overlay">
@@ -289,24 +257,6 @@ export default function ThemeParkEntrance() {
           @keyframes macFadeOut {
             0% { opacity: 1; }
             100% { opacity: 0; visibility: hidden; }
-          }
-
-          /* 🎯 魔法のカスタムカーソル用のスタイル */
-          @media (pointer: fine) { body * { cursor: none !important; } }
-          .hide-on-mobile { display: block; }
-          @media (pointer: coarse) { .hide-on-mobile { display: none !important; } }
-          
-          .custom-cursor {
-            position: fixed; top: 0; left: 0; width: 20px; height: 20px;
-            margin-top: -10px; margin-left: -10px; border-radius: 50%;
-            background: #fff; pointer-events: none; z-index: 99999;
-            mix-blend-mode: difference;
-            transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), margin 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-            will-change: transform;
-          }
-          .custom-cursor.hover {
-            width: 40px; height: 40px; margin-top: -20px; margin-left: -20px;
-            background: rgba(255, 255, 255, 1); mix-blend-mode: difference;
           }
 
           /* 🎨 テーマ */
@@ -391,6 +341,7 @@ export default function ThemeParkEntrance() {
           .news-ticker-wrapper { display: flex; align-items: center; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; margin-bottom: 40px; padding: 12px 25px; box-shadow: var(--card-shadow); backdrop-filter: blur(20px); transition: 0.5s; }
           .news-badge { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-weight: 900; font-size: 13px; padding: 8px 18px; border-radius: 12px; white-space: nowrap; margin-right: 25px; animation: pulseGold 2s infinite; box-shadow: 0 0 15px rgba(245,158,11,0.4); letter-spacing: 2px; }
           @keyframes pulseGold { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
+          
           .news-scroll-container { flex: 1; overflow: hidden; white-space: nowrap; position: relative; display: flex; align-items: center; }
           .news-text { display: inline-block; padding-left: 100%; animation: marquee 30s linear infinite; font-weight: 800; color: var(--text-main); font-size: 16px; letter-spacing: 1px; }
           @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
@@ -504,6 +455,11 @@ export default function ThemeParkEntrance() {
           #toast.show { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
         `}} />
 
+        <svg className="magic-svg-bg" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path className="magic-path" d="M -10,30 Q 30,80 50,50 T 110,40" />
+          <path className="magic-path" d="M -10,70 Q 40,20 70,60 T 110,80" style={{animationDelay: "4s", opacity: 0.5}} />
+        </svg>
+
         <div className="dashboard-inner">
           <div className="top-bar">
             <button className="theme-toggle-btn" onClick={toggleTheme} title="表示テーマを切り替え">{isDarkMode ? "🎇 NIGHT" : "☀️ DAY"}</button>
@@ -538,7 +494,7 @@ export default function ThemeParkEntrance() {
 
           <div className="main-layout">
             
-            {/* ℹ️ 左カラム：ブックマークBOX ＆ チャット (コンパクト化) */}
+            {/* ℹ️ 左カラム：ブックマークBOX ＆ チャット */}
             <aside className="info-sidebar">
               <div className="info-panel fade-up-element" style={{ transitionDelay: "0.2s" }}>
                 <h3 className="info-title">📋 CallTree & ブックマーク管理</h3>
@@ -595,7 +551,7 @@ export default function ThemeParkEntrance() {
               </div>
             </aside>
 
-            {/* 🎡 右カラム：アトラクション グリッド (Bento UI・ホバーエフェクト強化) */}
+            {/* 🎡 右カラム：アトラクション グリッド */}
             <div className="attraction-grid">
               <MagicCard delay={0.1} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="チームの進捗やランキング状況をリアルタイムに確認。" onClick={() => router.push("/kpi-detail")}>
                 <div className="kpi-widget">
