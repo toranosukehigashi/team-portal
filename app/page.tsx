@@ -3,28 +3,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// 🧲 マグネティック（磁力）ボタンコンポーネント (エラー修正済！)
-const MagneticButton = ({ children, className, onClick, style }: { children: React.ReactNode, className?: string, onClick?: () => void, style?: React.CSSProperties }) => {
-  const btnRef = useRef<HTMLButtonElement>(null);
-  
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!btnRef.current) return;
-    const rect = btnRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left - rect.width / 2) * 0.4;
-    const y = (e.clientY - rect.top - rect.height / 2) * 0.4;
-    btnRef.current.style.transform = `translate(${x}px, ${y}px)`;
-  };
-  const handleMouseLeave = () => {
-    if (btnRef.current) btnRef.current.style.transform = `translate(0px, 0px)`;
-  };
-
-  return (
-    <button ref={btnRef} className={`magnetic-btn ${className || ""}`} onClick={onClick} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} style={style}>
-      {children}
-    </button>
-  );
-};
-
 // 🌟 3Dパララックス ＆ オーロラボーダー・カード
 const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, liveData }: any) => {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -37,7 +15,6 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, l
     const y = e.clientY - rect.top - rect.height / 2;
     setTilt({ x: -(y / 25), y: x / 25 });
 
-    // ✨ マウス座標をCSS変数に渡す（オーロラボーダー用）
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
     cardRef.current.style.setProperty('--mouse-x', `${mouseX}px`);
@@ -55,14 +32,13 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, l
       onClick={onClick}
     >
       <div className="magic-card" style={{ transform: `perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)` }}>
-        <div className="card-aurora-border"></div> {/* オーロラボーダー */}
+        <div className="card-aurora-border"></div>
         <div className="card-glare" style={{ transform: `translate(${tilt.y * 4}px, ${-tilt.x * 4}px)` }} />
         <div className="card-wave-bg"></div>
         <div className="card-content-3d">
           {badge && <span className="badge-new">{badge}</span>}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
             <div className="attraction-name">{attraction}</div>
-            {/* 📊 ライブウィジェットのミニバッジ */}
             {liveData && <div className="live-badge">{liveData}</div>}
           </div>
           <h2 className="card-title">{title}</h2>
@@ -111,10 +87,8 @@ export default function ThemeParkEntrance() {
   const [isEditingNews, setIsEditingNews] = useState(false);
   const [tempNews, setTempNews] = useState("");
 
-  // ☀️ コンテキスト（時間帯）ヘッダー用ステート
   const [greeting, setGreeting] = useState("Hello");
 
-  // 💬 チャット用ステート
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const chatScrollRef = useRef<HTMLDivElement>(null);
@@ -126,7 +100,7 @@ export default function ThemeParkEntrance() {
     if (sessionStorage.getItem("just_logged_in") === "true") {
       setShowMacWelcome(true);
       sessionStorage.removeItem("just_logged_in");
-      setTimeout(() => setShowMacWelcome(false), 3500); 
+      setTimeout(() => setShowMacWelcome(false), 3000); 
     }
 
     const hour = new Date().getHours();
@@ -199,7 +173,6 @@ export default function ThemeParkEntrance() {
     try { await navigator.clipboard.writeText(`${hours}:${minutes} 退勤いたします`); showToast(`✨ 退勤メッセージをコピーしました！`); } catch (err) { alert("コピーに失敗しました"); }
   };
 
-  // 📝 復活させた関数群！！
   const copyScriptCode = async (title: string, code: string) => { try { await navigator.clipboard.writeText(code); showToast(`📋 ${title}のコードをコピーしました！`); } catch (err) { alert("コピーに失敗しました"); } };
   
   const calculateDeadlines = (dateStr: string) => {
@@ -235,9 +208,9 @@ export default function ThemeParkEntrance() {
 
   return (
     <>
-      {/* 🍎 Mac風「ようこそ」アニメーション */}
+      {/* 🍎 Mac風「ようこそ」アニメーション（テーマ追従の真・完全版！） */}
       {showMacWelcome && (
-        <div className="mac-welcome-overlay">
+        <div className={`mac-welcome-overlay ${isDarkMode ? "dark-welcome" : "light-welcome"}`}>
           <div className="mac-welcome-text">
             Welcome, <span style={{fontWeight: 600}}>{userName}</span>.
           </div>
@@ -252,19 +225,57 @@ export default function ThemeParkEntrance() {
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
 
-          /* 🍎 Mac風ウェルカムアニメーションCSS */
-          .mac-welcome-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000000; z-index: 999999; display: flex; align-items: center; justify-content: center; animation: macFadeOut 1s cubic-bezier(0.8, 0, 0.2, 1) 2.5s forwards; }
-          .mac-welcome-text { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; font-size: clamp(2rem, 4vw, 4rem); font-weight: 300; letter-spacing: 0.1em; color: #ffffff; opacity: 0; transform: translateY(15px); filter: blur(10px); animation: macTextFlow 2s cubic-bezier(0.4, 0, 0.2, 1) 0.4s forwards; }
-          @keyframes macTextFlow { 0% { opacity: 0; transform: translateY(15px); filter: blur(10px); } 20% { opacity: 1; transform: translateY(0); filter: blur(0); } 80% { opacity: 1; transform: translateY(0); filter: blur(0); } 100% { opacity: 0; transform: translateY(-15px); filter: blur(10px); } }
-          @keyframes macFadeOut { 0% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+          /* 🍎 新生 Mac風ウェルカムアニメーション（テーマに合わせて背景色と文字色を自動変更！） */
+          .mac-welcome-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 999999; display: flex; align-items: center; justify-content: center;
+            animation: macFadeOut 0.8s cubic-bezier(0.8, 0, 0.2, 1) 2.2s forwards;
+          }
+          /* ライトモード時のウェルカム */
+          .mac-welcome-overlay.light-welcome { background: #ffffff; }
+          .mac-welcome-overlay.light-welcome .mac-welcome-text { color: #0f172a; }
+          /* ダークモード時のウェルカム */
+          .mac-welcome-overlay.dark-welcome { background: #000000; }
+          .mac-welcome-overlay.dark-welcome .mac-welcome-text { color: #ffffff; }
 
-          /* 🧲 マグネティックボタン（Concept 3） */
-          .magnetic-btn { display: inline-flex; justify-content: center; align-items: center; transition: transform 0.1s ease-out; will-change: transform; cursor: pointer; }
-          .magnetic-btn:hover { z-index: 10; }
+          .mac-welcome-text {
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+            font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 300; letter-spacing: 0.05em;
+            opacity: 0; transform: scale(0.95);
+            animation: macTextFlow 2.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+          }
+          @keyframes macTextFlow {
+            0% { opacity: 0; transform: scale(0.95); filter: blur(5px); }
+            20% { opacity: 1; transform: scale(1); filter: blur(0); }
+            80% { opacity: 1; transform: scale(1); filter: blur(0); }
+            100% { opacity: 0; transform: scale(1.05); filter: blur(5px); }
+          }
+          @keyframes macFadeOut { to { opacity: 0; visibility: hidden; } }
 
-          /* 🎨 テーマ */
-          .theme-light { --bg-gradient: linear-gradient(180deg, #7dd3fc 0%, #e0f2fe 100%); --text-main: #1e293b; --text-sub: #475569; --card-bg: rgba(255, 255, 255, 0.6); --card-border: rgba(255, 255, 255, 0.8); --card-hover-border: #38bdf8; --card-hover-bg: rgba(255, 255, 255, 0.9); --card-shadow: 0 10px 30px rgba(0,0,0,0.05); --title-color: #0369a1; --accent-color: #db2777; --modal-bg: rgba(255, 255, 255, 0.95); --kpi-bg: rgba(241, 245, 249, 0.8); --input-bg: rgba(255, 255, 255, 0.8); --svg-color: rgba(2, 132, 199, 0.2); --star-color: #f59e0b; }
-          .theme-dark { --bg-gradient: radial-gradient(ellipse at bottom, #1e1b4b 0%, #020617 100%); --text-main: #f8fafc; --text-sub: #cbd5e1; --card-bg: rgba(15, 23, 42, 0.6); --card-border: rgba(255, 255, 255, 0.1); --card-hover-border: #fde047; --card-hover-bg: rgba(30, 41, 59, 0.8); --card-shadow: 0 20px 50px rgba(0,0,0,0.8); --title-color: #fde047; --accent-color: #fde047; --modal-bg: rgba(15, 23, 42, 0.9); --kpi-bg: rgba(0, 0, 0, 0.4); --input-bg: rgba(0, 0, 0, 0.4); --svg-color: rgba(255, 255, 255, 0.4); --star-color: #fef08a; }
+          /* 🎨 テーマ定義 */
+          .theme-light { 
+            --bg-gradient: linear-gradient(180deg, #7dd3fc 0%, #e0f2fe 100%); 
+            --text-main: #1e293b; --text-sub: #475569; 
+            --card-bg: rgba(255, 255, 255, 0.7); --card-border: rgba(255, 255, 255, 1); 
+            --card-hover-border: #38bdf8; --card-hover-bg: rgba(255, 255, 255, 0.95); 
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+            /* ✨ ライトモードのタイトルを澄み切った青に変更！ */
+            --title-color: #0284c7; --accent-color: #0ea5e9; 
+            --modal-bg: rgba(255, 255, 255, 0.95); --kpi-bg: rgba(241, 245, 249, 0.8); 
+            --input-bg: rgba(255, 255, 255, 0.8); --svg-color: rgba(2, 132, 199, 0.2); 
+            --star-color: #f59e0b; 
+          }
+          .theme-dark { 
+            --bg-gradient: radial-gradient(ellipse at bottom, #1e1b4b 0%, #020617 100%); 
+            --text-main: #f8fafc; --text-sub: #cbd5e1; 
+            --card-bg: rgba(15, 23, 42, 0.7); --card-border: rgba(255, 255, 255, 0.15); 
+            --card-hover-border: #fde047; --card-hover-bg: rgba(30, 41, 59, 0.9); 
+            --card-shadow: 0 20px 50px rgba(0,0,0,0.8); 
+            --title-color: #fde047; --accent-color: #fde047; 
+            --modal-bg: rgba(15, 23, 42, 0.9); --kpi-bg: rgba(0, 0, 0, 0.4); 
+            --input-bg: rgba(0, 0, 0, 0.4); --svg-color: rgba(255, 255, 255, 0.4); 
+            --star-color: #fef08a; 
+          }
 
           .app-wrapper { min-height: 100vh; padding: 20px; font-family: 'Inter', 'Noto Sans JP', sans-serif; overflow-x: hidden; position: relative; color: var(--text-main); transition: color 0.5s; }
           .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; transition: background 0.8s ease; }
@@ -280,7 +291,7 @@ export default function ThemeParkEntrance() {
 
           .dashboard-inner { max-width: 1200px; margin: 0 auto; position: relative; z-index: 10; }
           
-          /* ☀️ コンテキスト・ヘッダー (Concept 4) */
+          /* ☀️ コンテキスト・ヘッダー */
           .context-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 15px; }
           .context-greeting { font-size: 20px; font-weight: 900; color: var(--title-color); letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
           .context-ticker { background: var(--card-bg); backdrop-filter: blur(15px); padding: 8px 20px; border-radius: 30px; border: 1px solid var(--card-border); font-size: 12px; font-weight: 800; color: var(--text-main); display: flex; gap: 15px; box-shadow: var(--card-shadow); }
@@ -291,29 +302,62 @@ export default function ThemeParkEntrance() {
           .theme-toggle-btn { background: var(--card-bg); border: 1px solid var(--card-border); padding: 10px 15px; border-radius: 20px; transition: 0.3s; font-size: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); backdrop-filter: blur(8px); color: var(--text-main); cursor: pointer; }
           .theme-toggle-btn:hover { border-color: var(--card-hover-border); transform: scale(1.1); }
           
-          /* 🔠 キネティック・タイポグラフィ (Concept 5) */
-          .park-title-container { text-align: center; margin-bottom: 50px; position: relative; perspective: 1000px; }
+          /* 🔠 新生キネティック・タイポグラフィ（文字欠け問題を完全解決！） */
+          .park-title-container { text-align: center; margin-bottom: 50px; }
           .park-main-title { margin: 0 0 15px 0; display: flex; justify-content: center; flex-wrap: wrap; }
+          
+          /* 文字の「隠し枠（スリット）」となるラッパー */
+          .char-wrapper {
+            display: inline-block; overflow: hidden; vertical-align: bottom;
+            line-height: 1.3; margin-bottom: -10px; padding-bottom: 10px;
+          }
+          /* 枠の下から文字が飛び出してくるアニメーション */
           .kinetic-char {
-            font-size: 65px; font-weight: 900; letter-spacing: 2px;
-            background: linear-gradient(to bottom, var(--title-color), var(--accent-color));
+            display: inline-block; font-size: clamp(40px, 6vw, 65px); font-weight: 900; letter-spacing: 2px;
+            transform: translateY(100%); opacity: 0;
+            background: linear-gradient(to bottom, #0284c7, #2563eb); /* ライトモード用の澄んだ青 */
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            display: inline-block; clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0% 100%);
-            transform: translateY(20px); opacity: 0;
-            animation: textReveal 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            animation: slideUpChar 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
             filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1));
           }
-          @keyframes textReveal { to { clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%); transform: translateY(0); opacity: 1; } }
+          .theme-dark .kinetic-char {
+            background: linear-gradient(to bottom, #fde047, #f59e0b); /* ダークモード用の黄金 */
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          }
+          @keyframes slideUpChar { to { transform: translateY(0); opacity: 1; } }
           
           .park-sub-title { color: var(--text-sub); font-size: 16px; font-weight: 800; letter-spacing: 8px; text-transform: uppercase; opacity: 0; animation: fadeIn 1s ease 1s forwards; }
           @keyframes fadeIn { to { opacity: 1; } }
 
-          /* 🧲 ボタン群 (Magnetic Wrapper使用) */
+          /* ✨ 新提案！ホログラフィック・グレア＆リフト（洗練されたホバーエフェクト） */
           .quick-actions { display: flex; gap: 20px; justify-content: center; margin-top: 30px; }
-          .btn-qa { padding: 14px 30px; border: none; border-radius: 30px; font-size: 14px; font-weight: 900; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 2px; position: relative; overflow: hidden; }
-          .btn-clockout { background: linear-gradient(135deg, #ef4444, #9f1239); color: #fff; box-shadow: 0 10px 25px rgba(225, 29, 72, 0.4); }
-          .btn-sim { background: var(--card-bg); color: var(--title-color); border: 1px solid var(--card-border); backdrop-filter: blur(10px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+          .btn-qa { padding: 14px 30px; border: none; border-radius: 30px; font-size: 14px; font-weight: 900; cursor: pointer; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 2px; }
+          
+          /* ボタンの光の反射と浮き上がり */
+          .btn-hover-shine {
+            position: relative; overflow: hidden; 
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s;
+          }
+          .btn-hover-shine::after {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transform: skewX(-20deg); transition: 0s;
+          }
+          .btn-hover-shine:hover {
+            transform: translateY(-4px) scale(1.02); /* フワッと浮き上がる */
+          }
+          .btn-hover-shine:hover::after {
+            left: 200%; transition: left 0.6s ease-out; /* 光の帯がサッと走る */
+          }
+
+          .btn-clockout { background: linear-gradient(135deg, #ef4444, #9f1239); color: #fff; box-shadow: 0 5px 15px rgba(225, 29, 72, 0.3); }
+          .btn-clockout:hover { box-shadow: 0 15px 35px rgba(225, 29, 72, 0.5); }
+          
+          .btn-sim { background: var(--card-bg); color: var(--title-color); border: 1px solid var(--card-border); backdrop-filter: blur(10px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+          .btn-sim:hover { background: var(--card-hover-bg); border-color: var(--card-hover-border); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+          
           .btn-logout { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+          .btn-logout:hover { background: rgba(239, 68, 68, 0.2); }
 
           /* 📢 インフォメーション */
           .news-ticker-wrapper { display: flex; align-items: center; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; margin-bottom: 40px; padding: 12px 25px; box-shadow: var(--card-shadow); backdrop-filter: blur(20px); transition: 0.5s; }
@@ -353,14 +397,14 @@ export default function ThemeParkEntrance() {
           .chat-input:focus { border-color: var(--card-hover-border); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); }
           .chat-send-btn { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #0ea5e9, #3b82f6); color: #fff; border: none; font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.3); flex-shrink: 0; }
 
-          /* 🎡 ライブ・ベントー・ウィジェット (Concept 2 & 1) */
+          /* 🎡 ライブ・ベントー・ウィジェット */
           .attraction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; perspective: 1200px; align-content: flex-start; }
           .fade-up-element { opacity: 0; transform: translateY(50px) scale(0.95); transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: var(--delay); }
           .fade-up-element.visible { opacity: 1; transform: translateY(0) scale(1); }
           
           .magic-card-wrapper.visible:hover { transform: translateY(0) scale(1.02); z-index: 10; }
 
-          /* 🌈 オーロラ・グラスモーフィズム (Concept 1) */
+          /* 🌈 オーロラ・グラスモーフィズム */
           .magic-card { 
             position: relative; border-radius: 28px; padding: 25px; 
             background: var(--card-bg); backdrop-filter: blur(25px); 
@@ -369,9 +413,8 @@ export default function ThemeParkEntrance() {
             box-shadow: var(--card-shadow);
           }
           
-          /* マウス連動のオーロラボーダー */
           .card-aurora-border {
-            position: absolute; inset: 0; border-radius: 28px; padding: 2px; /* border thickness */
+            position: absolute; inset: 0; border-radius: 28px; padding: 2px;
             background: radial-gradient(400px circle at var(--mouse-x, 0) var(--mouse-y, 0), var(--card-hover-border), transparent 40%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor; mask-composite: exclude;
@@ -391,7 +434,7 @@ export default function ThemeParkEntrance() {
           
           .badge-new { position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; font-size: 10px; font-weight: 900; padding: 4px 12px; border-radius: 20px; z-index: 3; box-shadow: 0 5px 15px rgba(225,29,72,0.5); letter-spacing: 2px; }
 
-          /* ライブ・バッジ (Concept 2) */
+          /* ライブ・バッジ */
           .live-badge { font-size: 10px; font-weight: 900; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; gap: 4px; animation: pulseGreen 2s infinite; }
           .live-badge::before { content:''; width:6px; height:6px; background:#10b981; border-radius:50%; }
           @keyframes pulseGreen { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
@@ -401,11 +444,10 @@ export default function ThemeParkEntrance() {
           .kpi-current { font-size: 24px; font-weight: 900; color: #38bdf8; }
           .kpi-target { font-size: 13px; font-weight: 800; color: var(--text-sub); }
           .kpi-bar-bg { width: 100%; height: 8px; background: rgba(0,0,0,0.1); border-radius: 4px; overflow: hidden; margin-top: 8px; }
-          .theme-dark .kpi-bar-bg { background: rgba(255,255,255,0.1); }
           .kpi-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #818cf8); border-radius: 4px; }
 
           .quick-utility { position: fixed; bottom: 40px; right: 40px; z-index: 1000; }
-          .utility-fab { width: 70px; height: 70px; background: linear-gradient(135deg, #fbbf24, #d97706); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(0,0,0,0.2), inset 0 0 15px rgba(255,255,255,0.6); transition: 0.3s; font-size: 28px; border: 2px solid rgba(255,255,255,0.6); list-style: none; }
+          .utility-fab { width: 70px; height: 70px; background: linear-gradient(135deg, #fbbf24, #d97706); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(0,0,0,0.2), inset 0 0 15px rgba(255,255,255,0.6); transition: 0.3s; font-size: 28px; border: 2px solid rgba(255,255,255,0.6); list-style: none; cursor: pointer; }
           .utility-content { position: absolute; bottom: 95px; right: 0; width: 360px; background: var(--modal-bg); backdrop-filter: blur(30px); padding: 30px; border-radius: 28px; box-shadow: 0 30px 70px rgba(0,0,0,0.2); border: 2px solid var(--card-border); color: var(--text-main); transform-origin: bottom right; animation: popIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); transition: 0.5s; }
           @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
 
@@ -419,7 +461,7 @@ export default function ThemeParkEntrance() {
           .modal-overlay.open .custom-modal { transform: translateY(0) scale(1); }
           .modal-title { font-size: 24px; font-weight: 900; text-align: center; margin-bottom: 30px; letter-spacing: 2px; color: var(--title-color); }
           
-          .btn-close-modal { width: 100%; margin-top: 30px; padding: 15px; background: var(--kpi-bg); color: var(--text-main); border: 2px solid var(--card-border); border-radius: 15px; font-weight: 900; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 2px; }
+          .btn-close-modal { width: 100%; margin-top: 30px; padding: 15px; background: var(--kpi-bg); color: var(--text-main); border: 2px solid var(--card-border); border-radius: 15px; font-weight: 900; transition: 0.2s; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; }
           .btn-close-modal:hover { background: var(--card-hover-border); color: #fff; border-color: transparent; }
 
           #toast { visibility: hidden; position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px); padding: 16px 32px; background: rgba(15,23,42, 0.95); color: #fde047; border-radius: 30px; font-weight: 900; font-size: 15px; z-index: 2000; opacity: 0; transition: 0.4s; backdrop-filter: blur(20px); border: 2px solid #fde047; box-shadow: 0 20px 50px rgba(0,0,0,0.3); letter-spacing: 1px; }
@@ -433,7 +475,7 @@ export default function ThemeParkEntrance() {
 
         <div className="dashboard-inner">
           
-          {/* ☀️ コンテキスト・ヘッダー (Concept 4) */}
+          {/* ☀️ コンテキスト・ヘッダー */}
           <div className="context-header fade-up-element" style={{ "--delay": "0s" } as any}>
             <div className="context-greeting">
               {greeting}, <span style={{ color: "var(--accent-color)" }}>{userName}</span>.
@@ -446,39 +488,41 @@ export default function ThemeParkEntrance() {
               <div className="ticker-item"><span style={{color: "#10b981"}}>●</span> All Systems Active</div>
             </div>
             <div className="top-bar-actions">
-              <button className="theme-toggle-btn" onClick={toggleTheme}>{isDarkMode ? "🎇" : "☀️"}</button>
+              <button className="theme-toggle-btn btn-hover-shine" onClick={toggleTheme}>{isDarkMode ? "🎇" : "☀️"}</button>
             </div>
           </div>
 
-          {/* 🔠 キネティック・タイポグラフィ (Concept 5) */}
+          {/* 🔠 新生キネティック・タイポグラフィ（文字欠け問題を完全解決！） */}
           <div className="park-title-container">
             <h1 className="park-main-title">
               {titleChars.map((char, i) => (
-                <span key={i} className="kinetic-char" style={{ animationDelay: `${i * 0.03 + 0.5}s` }}>
-                  {char === " " ? "\u00A0" : char}
+                <span key={i} className="char-wrapper">
+                  <span className="kinetic-char" style={{ animationDelay: `${i * 0.03 + 0.3}s` }}>
+                    {char === " " ? "\u00A0" : char}
+                  </span>
                 </span>
               ))}
             </h1>
             <div className="park-sub-title">Central Operation Dashboard</div>
             
-            {/* 🧲 マグネティックボタン適用 (Concept 3) */}
+            {/* ✨ 新ホバー: ホログラフィック・グレア＆リフト */}
             <div className="quick-actions">
-              <MagneticButton className="btn-qa btn-sim" onClick={handleOpenSim}>⏳ 納期確認</MagneticButton>
-              <MagneticButton className="btn-qa btn-clockout" onClick={handleClockOut}>🏃‍♂️ 退勤する</MagneticButton>
-              <MagneticButton className="btn-qa btn-logout" onClick={handleLogout}>🚪 ログアウト</MagneticButton>
+              <button className="btn-qa btn-sim btn-hover-shine" onClick={handleOpenSim}>⏳ 納期確認</button>
+              <button className="btn-qa btn-clockout btn-hover-shine" onClick={handleClockOut}>🏃‍♂️ 退勤する</button>
+              <button className="btn-qa btn-logout btn-hover-shine" onClick={handleLogout}>🚪 ログアウト</button>
             </div>
           </div>
 
           <div className="news-ticker-wrapper fade-up-element" style={{ "--delay": "0.1s" } as any}>
             <div className="news-badge">📢 インフォメーション</div>
             <div className="news-scroll-container"><div className="news-text">{newsText}</div></div>
-            {isAdmin && <button style={{background: "var(--card-bg)", border:"1px solid var(--card-border)", color:"var(--text-main)", fontSize:"12px", fontWeight:900, padding:"6px 12px", borderRadius:"8px", marginLeft:"15px", cursor:"pointer"}} onClick={() => { setTempNews(newsText); setIsEditingNews(!isEditingNews); }}>✏️ 編集</button>}
+            {isAdmin && <button className="btn-hover-shine" style={{background: "var(--card-bg)", border:"1px solid var(--card-border)", color:"var(--text-main)", fontSize:"12px", fontWeight:900, padding:"8px 16px", borderRadius:"12px", marginLeft:"15px", cursor:"pointer"}} onClick={() => { setTempNews(newsText); setIsEditingNews(!isEditingNews); }}>✏️ 編集</button>}
           </div>
 
           {isAdmin && isEditingNews && (
             <div style={{display:"flex", gap:"10px", marginBottom:"40px", background:"var(--modal-bg)", padding:"20px", borderRadius:"16px", border:"2px dashed var(--card-border)", backdropFilter:"blur(15px)"}}>
               <input type="text" className="util-input" value={tempNews} onChange={(e) => setTempNews(e.target.value)} />
-              <button style={{background:"linear-gradient(135deg, #0ea5e9, #4f46e5)", color:"#fff", border:"none", padding:"0 25px", borderRadius:"10px", fontWeight:900, boxShadow:"0 4px 15px rgba(2,132,199,0.3)", cursor:"pointer"}} onClick={handleSaveNews}>保存</button>
+              <button className="btn-hover-shine" style={{background:"linear-gradient(135deg, #0ea5e9, #4f46e5)", color:"#fff", border:"none", padding:"0 25px", borderRadius:"10px", fontWeight:900, cursor:"pointer", boxShadow:"0 4px 15px rgba(2,132,199,0.3)"}} onClick={handleSaveNews}>保存</button>
             </div>
           )}
 
@@ -525,12 +569,12 @@ export default function ThemeParkEntrance() {
 
                 <form className="chat-input-area" onSubmit={handleSendMessage}>
                   <input type="text" className="chat-input" placeholder="メッセージ..." value={chatInput} onChange={(e) => setChatInput(e.target.value)} />
-                  <button type="submit" className="chat-send-btn">➤</button>
+                  <button type="submit" className="chat-send-btn btn-hover-shine">➤</button>
                 </form>
               </div>
             </aside>
 
-            {/* 🎡 ライブ・ベントー・ウィジェット (Concept 2: リアルタイムデータの埋め込み) */}
+            {/* 🎡 ライブ・ベントー・ウィジェット */}
             <div className="attraction-grid">
               <MagicCard delay={0.1} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="本日の目標まであと何件か、リアルタイムで確認。" liveData={`${progressPercent}% Achieved`} onClick={() => router.push("/kpi-detail")}>
                 <div className="kpi-widget">
@@ -560,11 +604,9 @@ export default function ThemeParkEntrance() {
           </div>
         </div>
 
-        {/* 🧲 検索フローティングボタン (Magnetic適用) */}
+        {/* 🧲 新ホバー・フローティングボタン */}
         <details className="quick-utility hide-on-mobile">
-          <summary className="utility-fab" style={{listStyle:"none"}}>
-            <MagneticButton className="" style={{background:"transparent", border:"none", width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"28px", cursor:"pointer"}}>🔍</MagneticButton>
-          </summary>
+          <summary className="utility-fab btn-hover-shine" style={{listStyle:"none", border:"none", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"28px", cursor:"pointer"}}>🔍</summary>
           <div className="utility-content">
             <h4 style={{margin: "0 0 15px 0", fontSize: "16px", fontWeight: 900, color: "var(--title-color)", borderBottom: "2px dashed var(--card-border)", paddingBottom: "10px"}}>📍 住所クイック検索</h4>
             <input type="text" className="util-input" placeholder="郵便番号を入力 (例: 1000001)" value={utilInput} onChange={(e) => setUtilInput(e.target.value)} />
@@ -585,7 +627,7 @@ export default function ThemeParkEntrance() {
                 <div style={{display:"flex", justifyContent:"space-between"}}><span style={{fontSize:"13px", fontWeight:800}}>5日後（15時後）</span><span style={{fontSize:"16px", fontWeight:900, color:"var(--title-color)"}}>{result.day5After}</span></div>
               </div>
             )}
-            <button className="btn-close-modal" onClick={() => { setIsSimOpen(false); setResult(null); setTargetDate(""); }}>閉じる</button>
+            <button className="btn-close-modal btn-hover-shine" onClick={() => { setIsSimOpen(false); setResult(null); setTargetDate(""); }}>閉じる</button>
           </div>
         </div>
 
@@ -595,10 +637,10 @@ export default function ThemeParkEntrance() {
             <div className="modal-title">📝 クイックメモ</div>
             <textarea className="util-input" style={{flex:1, resize:"none", lineHeight:1.6}} placeholder="電話中のメモや、一時的なテキストの退避に。&#10;入力した内容は自動でブラウザに保存されます。" value={memoText} onChange={handleMemoChange} />
             <div style={{display:"flex", gap:"15px", marginTop:"20px"}}>
-              <button style={{flex:1, padding:"14px", borderRadius:"14px", fontWeight:900, border:"2px solid #0ea5e9", background:"rgba(14, 165, 233, 0.1)", color:"#0ea5e9", transition:"0.2s", cursor:"pointer"}} onClick={handleCopyMemo}>📋 全文コピー</button>
-              <button style={{flex:1, padding:"14px", borderRadius:"14px", fontWeight:900, border:"2px solid #ef4444", background:"rgba(239, 68, 68, 0.1)", color:"#ef4444", transition:"0.2s", cursor:"pointer"}} onClick={handleClearMemo}>🗑️ 全消去</button>
+              <button className="btn-hover-shine" style={{flex:1, padding:"14px", borderRadius:"14px", fontWeight:900, border:"2px solid #0ea5e9", background:"rgba(14, 165, 233, 0.1)", color:"#0ea5e9", cursor:"pointer"}} onClick={handleCopyMemo}>📋 全文コピー</button>
+              <button className="btn-hover-shine" style={{flex:1, padding:"14px", borderRadius:"14px", fontWeight:900, border:"2px solid #ef4444", background:"rgba(239, 68, 68, 0.1)", color:"#ef4444", cursor:"pointer"}} onClick={handleClearMemo}>🗑️ 全消去</button>
             </div>
-            <button className="btn-close-modal" onClick={() => setIsMemoOpen(false)}>閉じる</button>
+            <button className="btn-close-modal btn-hover-shine" onClick={() => setIsMemoOpen(false)}>閉じる</button>
           </div>
         </div>
 
