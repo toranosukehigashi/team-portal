@@ -284,7 +284,7 @@ export default function ProcedureWizard() {
                       ) : (
                         <div className="image-placeholder">
                           <span style={{fontSize: "24px"}}>📸</span>
-                          <span>ここにAI生成画像が入ります</span>
+                          <span>ここにAI生成画像が入ります！</span>
                           {step.aiImgDesc && <span style={{color: "#38bdf8", opacity: 0.8}}>{step.aiImgDesc}</span>}
                           <span style={{fontSize: "10px", opacity: 0.7}}>publicフォルダに画像を保存し、コード内のimgUrlを設定してください</span>
                         </div>
