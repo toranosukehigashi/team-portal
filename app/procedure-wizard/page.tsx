@@ -3,13 +3,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// --- 🐙 復活！オクトパスライン背景コンポーネント ---
+// --- 🐙 オクトパスライン背景コンポーネント ---
 const OctopusBackground = () => (
   <>
-    {/* 奥のグラデーション背景 */}
     <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "#020617", zIndex: -3 }} />
-    
-    {/* ✨ うねる8本のオクトパスライン */}
     <svg style={{ position: "fixed", top: "-50%", left: "-50%", width: "200%", height: "200%", zIndex: -2, pointerEvents: "none", opacity: 0.4 }} viewBox="0 0 100 100" preserveAspectRatio="none">
       <defs>
         <linearGradient id="tentacleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -21,7 +18,6 @@ const OctopusBackground = () => (
       <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.8" d="M0,40 Q40,10 70,70 T100,30" style={{ animation: "wave 18s infinite alternate-reverse ease-in-out" }} />
       <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.6" d="M0,60 Q50,90 80,40 T100,90" style={{ animation: "wave 20s infinite alternate ease-in-out" }} />
       <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.4" d="M0,80 Q20,20 50,60 T100,10" style={{ animation: "wave 22s infinite alternate-reverse ease-in-out" }} />
-      
       <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.7" d="M100,20 Q70,50 40,10 T0,80" style={{ animation: "wave 16s infinite alternate ease-in-out" }} />
       <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.5" d="M100,40 Q60,10 30,70 T0,30" style={{ animation: "wave 19s infinite alternate-reverse ease-in-out" }} />
       <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.9" d="M100,60 Q50,90 20,40 T0,90" style={{ animation: "wave 21s infinite alternate ease-in-out" }} />
@@ -32,9 +28,29 @@ const OctopusBackground = () => (
 );
 
 // ==========================================
-// 📚 マニュアルのデータ構造（ご主人様の入力データ完全維持！）
+// 💡 TypeScriptの型定義（これで裏側でのフリーズ・エラーを100%防ぎます！）
 // ==========================================
-const MANUAL_DATA = [
+type StepData = {
+  step: number;
+  title: string;
+  content: string;
+  imgUrl: string; // 必ず文字列を入れるルール
+  aiImgDesc?: string; // AIの説明はあってもなくてもOKなルール（?がポイント）
+};
+
+type ManualData = {
+  id: string;
+  icon: string;
+  title: string;
+  desc: string;
+  badge?: string;
+  steps: StepData[];
+};
+
+// ==========================================
+// 📚 マニュアルのデータ構造
+// ==========================================
+const MANUAL_DATA: ManualData[] = [
   {
     id: "dup-email",
     icon: "📧",
@@ -52,8 +68,8 @@ const MANUAL_DATA = [
     title: "無効化＆BH処理",
     desc: "契約の無効化処理と、BH（ブラックホール）送りの手順です。",
     steps: [
-      { step: 1, title: "アカウントの無効化", content: "管理画面から「アカウントを無効化する」オプションを選択します。", aiImgDesc: "アカウント設定画面で「無効化」ボタンが強調されている。", imgUrl: "" },
-      { step: 2, title: "BH送りの設定", content: "システム上でBHフラグを立て、これ以上の通知がいかないように設定します。", aiImgDesc: "BHフラグのチェックボックスが表示された画面。", imgUrl: "" }
+      { step: 1, title: "アカウントの無効化", content: "管理画面から「アカウントを無効化する」オプションを選択します。", imgUrl: "", aiImgDesc: "アカウント設定画面で「無効化」ボタンが強調されている。" },
+      { step: 2, title: "BH送りの設定", content: "システム上でBHフラグを立て、これ以上の通知がいかないように設定します。", imgUrl: "", aiImgDesc: "BHフラグのチェックボックスが表示された画面。" }
     ]
   },
   {
@@ -62,9 +78,9 @@ const MANUAL_DATA = [
     title: "プラン変更＆申込取消",
     desc: "お客様からのプラン変更依頼、または申し込みキャンセルの処理手順です。",
     steps: [
-      { step: 1, title: "プランの確認", content: "Customer ページから現在の適用プランを確認します。", aiImgDesc: "プラン詳細が表示されたCustomer画面。", imgUrl: "" },
-      { step: 2, title: "プラン変更の実行", content: "アクションメニューから「Change Plan」を選択し、新しいプランを選びます。", aiImgDesc: "プラン変更プルダウンが表示された画面。", imgUrl: "" },
-      { step: 3, title: "キャンセルの実行", content: "申し込みキャンセルの場合は、「Cancel Account」をクリックして処理します。", aiImgDesc: "キャンセル確認画面。", imgUrl: "" },
+      { step: 1, title: "プランの確認", content: "Customer ページから現在の適用プランを確認します。", imgUrl: "", aiImgDesc: "プラン詳細が表示されたCustomer画面。" },
+      { step: 2, title: "プラン変更の実行", content: "アクションメニューから「Change Plan」を選択し、新しいプランを選びます。", imgUrl: "", aiImgDesc: "プラン変更プルダウンが表示された画面。" },
+      { step: 3, title: "キャンセルの実行", content: "申し込みキャンセルの場合は、「Cancel Account」をクリックして処理します。", imgUrl: "", aiImgDesc: "キャンセル確認画面。" },
     ]
   },
   {
@@ -74,8 +90,8 @@ const MANUAL_DATA = [
     badge: "未完成",
     desc: "引越し等に伴う退去（Move Out）の処理手順です。",
     steps: [
-      { step: 1, title: "退去日の入力", content: "お客様から申告された退去日をシステムに入力します。", aiImgDesc: "退去日入力フィールドがある画面。", imgUrl: "" },
-      { step: 2, title: "最終検針の確認", content: "※現在フロー整備中につき、管理者に確認してください。", aiImgDesc: "検針ステータスが「未確認」となっている画面。", imgUrl: "" }
+      { step: 1, title: "退去日の入力", content: "お客様から申告された退去日をシステムに入力します。", imgUrl: "", aiImgDesc: "退去日入力フィールドがある画面。" },
+      { step: 2, title: "最終検針の確認", content: "※現在フロー整備中につき、管理者に確認してください。", imgUrl: "", aiImgDesc: "検針ステータスが「未確認」となっている画面。" }
     ]
   },
   {
@@ -84,8 +100,8 @@ const MANUAL_DATA = [
     title: "直近再点対応",
     desc: "直近で供給停止になったお客様の再点火（再契約）フローです。",
     steps: [
-      { step: 1, title: "停止理由の確認", content: "直近の供給停止理由（未払い等）をヒストリーから確認します。", aiImgDesc: "アカウントヒストリー画面。", imgUrl: "" },
-      { step: 2, title: "再点処理の実行", content: "問題が解消されている場合、再点火のプロシージャを実行します。", aiImgDesc: "再点火実行ボタンがある画面。", imgUrl: "" }
+      { step: 1, title: "停止理由の確認", content: "直近の供給停止理由（未払い等）をヒストリーから確認します。", imgUrl: "", aiImgDesc: "アカウントヒストリー画面。" },
+      { step: 2, title: "再点処理の実行", content: "問題が解消されている場合、再点火のプロシージャを実行します。", imgUrl: "", aiImgDesc: "再点火実行ボタンがある画面。" }
     ]
   },
   {
@@ -94,8 +110,8 @@ const MANUAL_DATA = [
     title: "無効なアドレス対処法",
     desc: "送信エラー（バウンス）になったメールアドレスの修正手順です。",
     steps: [
-      { step: 1, title: "エラーログの確認", content: "バウンスログから「無効なアドレス」であることを確認します。", aiImgDesc: "エラーログ詳細画面。", imgUrl: "" },
-      { step: 2, title: "お客様への連絡と修正", content: "お客様に確認し、正しいアドレスに修正してシステムを上書きします。", aiImgDesc: "アドレス修正画面。", imgUrl: "" }
+      { step: 1, title: "エラーログの確認", content: "バウンスログから「無効なアドレス」であることを確認します。", imgUrl: "", aiImgDesc: "エラーログ詳細画面。" },
+      { step: 2, title: "お客様への連絡と修正", content: "お客様に確認し、正しいアドレスに修正してシステムを上書きします。", imgUrl: "", aiImgDesc: "アドレス修正画面。" }
     ]
   },
   {
@@ -104,8 +120,8 @@ const MANUAL_DATA = [
     title: "住所変更＆SPIN入力",
     desc: "供給先住所の変更と、SPIN（供給地点特定番号）の入力手順です。",
     steps: [
-      { step: 1, title: "新住所の特定", content: "新しい住所を検索し、正確な表記を確認します。", aiImgDesc: "住所検索ツール。", imgUrl: "" },
-      { step: 2, title: "SPIN番号の紐付け", content: "取得した22桁のSPIN番号を入力フォームに貼り付けます。", aiImgDesc: "SPIN入力フィールド。", imgUrl: "" }
+      { step: 1, title: "新住所の特定", content: "新しい住所を検索し、正確な表記を確認します。", imgUrl: "", aiImgDesc: "住所検索ツール。" },
+      { step: 2, title: "SPIN番号の紐付け", content: "取得した22桁のSPIN番号を入力フォームに貼り付けます。", imgUrl: "", aiImgDesc: "SPIN入力フィールド。" }
     ]
   }
 ];
@@ -116,7 +132,7 @@ export default function ProcedureWizard() {
   const [activeManualId, setActiveManualId] = useState(MANUAL_DATA[0].id);
   const [expandedSteps, setExpandedSteps] = useState<number[]>([1]); 
   
-  // ✨ ハンバーガーメニュー用のステート
+  // 🍔 ハンバーガーメニュー用のステート
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -127,9 +143,7 @@ export default function ProcedureWizard() {
 
   const toggleStep = (stepNumber: number) => {
     setExpandedSteps(prev => 
-      prev.includes(stepNumber) 
-        ? prev.filter(s => s !== stepNumber) 
-        : [...prev, stepNumber]
+      prev.includes(stepNumber) ? prev.filter(s => s !== stepNumber) : [...prev, stepNumber]
     );
   };
 
@@ -138,22 +152,23 @@ export default function ProcedureWizard() {
       <OctopusBackground />
       
       <style dangerouslySetInnerHTML={{ __html: `
-        html, body { background-color: #020617 !important; margin: 0; padding: 0; min-height: 100vh; overflow-x: hidden; }
+        html, body { background-color: #020617 !important; margin: 0; padding: 0; min-height: 100vh; overflow-x: hidden; color: #f8fafc; font-family: 'Inter', sans-serif; }
         .app-wrapper { padding: 40px; position: relative; z-index: 10; opacity: 0; transition: 0.8s ease; max-width: 1400px; margin: 0 auto; }
         .app-wrapper.ready { opacity: 1; }
 
         /* 🍔 グローバル・サイドバー (ハンバーガーメニュー) */
-        .global-sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100vh; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border-right: 1px solid rgba(255,255,255,0.1); z-index: 9999; transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 20px 0 50px rgba(0,0,0,0.5); padding: 40px 20px; display: flex; flex-direction: column; gap: 15px; }
+        .global-sidebar { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border-right: 1px solid rgba(255,255,255,0.1); z-index: 9999; transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 20px 0 50px rgba(0,0,0,0.5); padding: 40px 20px; display: flex; flex-direction: column; gap: 15px; }
         .global-sidebar.open { left: 0; }
         .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 9998; opacity: 0; pointer-events: none; transition: 0.3s; }
         .sidebar-overlay.open { opacity: 1; pointer-events: auto; }
-        .gs-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 16px; color: #f8fafc; font-weight: 900; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; }
+        .gs-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 16px; color: #f8fafc; font-weight: 900; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; font-size: 14px; text-align: left; }
         .gs-btn:hover { background: rgba(56, 189, 248, 0.2); border-color: #38bdf8; transform: translateX(5px); }
-        .gs-close { position: absolute; top: 20px; right: 20px; background: transparent; border: none; color: #94a3b8; font-size: 24px; cursor: pointer; }
+        .gs-close { position: absolute; top: 20px; right: 20px; background: transparent; border: none; color: #94a3b8; font-size: 28px; cursor: pointer; }
 
+        /* ヘッダー周り */
         .kpi-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
-        .btn-hamburger { background: transparent; border: none; color: #f8fafc; font-size: 28px; cursor: pointer; transition: 0.3s; padding: 0; margin-right: 20px; }
-        .btn-hamburger:hover { color: #38bdf8; transform: scale(1.1); }
+        .btn-hamburger { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #f8fafc; font-size: 20px; cursor: pointer; transition: 0.3s; padding: 10px 15px; border-radius: 12px; margin-right: 20px; display: flex; align-items: center; gap: 10px; font-weight: 900; }
+        .btn-hamburger:hover { color: #38bdf8; border-color: #38bdf8; background: rgba(56, 189, 248, 0.1); }
         .header-left { display: flex; align-items: center; }
 
         .layout-grid { display: grid; grid-template-columns: 320px 1fr; gap: 30px; align-items: start; }
@@ -196,10 +211,9 @@ export default function ProcedureWizard() {
         
         .image-placeholder { width: 100%; border: 2px dashed rgba(255,255,255,0.1); border-radius: 16px; background: rgba(0,0,0,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; font-weight: 800; font-size: 12px; padding: 30px; text-align: center; gap: 10px;}
         .image-placeholder span { display: block; }
-
       `}} />
 
-      {/* 🍔 グローバル・サイドバー */}
+      {/* 🍔 グローバル・サイドバー (メニュー) */}
       <div className={`sidebar-overlay ${isSidebarOpen ? "open" : ""}`} onClick={() => setIsSidebarOpen(false)}></div>
       <div className={`global-sidebar ${isSidebarOpen ? "open" : ""}`}>
         <button className="gs-close" onClick={() => setIsSidebarOpen(false)}>×</button>
@@ -214,7 +228,9 @@ export default function ProcedureWizard() {
       <main className={`app-wrapper ${isReady ? "ready" : ""}`}>
         <header className="kpi-header">
           <div className="header-left">
-            <button className="btn-hamburger" onClick={() => setIsSidebarOpen(true)}>☰</button>
+            <button className="btn-hamburger" onClick={() => setIsSidebarOpen(true)}>
+              <span>☰</span> MENU
+            </button>
           </div>
           <div style={{textAlign: "right", color: "#f8fafc"}}>
             <h1 style={{fontSize:"24px", fontWeight:900, margin:0, letterSpacing:"2px"}}>KRAKEN PROCEDURE WIZARD</h1>
@@ -269,7 +285,7 @@ export default function ProcedureWizard() {
                         <div className="image-placeholder">
                           <span style={{fontSize: "24px"}}>📸</span>
                           <span>ここにAI生成画像が入ります</span>
-                          <span style={{color: "#38bdf8", opacity: 0.8}}>{(step as any).aiImgDesc}</span>
+                          {step.aiImgDesc && <span style={{color: "#38bdf8", opacity: 0.8}}>{step.aiImgDesc}</span>}
                           <span style={{fontSize: "10px", opacity: 0.7}}>publicフォルダに画像を保存し、コード内のimgUrlを設定してください</span>
                         </div>
                       )}
