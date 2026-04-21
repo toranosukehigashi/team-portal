@@ -148,7 +148,7 @@ export default function ProcedureWizard() {
   };
 
   return (
-    <div className="global-theme-wrapper theme-dark">
+    <div style={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}>
       <OctopusBackground />
       
       <style dangerouslySetInnerHTML={{ __html: `
