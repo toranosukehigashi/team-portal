@@ -60,22 +60,23 @@ const MANUAL_DATA: ManualData[] = [
   {
     id: "inv-bh",
     icon: "🛑",
-    title: "アカウント無効化",
+    title: "アカウント無効化（申込取消）",
     desc: "既存アカウントが原因でOBJエラーが起きた時などに有効！",
     steps: [
-      { step: 1, title: "アカウントの無効化", content: "名前の下にある「取消にする」ボタンを選択します。", imgUrl: "mukouka-1.png" },
-      { step: 2, title: "メアド未所持設定", content: "「ユーザータブ」の「編集」を押し、「お客様がメールアドレスを持っていない」にチェック押す。（警告が出るけど無視して進んでOK!）", imgUrl: "mukouka-2.png"},
+      { step: 1, title: "アカウントの無効化", content: "名前の下にある「取消にする」ボタンを選択します。", imgUrl: "/mukouka-1.png" },
+      { step: 2, title: "メアド未所持設定", content: "「ユーザータブ」の「編集」を押し、「お客様がメールアドレスを持っていない」にチェック押す。（警告が出るけど無視して進んでOK!）", imgUrl: "/mukouka-2.png"},
     ]
   },
   {
     id: "plan-cancel",
     icon: "🔄",
-    title: "プラン変更＆申込取消",
-    desc: "お客様からのプラン変更依頼、または申し込みキャンセルの処理手順です。",
+    title: "プラン変更",
+    desc: "お客様からのプラン変更依頼の処理手順です。",
     steps: [
-      { step: 1, title: "プランの確認", content: "Customer ページから現在の適用プランを確認します。", imgUrl: "", aiImgDesc: "プラン詳細が表示されたCustomer画面。" },
-      { step: 2, title: "プラン変更の実行", content: "アクションメニューから「Change Plan」を選択し、新しいプランを選びます。", imgUrl: "", aiImgDesc: "プラン変更プルダウンが表示された画面。" },
-      { step: 3, title: "キャンセルの実行", content: "申し込みキャンセルの場合は、「Cancel Account」をクリックして処理します。", imgUrl: "", aiImgDesc: "キャンセル確認画面。" },
+      { step: 1, title: "契約状況確認", content: "顧客画面から契約タブを選択。", imgUrl: "/p.henkou-1.png"},
+      { step: 2, title: "現電気料金メニュー確認", content: "電気料金メニューにある「料金メニュー変更」を押す。", imgUrl: "/p.henkou-2.png"},
+      { step: 3, title: "商材の変更", content: "Productの上にある「全商品を含む」を押す。", imgUrl: "/p.henkou-3.png"},
+      { step: 3, title: "変更プラン選択", content: "Product から変更するプランを選ぶ。", imgUrl: "/p.henkou-4.png"},
     ]
   },
   {
