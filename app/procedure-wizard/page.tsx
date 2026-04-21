@@ -3,39 +3,30 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-// --- 🐙 オクトパスライン背景コンポーネント（Mac切り替えノイズ完全排除版） ---
+// --- 🐙 オクトパスライン背景コンポーネント（余計な魔法を全排除した超安定版） ---
 const OctopusBackground = () => (
-  <>
-    {/* 🎨 1枚目：背景色だけをフワッと変える専用の板（SVGは置かないのでノイズが出ない） */}
-    <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: -2, backgroundColor: "var(--app-bg)", transition: "background-color 0.5s ease" }} />
-    
-    {/* 🐙 2枚目：タコ足SVGだけを動かす透明な板（色が切り替わる影響を一切受けない） */}
-    <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: -1, pointerEvents: "none", overflow: "hidden" }}>
-      <svg 
-        style={{ 
-          position: "absolute", top: "-50%", left: "-50%", width: "200%", height: "200%", opacity: 0.4,
-          transform: "translate3d(0,0,0)", WebkitTransform: "translate3d(0,0,0)", backfaceVisibility: "hidden", willChange: "transform" 
-        }} 
-        viewBox="0 0 100 100" preserveAspectRatio="none"
-      >
-        <defs>
-          <linearGradient id="tentacleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
-            <stop offset="100%" stopColor="#c084fc" stopOpacity="0.2" />
-          </linearGradient>
-        </defs>
-        <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.5" d="M0,20 Q30,50 60,10 T100,80" style={{ animation: "wave 15s infinite alternate ease-in-out" }} />
-        <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.8" d="M0,40 Q40,10 70,70 T100,30" style={{ animation: "wave 18s infinite alternate-reverse ease-in-out" }} />
-        <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.6" d="M0,60 Q50,90 80,40 T100,90" style={{ animation: "wave 20s infinite alternate ease-in-out" }} />
-        <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.4" d="M0,80 Q20,20 50,60 T100,10" style={{ animation: "wave 22s infinite alternate-reverse ease-in-out" }} />
-        <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.7" d="M100,20 Q70,50 40,10 T0,80" style={{ animation: "wave 16s infinite alternate ease-in-out" }} />
-        <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.5" d="M100,40 Q60,10 30,70 T0,30" style={{ animation: "wave 19s infinite alternate-reverse ease-in-out" }} />
-        <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.9" d="M100,60 Q50,90 20,40 T0,90" style={{ animation: "wave 21s infinite alternate ease-in-out" }} />
-        <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.3" d="M100,80 Q80,20 50,60 T0,10" style={{ animation: "wave 23s infinite alternate-reverse ease-in-out" }} />
-      </svg>
-    </div>
+  <svg 
+    style={{ 
+      position: "fixed", top: "-50%", left: "-50%", width: "200%", height: "200%", zIndex: -1, opacity: 0.4, pointerEvents: "none"
+    }} 
+    viewBox="0 0 100 100" preserveAspectRatio="none"
+  >
+    <defs>
+      <linearGradient id="tentacleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
+        <stop offset="100%" stopColor="#c084fc" stopOpacity="0.2" />
+      </linearGradient>
+    </defs>
+    <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.5" d="M0,20 Q30,50 60,10 T100,80" style={{ animation: "wave 15s infinite alternate ease-in-out" }} />
+    <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.8" d="M0,40 Q40,10 70,70 T100,30" style={{ animation: "wave 18s infinite alternate-reverse ease-in-out" }} />
+    <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.6" d="M0,60 Q50,90 80,40 T100,90" style={{ animation: "wave 20s infinite alternate ease-in-out" }} />
+    <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.4" d="M0,80 Q20,20 50,60 T100,10" style={{ animation: "wave 22s infinite alternate-reverse ease-in-out" }} />
+    <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.7" d="M100,20 Q70,50 40,10 T0,80" style={{ animation: "wave 16s infinite alternate ease-in-out" }} />
+    <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.5" d="M100,40 Q60,10 30,70 T0,30" style={{ animation: "wave 19s infinite alternate-reverse ease-in-out" }} />
+    <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.9" d="M100,60 Q50,90 20,40 T0,90" style={{ animation: "wave 21s infinite alternate ease-in-out" }} />
+    <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.3" d="M100,80 Q80,20 50,60 T0,10" style={{ animation: "wave 23s infinite alternate-reverse ease-in-out" }} />
     <style>{`@keyframes wave { 0% { transform: translateY(0) scaleY(1); } 100% { transform: translateY(5px) scaleY(1.1); } }`}</style>
-  </>
+  </svg>
 );
 
 // ==========================================
@@ -140,12 +131,10 @@ const MANUAL_DATA: ManualData[] = [
 export default function ProcedureWizard() {
   const router = useRouter();
 
-  // 🌟 状態管理
   const [isReady, setIsReady] = useState(false);
   const [activeManualId, setActiveManualId] = useState(MANUAL_DATA[0].id);
   const [expandedSteps, setExpandedSteps] = useState<number[]>([1]); 
   
-  // 🍔 メニューとテーマ・通知の状態
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [toast, setToast] = useState({ show: false, msg: "", type: "success" });
@@ -178,14 +167,13 @@ export default function ProcedureWizard() {
   };
 
   return (
-    // 💡 大元の外枠からは background-color の transition を削除し、文字色だけ変えます！
-    <div className={`procedure-wrapper ${isDarkMode ? "theme-dark" : "theme-light"}`} style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", color: "var(--text-main)", zIndex: 9999, overflowX: "hidden", overflowY: "auto", margin: 0, padding: 0, fontFamily: "'Inter', 'Noto Sans JP', sans-serif", transition: "color 0.5s" }}>
+    // 💡 フワッとした色の変化（transition）を完全に削除しました！パッと切り替わるので絶対にバグりません！
+    <div className={`procedure-wrapper ${isDarkMode ? "theme-dark" : "theme-light"}`} style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", backgroundColor: "var(--app-bg)", color: "var(--text-main)", zIndex: 9999, overflowX: "hidden", overflowY: "auto", margin: 0, padding: 0, fontFamily: "'Inter', 'Noto Sans JP', sans-serif" }}>
       <OctopusBackground />
       
       <style dangerouslySetInnerHTML={{ __html: `
         .procedure-wrapper * { box-sizing: border-box; }
 
-        /* 🌊 Kraken手順辞書専用：Ocean/Cyan テーマ */
         .theme-light {
           --app-bg: #f0f9ff;
           --text-main: #0f172a;
@@ -218,7 +206,7 @@ export default function ProcedureWizard() {
           --toast-bg: rgba(30, 41, 59, 0.85);
         }
 
-        .app-wrapper { padding: 20px 40px 100px 40px; position: relative; z-index: 10; opacity: 0; transition: 0.8s ease; max-width: 1400px; margin: 0 auto; }
+        .app-wrapper { padding: 20px 40px 100px 40px; position: relative; z-index: 10; opacity: 0; transition: opacity 0.8s ease; max-width: 1400px; margin: 0 auto; }
         .app-wrapper.ready { opacity: 1; }
 
         .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 10001; background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; box-shadow: var(--card-shadow); transition: 0.3s; }
