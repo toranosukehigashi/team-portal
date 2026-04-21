@@ -80,24 +80,13 @@ const MANUAL_DATA: ManualData[] = [
     ]
   },
   {
-    id: "move-out",
-    icon: "🏠",
-    title: "MOVE OUT（退去処理）",
-    badge: "未完成",
-    desc: "引越し等に伴う退去（Move Out）の処理手順です。",
-    steps: [
-      { step: 1, title: "退去日の入力", content: "お客様から申告された退去日をシステムに入力します。", imgUrl: "", aiImgDesc: "退去日入力フィールドがある画面。" },
-      { step: 2, title: "最終検針の確認", content: "※現在フロー整備中につき、管理者に確認してください。", imgUrl: "", aiImgDesc: "検針ステータスが「未確認」となっている画面。" }
-    ]
-  },
-  {
     id: "re-ignition",
     icon: "🔥",
-    title: "直近再点対応",
-    desc: "直近で供給停止になったお客様の再点火（再契約）フローです。",
+    title: "直近再点",
+    desc: "当日再点や、明日再点など直近の申込を受け付ける時、「契約中」のSPINだと申し込みできません🐵\nしかし、ステータスが「契約中」なだけで「廃止の申込」がされている地点かもしれません。\nそのため、SPINから「廃止受付年月日」を調べます💡",
     steps: [
-      { step: 1, title: "停止理由の確認", content: "直近の供給停止理由（未払い等）をヒストリーから確認します。", imgUrl: "", aiImgDesc: "アカウントヒストリー画面。" },
-      { step: 2, title: "再点処理の実行", content: "問題が解消されている場合、再点火のプロシージャを実行します。", imgUrl: "", aiImgDesc: "再点火実行ボタンがある画面。" }
+      { step: 1, title: "設備情報取得", content: "SPINを調べて設備情報取得で検索する", imgUrl: "/re-ignition1.png"},
+      { step: 2, title: "「異動申込受付年月日」確認", content: "「idoMoshikomiUketsukes」までスクロールし、「異動申込受付年月日」に書かれてる日付に再点日を合わせてOBJ。\n「前の契約がなくなるのが〇月〇日なので、翌日から料金発生開始となります。」と伝える。", imgUrl: "/re-ignition1.png", }
     ]
   },
   {
