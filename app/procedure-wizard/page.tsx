@@ -3,11 +3,17 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-// --- 🐙 オクトパスライン背景コンポーネント ---
+// --- 🐙 オクトパスライン背景コンポーネント（Mac安定化版） ---
 const OctopusBackground = () => (
-  <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: -1, pointerEvents: "none", overflow: "hidden" }}>
-    <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", background: "#020617", zIndex: 1 }} />
-    <svg style={{ position: "absolute", top: "-50%", left: "-50%", width: "200%", height: "200%", zIndex: 2, opacity: 0.4 }} viewBox="0 0 100 100" preserveAspectRatio="none">
+  <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: -1, pointerEvents: "none", overflow: "hidden", backgroundColor: "#020617" }}>
+    {/* ▼▼ Macの「ざざざっ（ノイズ）」を完全に封じ込める魔法のCSSを追加！ ▼▼ */}
+    <svg 
+      style={{ 
+        position: "absolute", top: "-50%", left: "-50%", width: "200%", height: "200%", zIndex: 2, opacity: 0.4,
+        transform: "translateZ(0)", WebkitTransform: "translateZ(0)", willChange: "transform" 
+      }} 
+      viewBox="0 0 100 100" preserveAspectRatio="none"
+    >
       <defs>
         <linearGradient id="tentacleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
@@ -147,12 +153,10 @@ export default function ProcedureWizard() {
   };
 
   return (
-    // 💡 ここが超重要！globals.css の影響を完全に無視する「全画面の巨大テント」を張りました！！
     <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", backgroundColor: "#020617", color: "#f8fafc", zIndex: 9999, overflowX: "hidden", overflowY: "auto", margin: 0, padding: 0, fontFamily: "'Inter', sans-serif" }}>
       <OctopusBackground />
       
       <style dangerouslySetInnerHTML={{ __html: `
-        /* html, body を書き換える暴力的なコードを全削除し、このテントの中だけで完結させました！ */
         .app-wrapper { padding: 40px; position: relative; z-index: 10; opacity: 0; transition: 0.8s ease; max-width: 1400px; margin: 0 auto; }
         .app-wrapper.ready { opacity: 1; }
 
