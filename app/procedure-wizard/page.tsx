@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 
 // --- 🐙 オクトパスライン背景コンポーネント ---
 const OctopusBackground = () => (
-  <>
-    <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "#020617", zIndex: -3 }} />
-    <svg style={{ position: "fixed", top: "-50%", left: "-50%", width: "200%", height: "200%", zIndex: -2, pointerEvents: "none", opacity: 0.4 }} viewBox="0 0 100 100" preserveAspectRatio="none">
+  <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: -1, pointerEvents: "none", overflow: "hidden" }}>
+    <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", background: "#020617", zIndex: 1 }} />
+    <svg style={{ position: "absolute", top: "-50%", left: "-50%", width: "200%", height: "200%", zIndex: 2, opacity: 0.4 }} viewBox="0 0 100 100" preserveAspectRatio="none">
       <defs>
         <linearGradient id="tentacleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
@@ -24,7 +24,7 @@ const OctopusBackground = () => (
       <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.3" d="M100,80 Q80,20 50,60 T0,10" style={{ animation: "wave 23s infinite alternate-reverse ease-in-out" }} />
     </svg>
     <style>{`@keyframes wave { 0% { transform: translateY(0) scaleY(1); } 100% { transform: translateY(5px) scaleY(1.1); } }`}</style>
-  </>
+  </div>
 );
 
 // ==========================================
@@ -132,7 +132,6 @@ export default function ProcedureWizard() {
   const [activeManualId, setActiveManualId] = useState(MANUAL_DATA[0].id);
   const [expandedSteps, setExpandedSteps] = useState<number[]>([1]); 
   
-  // 🍔 ハンバーガーメニュー用のステート
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -148,24 +147,23 @@ export default function ProcedureWizard() {
   };
 
   return (
-    <div style={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}>
+    // 💡 ここが超重要！globals.css の影響を完全に無視する「全画面の巨大テント」を張りました！！
+    <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", backgroundColor: "#020617", color: "#f8fafc", zIndex: 9999, overflowX: "hidden", overflowY: "auto", margin: 0, padding: 0, fontFamily: "'Inter', sans-serif" }}>
       <OctopusBackground />
       
       <style dangerouslySetInnerHTML={{ __html: `
-        html, body { background-color: #020617 !important; margin: 0; padding: 0; min-height: 100vh; overflow-x: hidden; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        /* html, body を書き換える暴力的なコードを全削除し、このテントの中だけで完結させました！ */
         .app-wrapper { padding: 40px; position: relative; z-index: 10; opacity: 0; transition: 0.8s ease; max-width: 1400px; margin: 0 auto; }
         .app-wrapper.ready { opacity: 1; }
 
-        /* 🍔 グローバル・サイドバー */
-        .global-sidebar { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border-right: 1px solid rgba(255,255,255,0.1); z-index: 9999; transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 20px 0 50px rgba(0,0,0,0.5); padding: 40px 20px; display: flex; flex-direction: column; gap: 15px; }
+        .global-sidebar { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: #0f172a; border-right: 1px solid rgba(255,255,255,0.1); z-index: 99999; transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 20px 0 50px rgba(0,0,0,0.5); padding: 40px 20px; display: flex; flex-direction: column; gap: 15px; }
         .global-sidebar.open { left: 0; }
-        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 9998; opacity: 0; pointer-events: none; transition: 0.3s; }
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 99998; opacity: 0; pointer-events: none; transition: 0.3s; }
         .sidebar-overlay.open { opacity: 1; pointer-events: auto; }
         .gs-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 16px; color: #f8fafc; font-weight: 900; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; font-size: 14px; text-align: left; }
         .gs-btn:hover { background: rgba(56, 189, 248, 0.2); border-color: #38bdf8; transform: translateX(5px); }
         .gs-close { position: absolute; top: 20px; right: 20px; background: transparent; border: none; color: #94a3b8; font-size: 28px; cursor: pointer; }
 
-        /* ヘッダー周り */
         .kpi-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
         .btn-hamburger { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #f8fafc; font-size: 20px; cursor: pointer; transition: 0.3s; padding: 10px 15px; border-radius: 12px; margin-right: 20px; display: flex; align-items: center; gap: 10px; font-weight: 900; }
         .btn-hamburger:hover { color: #38bdf8; border-color: #38bdf8; background: rgba(56, 189, 248, 0.1); }
@@ -173,8 +171,7 @@ export default function ProcedureWizard() {
 
         .layout-grid { display: grid; grid-template-columns: 320px 1fr; gap: 30px; align-items: start; }
         
-        /* 📁 左側メニュー */
-        .sidebar-menu { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 8px; position: sticky; top: 40px; }
+        .sidebar-menu { background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 8px; position: sticky; top: 40px; }
         .menu-item { padding: 16px 20px; border-radius: 16px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; border: 1px solid transparent; background: rgba(255,255,255,0.02); }
         .menu-item:hover { background: rgba(255,255,255,0.05); transform: translateX(5px); }
         .menu-item.active { background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.4); box-shadow: 0 0 20px rgba(56,189,248,0.1); }
@@ -183,13 +180,12 @@ export default function ProcedureWizard() {
         .menu-item.active .menu-title { color: #38bdf8; font-weight: 900; }
         .badge { background: #ef4444; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: 900; letter-spacing: 1px; }
 
-        /* 📖 右側コンテンツ */
         .content-panel { display: flex; flex-direction: column; gap: 20px; }
-        .manual-header { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .manual-header { background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         .m-title { font-size: 28px; font-weight: 900; color: #fff; margin: 0 0 10px 0; display: flex; align-items: center; gap: 12px; }
         .m-desc { color: #94a3b8; font-size: 14px; font-weight: 700; line-height: 1.6; margin: 0; }
 
-        .accordion-item { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; overflow: hidden; transition: 0.3s; }
+        .accordion-item { background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; overflow: hidden; transition: 0.3s; }
         .accordion-item.open { border-color: rgba(56, 189, 248, 0.4); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         
         .accordion-header { padding: 20px 30px; display: flex; align-items: center; cursor: pointer; background: rgba(255,255,255,0.02); transition: 0.3s; }
@@ -216,7 +212,7 @@ export default function ProcedureWizard() {
       <div className={`sidebar-overlay ${isSidebarOpen ? "open" : ""}`} onClick={() => setIsSidebarOpen(false)}></div>
       <div className={`global-sidebar ${isSidebarOpen ? "open" : ""}`}>
         <button className="gs-close" onClick={() => setIsSidebarOpen(false)}>×</button>
-        <h2 style={{color: "#38bdf8", fontWeight: 900, fontSize: "16px", marginBottom: "20px", letterSpacing: "2px"}}>🌐 MENU</h2>
+        <h2 style={{color: "#38bdf8", fontWeight: 900, fontSize: "16px", margin: "0 0 20px 0", letterSpacing: "2px"}}>🌐 MENU</h2>
         <button className="gs-btn" onClick={() => router.push("/")}>🏠 Workspace Home</button>
         <button className="gs-btn" onClick={() => router.push("/kpi-detail")}>📊 KPI Dashboard</button>
         <button className="gs-btn" onClick={() => router.push("/simulator")}>🆚 Cost Simulator</button>
@@ -231,7 +227,7 @@ export default function ProcedureWizard() {
               <span>☰</span> MENU
             </button>
           </div>
-          <div style={{textAlign: "right", color: "#f8fafc"}}>
+          <div style={{textAlign: "right"}}>
             <h1 style={{fontSize:"24px", fontWeight:900, margin:0, letterSpacing:"2px"}}>KRAKEN PROCEDURE WIZARD</h1>
             <p style={{fontSize:"11px", color:"#94a3b8", fontWeight:800, margin:0}}>INTERACTIVE OPERATION MANUAL</p>
           </div>
