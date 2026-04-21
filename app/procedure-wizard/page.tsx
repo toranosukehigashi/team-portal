@@ -3,34 +3,39 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-// --- 🐙 オクトパスライン背景コンポーネント（Mac安定化版） ---
+// --- 🐙 オクトパスライン背景コンポーネント（Mac切り替えノイズ完全排除版） ---
 const OctopusBackground = () => (
-  <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: -1, pointerEvents: "none", overflow: "hidden", backgroundColor: "#020617" }}>
-    {/* ▼▼ Macの「ざざざっ（ノイズ）」を完全に封じ込める魔法のCSSを追加！ ▼▼ */}
-    <svg 
-      style={{ 
-        position: "absolute", top: "-50%", left: "-50%", width: "200%", height: "200%", zIndex: 2, opacity: 0.4,
-        transform: "translateZ(0)", WebkitTransform: "translateZ(0)", willChange: "transform" 
-      }} 
-      viewBox="0 0 100 100" preserveAspectRatio="none"
-    >
-      <defs>
-        <linearGradient id="tentacleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
-          <stop offset="100%" stopColor="#c084fc" stopOpacity="0.2" />
-        </linearGradient>
-      </defs>
-      <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.5" d="M0,20 Q30,50 60,10 T100,80" style={{ animation: "wave 15s infinite alternate ease-in-out" }} />
-      <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.8" d="M0,40 Q40,10 70,70 T100,30" style={{ animation: "wave 18s infinite alternate-reverse ease-in-out" }} />
-      <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.6" d="M0,60 Q50,90 80,40 T100,90" style={{ animation: "wave 20s infinite alternate ease-in-out" }} />
-      <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.4" d="M0,80 Q20,20 50,60 T100,10" style={{ animation: "wave 22s infinite alternate-reverse ease-in-out" }} />
-      <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.7" d="M100,20 Q70,50 40,10 T0,80" style={{ animation: "wave 16s infinite alternate ease-in-out" }} />
-      <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.5" d="M100,40 Q60,10 30,70 T0,30" style={{ animation: "wave 19s infinite alternate-reverse ease-in-out" }} />
-      <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.9" d="M100,60 Q50,90 20,40 T0,90" style={{ animation: "wave 21s infinite alternate ease-in-out" }} />
-      <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.3" d="M100,80 Q80,20 50,60 T0,10" style={{ animation: "wave 23s infinite alternate-reverse ease-in-out" }} />
-    </svg>
+  <>
+    {/* 🎨 1枚目：背景色だけをフワッと変える専用の板（SVGは置かないのでノイズが出ない） */}
+    <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: -2, backgroundColor: "var(--app-bg)", transition: "background-color 0.5s ease" }} />
+    
+    {/* 🐙 2枚目：タコ足SVGだけを動かす透明な板（色が切り替わる影響を一切受けない） */}
+    <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: -1, pointerEvents: "none", overflow: "hidden" }}>
+      <svg 
+        style={{ 
+          position: "absolute", top: "-50%", left: "-50%", width: "200%", height: "200%", opacity: 0.4,
+          transform: "translate3d(0,0,0)", WebkitTransform: "translate3d(0,0,0)", backfaceVisibility: "hidden", willChange: "transform" 
+        }} 
+        viewBox="0 0 100 100" preserveAspectRatio="none"
+      >
+        <defs>
+          <linearGradient id="tentacleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#c084fc" stopOpacity="0.2" />
+          </linearGradient>
+        </defs>
+        <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.5" d="M0,20 Q30,50 60,10 T100,80" style={{ animation: "wave 15s infinite alternate ease-in-out" }} />
+        <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.8" d="M0,40 Q40,10 70,70 T100,30" style={{ animation: "wave 18s infinite alternate-reverse ease-in-out" }} />
+        <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.6" d="M0,60 Q50,90 80,40 T100,90" style={{ animation: "wave 20s infinite alternate ease-in-out" }} />
+        <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.4" d="M0,80 Q20,20 50,60 T100,10" style={{ animation: "wave 22s infinite alternate-reverse ease-in-out" }} />
+        <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.7" d="M100,20 Q70,50 40,10 T0,80" style={{ animation: "wave 16s infinite alternate ease-in-out" }} />
+        <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.5" d="M100,40 Q60,10 30,70 T0,30" style={{ animation: "wave 19s infinite alternate-reverse ease-in-out" }} />
+        <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.9" d="M100,60 Q50,90 20,40 T0,90" style={{ animation: "wave 21s infinite alternate ease-in-out" }} />
+        <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.3" d="M100,80 Q80,20 50,60 T0,10" style={{ animation: "wave 23s infinite alternate-reverse ease-in-out" }} />
+      </svg>
+    </div>
     <style>{`@keyframes wave { 0% { transform: translateY(0) scaleY(1); } 100% { transform: translateY(5px) scaleY(1.1); } }`}</style>
-  </div>
+  </>
 );
 
 // ==========================================
@@ -134,14 +139,24 @@ const MANUAL_DATA: ManualData[] = [
 
 export default function ProcedureWizard() {
   const router = useRouter();
+
+  // 🌟 状態管理
   const [isReady, setIsReady] = useState(false);
   const [activeManualId, setActiveManualId] = useState(MANUAL_DATA[0].id);
   const [expandedSteps, setExpandedSteps] = useState<number[]>([1]); 
   
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // 🍔 メニューとテーマ・通知の状態
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [toast, setToast] = useState({ show: false, msg: "", type: "success" });
 
   useEffect(() => {
-    setTimeout(() => setIsReady(true), 100);
+    setIsReady(true);
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("visible"); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
   }, []);
 
   const activeManual = MANUAL_DATA.find(m => m.id === activeManualId) || MANUAL_DATA[0];
@@ -152,95 +167,179 @@ export default function ProcedureWizard() {
     );
   };
 
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+    showToast(!isDarkMode ? "🌙 ダークモードに切り替えました" : "☀️ ライトモードに切り替えました", "info");
+  };
+
+  const showToast = (msg: string, type: "success" | "info" | "error" = "success") => {
+    setToast({ show: true, msg, type });
+    setTimeout(() => setToast({ show: false, msg: "", type: "success" }), 3000);
+  };
+
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", backgroundColor: "#020617", color: "#f8fafc", zIndex: 9999, overflowX: "hidden", overflowY: "auto", margin: 0, padding: 0, fontFamily: "'Inter', sans-serif" }}>
+    // 💡 大元の外枠からは background-color の transition を削除し、文字色だけ変えます！
+    <div className={`procedure-wrapper ${isDarkMode ? "theme-dark" : "theme-light"}`} style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", color: "var(--text-main)", zIndex: 9999, overflowX: "hidden", overflowY: "auto", margin: 0, padding: 0, fontFamily: "'Inter', 'Noto Sans JP', sans-serif", transition: "color 0.5s" }}>
       <OctopusBackground />
       
       <style dangerouslySetInnerHTML={{ __html: `
-        .app-wrapper { padding: 40px; position: relative; z-index: 10; opacity: 0; transition: 0.8s ease; max-width: 1400px; margin: 0 auto; }
+        .procedure-wrapper * { box-sizing: border-box; }
+
+        /* 🌊 Kraken手順辞書専用：Ocean/Cyan テーマ */
+        .theme-light {
+          --app-bg: #f0f9ff;
+          --text-main: #0f172a;
+          --text-sub: #334155;
+          --card-bg: rgba(255, 255, 255, 0.7);
+          --card-border: rgba(255, 255, 255, 1);
+          --card-hover-border: #38bdf8;
+          --card-hover-bg: rgba(255, 255, 255, 0.95);
+          --card-shadow: 0 10px 30px rgba(2, 132, 199, 0.05);
+          --title-color: #0284c7; 
+          --accent-color: #0ea5e9; 
+          --input-bg: rgba(255, 255, 255, 0.9);
+          --accordion-text-bg: rgba(2, 132, 199, 0.05);
+          --toast-bg: #ffffff;
+        }
+        
+        .theme-dark {
+          --app-bg: #020617;
+          --text-main: #f8fafc;
+          --text-sub: #94a3b8;
+          --card-bg: rgba(15, 23, 42, 0.65);
+          --card-border: rgba(255, 255, 255, 0.1);
+          --card-hover-border: #38bdf8;
+          --card-hover-bg: rgba(30, 41, 59, 0.85);
+          --card-shadow: 0 20px 50px rgba(0,0,0,0.8);
+          --title-color: #38bdf8; 
+          --accent-color: #38bdf8;
+          --input-bg: rgba(0, 0, 0, 0.4);
+          --accordion-text-bg: rgba(0, 0, 0, 0.3);
+          --toast-bg: rgba(30, 41, 59, 0.85);
+        }
+
+        .app-wrapper { padding: 20px 40px 100px 40px; position: relative; z-index: 10; opacity: 0; transition: 0.8s ease; max-width: 1400px; margin: 0 auto; }
         .app-wrapper.ready { opacity: 1; }
 
-        .global-sidebar { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: #0f172a; border-right: 1px solid rgba(255,255,255,0.1); z-index: 99999; transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 20px 0 50px rgba(0,0,0,0.5); padding: 40px 20px; display: flex; flex-direction: column; gap: 15px; }
-        .global-sidebar.open { left: 0; }
-        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 99998; opacity: 0; pointer-events: none; transition: 0.3s; }
-        .sidebar-overlay.open { opacity: 1; pointer-events: auto; }
-        .gs-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 16px; color: #f8fafc; font-weight: 900; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; font-size: 14px; text-align: left; }
-        .gs-btn:hover { background: rgba(56, 189, 248, 0.2); border-color: #38bdf8; transform: translateX(5px); }
-        .gs-close { position: absolute; top: 20px; right: 20px; background: transparent; border: none; color: #94a3b8; font-size: 28px; cursor: pointer; }
+        .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 10001; background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; box-shadow: var(--card-shadow); transition: 0.3s; }
+        .hamburger-btn:hover { background: var(--card-hover-bg); transform: scale(1.05); }
+        .hamburger-line { width: 22px; height: 3px; background: var(--text-sub); border-radius: 3px; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        .hamburger-btn.open .line1 { transform: translateY(8px) rotate(45deg); background: var(--accent-color); }
+        .hamburger-btn.open .line2 { opacity: 0; transform: translateX(-10px); }
+        .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: var(--accent-color); }
 
-        .kpi-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
-        .btn-hamburger { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #f8fafc; font-size: 20px; cursor: pointer; transition: 0.3s; padding: 10px 15px; border-radius: 12px; margin-right: 20px; display: flex; align-items: center; gap: 10px; font-weight: 900; }
-        .btn-hamburger:hover { color: #38bdf8; border-color: #38bdf8; background: rgba(56, 189, 248, 0.1); }
-        .header-left { display: flex; align-items: center; }
+        .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px); z-index: 9999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
+        .menu-overlay.open { opacity: 1; pointer-events: auto; }
+
+        .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 10000; box-shadow: var(--card-shadow); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+        .side-menu.open { left: 0; }
+        .menu-title-sidebar { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--card-border); letter-spacing: 1px; }
+
+        .side-link { text-decoration: none; padding: 14px 20px; border-radius: 14px; background: var(--input-bg); color: var(--text-main); font-weight: 800; font-size: 14px; border: 1px solid var(--card-border); transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
+        .side-link:hover { border-color: var(--card-hover-border); transform: translateX(8px); color: var(--accent-color); }
+        .side-link.current-page { background: linear-gradient(135deg, #0ea5e9, #4f46e5); color: #fff; border: none; box-shadow: 0 6px 15px rgba(14, 165, 233, 0.3); pointer-events: none; }
+
+        .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 40px; margin-top: 10px; }
+        .glass-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 50px; box-shadow: var(--card-shadow); max-width: 800px; width: 100%; }
+        
+        .nav-left { display: flex; gap: 12px; align-items: center; }
+        .glass-nav-link { text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 800; background: var(--input-bg); color: var(--text-sub); border: 1px solid var(--card-border); transition: 0.2s; font-size: 14px; }
+        .glass-nav-link:hover { color: var(--accent-color); border-color: var(--card-hover-border); }
+        .glass-nav-active { padding: 10px 20px; border-radius: 30px; font-weight: 900; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); font-size: 14px; }
+
+        .theme-toggle-btn { background: var(--input-bg); border: 1px solid var(--card-border); padding: 10px 20px; border-radius: 30px; cursor: pointer; transition: 0.3s; font-size: 14px; color: var(--text-main); font-weight: 800; }
+        .theme-toggle-btn:hover { border-color: var(--card-hover-border); transform: scale(1.05); }
 
         .layout-grid { display: grid; grid-template-columns: 320px 1fr; gap: 30px; align-items: start; }
+        @media (max-width: 950px) { .layout-grid { grid-template-columns: 1fr; } }
         
-        .sidebar-menu { background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 8px; position: sticky; top: 40px; }
-        .menu-item { padding: 16px 20px; border-radius: 16px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; border: 1px solid transparent; background: rgba(255,255,255,0.02); }
-        .menu-item:hover { background: rgba(255,255,255,0.05); transform: translateX(5px); }
-        .menu-item.active { background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.4); box-shadow: 0 0 20px rgba(56,189,248,0.1); }
-        .menu-icon { font-size: 20px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); border-radius: 10px; }
-        .menu-title { font-weight: 800; font-size: 14px; color: #cbd5e1; flex: 1; }
-        .menu-item.active .menu-title { color: #38bdf8; font-weight: 900; }
+        .categories-menu { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 24px; padding: 20px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 8px; position: sticky; top: 100px; }
+        .menu-item { padding: 16px 20px; border-radius: 16px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; border: 1px solid transparent; background: var(--input-bg); color: var(--text-main); font-weight: 800; }
+        .menu-item:hover { border-color: var(--card-hover-border); transform: translateX(5px); }
+        .menu-item.active { background: var(--card-hover-bg); border-color: var(--card-hover-border); color: var(--accent-color); box-shadow: 0 0 20px rgba(56,189,248,0.1); }
+        .menu-icon { font-size: 20px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.1); border-radius: 10px; }
+        .menu-item.active .menu-title { color: var(--accent-color); font-weight: 900; }
+        .menu-title { font-weight: 800; font-size: 14px; flex: 1; }
         .badge { background: #ef4444; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: 900; letter-spacing: 1px; }
 
         .content-panel { display: flex; flex-direction: column; gap: 20px; }
-        .manual-header { background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .m-title { font-size: 28px; font-weight: 900; color: #fff; margin: 0 0 10px 0; display: flex; align-items: center; gap: 12px; }
-        .m-desc { color: #94a3b8; font-size: 14px; font-weight: 700; line-height: 1.6; margin: 0; }
+        .manual-header { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 24px; padding: 30px; box-shadow: var(--card-shadow); }
+        .m-title { font-size: 28px; font-weight: 900; color: var(--title-color); margin: 0 0 10px 0; display: flex; align-items: center; gap: 12px; }
+        .m-desc { color: var(--text-sub); font-size: 14px; font-weight: 700; line-height: 1.6; margin: 0; }
 
-        .accordion-item { background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; overflow: hidden; transition: 0.3s; }
-        .accordion-item.open { border-color: rgba(56, 189, 248, 0.4); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .accordion-item { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; overflow: hidden; transition: 0.3s; }
+        .accordion-item.open { border-color: var(--card-hover-border); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         
-        .accordion-header { padding: 20px 30px; display: flex; align-items: center; cursor: pointer; background: rgba(255,255,255,0.02); transition: 0.3s; }
-        .accordion-header:hover { background: rgba(255,255,255,0.05); }
-        .step-badge { background: linear-gradient(135deg, #38bdf8, #818cf8); color: #fff; font-size: 12px; font-weight: 900; padding: 6px 12px; border-radius: 12px; margin-right: 15px; letter-spacing: 1px; }
-        .accordion-title { font-size: 16px; font-weight: 900; color: #f8fafc; flex: 1; }
-        .chevron { font-size: 14px; color: #64748b; transition: 0.3s; }
-        .accordion-item.open .chevron { transform: rotate(180deg); color: #38bdf8; }
+        .accordion-header { padding: 20px 30px; display: flex; align-items: center; cursor: pointer; background: transparent; transition: 0.3s; }
+        .accordion-header:hover { background: var(--card-hover-bg); }
+        .step-badge { background: linear-gradient(135deg, #0ea5e9, #4f46e5); color: #fff; font-size: 12px; font-weight: 900; padding: 6px 12px; border-radius: 12px; margin-right: 15px; letter-spacing: 1px; }
+        .accordion-title { font-size: 16px; font-weight: 900; color: var(--text-main); flex: 1; }
+        .chevron { font-size: 14px; color: var(--text-sub); transition: 0.3s; }
+        .accordion-item.open .chevron { transform: rotate(180deg); color: var(--accent-color); }
 
         .accordion-body { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
         .accordion-item.open .accordion-body { max-height: 2000px; } 
         
         .accordion-content { padding: 0 30px 30px 30px; display: flex; flex-direction: column; gap: 20px; }
-        .accordion-text { color: #cbd5e1; font-size: 14px; font-weight: 700; line-height: 1.8; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 16px; border-left: 4px solid #38bdf8; }
+        .accordion-text { color: var(--text-main); font-size: 14px; font-weight: 700; line-height: 1.8; background: var(--accordion-text-bg); padding: 20px; border-radius: 16px; border-left: 4px solid var(--accent-color); }
         
-        .actual-image-container { width: 100%; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .actual-image-container { width: 100%; border-radius: 16px; overflow: hidden; border: 1px solid var(--card-border); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         .actual-image-container img { width: 100%; height: auto; display: block; }
         
-        .image-placeholder { width: 100%; border: 2px dashed rgba(255,255,255,0.1); border-radius: 16px; background: rgba(0,0,0,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; font-weight: 800; font-size: 12px; padding: 30px; text-align: center; gap: 10px;}
+        .image-placeholder { width: 100%; border: 2px dashed var(--card-border); border-radius: 16px; background: var(--accordion-text-bg); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sub); font-weight: 800; font-size: 12px; padding: 30px; text-align: center; gap: 10px;}
         .image-placeholder span { display: block; }
+
+        #toast { visibility: hidden; position: fixed; bottom: 40px; right: 40px; background: var(--toast-bg); color: var(--accent-color); border: 1px solid var(--accent-color); padding: 16px 24px; border-radius: 12px; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 20000; opacity: 0; transition: 0.4s; backdrop-filter: blur(10px); }
+        #toast.show { visibility: visible; opacity: 1; transform: translateY(-10px); }
+
+        .fade-up-element { opacity: 0; transform: translateY(40px); transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .fade-up-element.visible { opacity: 1; transform: translateY(0); }
       `}} />
 
-      {/* 🍔 グローバル・サイドバー */}
-      <div className={`sidebar-overlay ${isSidebarOpen ? "open" : ""}`} onClick={() => setIsSidebarOpen(false)}></div>
-      <div className={`global-sidebar ${isSidebarOpen ? "open" : ""}`}>
-        <button className="gs-close" onClick={() => setIsSidebarOpen(false)}>×</button>
-        <h2 style={{color: "#38bdf8", fontWeight: 900, fontSize: "16px", margin: "0 0 20px 0", letterSpacing: "2px"}}>🌐 MENU</h2>
-        <button className="gs-btn" onClick={() => router.push("/")}>🏠 Workspace Home</button>
-        <button className="gs-btn" onClick={() => router.push("/kpi-detail")}>📊 KPI Dashboard</button>
-        <button className="gs-btn" onClick={() => router.push("/simulator")}>🆚 Cost Simulator</button>
-        <button className="gs-btn" onClick={() => router.push("/net-toss")}>🌐 Net Toss</button>
-        <button className="gs-btn" onClick={() => router.push("/sms-kraken")}>📱 SMS Kraken</button>
+      {/* 🍔 ハンバーガーボタン */}
+      <div className={`hamburger-btn ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+        <div className="hamburger-line line1"></div>
+        <div className="hamburger-line line2"></div>
+        <div className="hamburger-line line3"></div>
+      </div>
+
+      {/* 🌌 メニュー展開時の背景オーバーレイ */}
+      <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
+
+      {/* 🗄️ サイドメニュー（全項目網羅！） */}
+      <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
+        <div className="menu-title-sidebar">🧭 TOOL MENU</div>
+        <a href="/kpi-detail" className="side-link">📊 獲得進捗・KPI</a>
+        <a href="/bulk-register" className="side-link">📦 データ一括登録</a>
+        <a href="/net-toss" className="side-link">🌐 ネットトス連携</a>
+        <a href="/self-close" className="side-link">🤝 自己クロ連携</a>
+        <a href="/sms-kraken" className="side-link">📱 SMS (Kraken)送信</a>
+        <a href="/email-template" className="side-link">✉️ メールテンプレート</a>
+        <a href="/procedure-wizard" className="side-link current-page">🗺️ Kraken 手順辞書</a>
+        <a href="/simulator" className="side-link">🆚 料金シミュレーター</a>
+        <a href="/trouble-nav" className="side-link">⚡ トラブル解決ナビ</a>
       </div>
 
       <main className={`app-wrapper ${isReady ? "ready" : ""}`}>
-        <header className="kpi-header">
-          <div className="header-left">
-            <button className="btn-hamburger" onClick={() => setIsSidebarOpen(true)}>
-              <span>☰</span> MENU
+        
+        {/* 🎈 ナビゲーション & テーマ切り替え（中央配置） */}
+        <div className="glass-nav-wrapper fade-up-element">
+          <div className="glass-nav">
+            <div className="nav-left">
+              <a href="/" className="glass-nav-link">← 司令室に戻る</a>
+              <div className="glass-nav-active">🗺️ Kraken 手順辞書</div>
+            </div>
+            <button className="theme-toggle-btn" onClick={toggleTheme}>
+              {isDarkMode ? "🎇 NIGHT" : "☀️ DAY"}
             </button>
           </div>
-          <div style={{textAlign: "right"}}>
-            <h1 style={{fontSize:"24px", fontWeight:900, margin:0, letterSpacing:"2px"}}>KRAKEN PROCEDURE WIZARD</h1>
-            <p style={{fontSize:"11px", color:"#94a3b8", fontWeight:800, margin:0}}>INTERACTIVE OPERATION MANUAL</p>
-          </div>
-        </header>
+        </div>
 
         <div className="layout-grid">
           
-          <div className="sidebar-menu">
-            <h3 style={{fontSize:"11px", color:"#94a3b8", fontWeight:900, letterSpacing:"2px", margin:"0 0 10px 10px"}}>CATEGORIES</h3>
+          {/* 左側：カテゴリーメニュー */}
+          <div className="categories-menu fade-up-element" style={{ transitionDelay: "0.1s" }}>
+            <h3 style={{fontSize:"11px", color:"var(--text-sub)", fontWeight:900, letterSpacing:"2px", margin:"0 0 10px 10px"}}>CATEGORIES</h3>
             {MANUAL_DATA.map(manual => (
               <div 
                 key={manual.id} 
@@ -254,16 +353,17 @@ export default function ProcedureWizard() {
             ))}
           </div>
 
+          {/* 右側：マニュアルコンテンツ */}
           <div className="content-panel">
-            <div className="manual-header">
+            <div className="manual-header fade-up-element" style={{ transitionDelay: "0.2s" }}>
               <h2 className="m-title"><span style={{fontSize: "32px"}}>{activeManual.icon}</span> {activeManual.title}</h2>
               <p className="m-desc">{activeManual.desc}</p>
             </div>
 
-            {activeManual.steps.map((step) => {
+            {activeManual.steps.map((step, index) => {
               const isOpen = expandedSteps.includes(step.step);
               return (
-                <div key={step.step} className={`accordion-item ${isOpen ? "open" : ""}`}>
+                <div key={step.step} className={`accordion-item fade-up-element ${isOpen ? "open" : ""}`} style={{ transitionDelay: `${0.3 + (index * 0.1)}s` }}>
                   
                   <div className="accordion-header" onClick={() => toggleStep(step.step)}>
                     <div className="step-badge">STEP {step.step}</div>
@@ -284,7 +384,7 @@ export default function ProcedureWizard() {
                         <div className="image-placeholder">
                           <span style={{fontSize: "24px"}}>📸</span>
                           <span>ここにAI生成画像が入ります！</span>
-                          {step.aiImgDesc && <span style={{color: "#38bdf8", opacity: 0.8}}>{step.aiImgDesc}</span>}
+                          {step.aiImgDesc && <span style={{color: "var(--accent-color)", opacity: 0.8}}>{step.aiImgDesc}</span>}
                           <span style={{fontSize: "10px", opacity: 0.7}}>publicフォルダに画像を保存し、コード内のimgUrlを設定してください</span>
                         </div>
                       )}
@@ -299,6 +399,9 @@ export default function ProcedureWizard() {
 
         </div>
       </main>
+
+      {/* 🍞 通知トースト */}
+      <div id="toast" className={toast.show ? "show" : ""}>{toast.msg}</div>
     </div>
   );
 }

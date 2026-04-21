@@ -1,148 +1,53 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// --- 🐙 オクトパスライン背景コンポーネント（Mac安定化 ＆ テーマ連動版） ---
-const OctopusBackground = () => (
-  <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: -1, pointerEvents: "none", overflow: "hidden", backgroundColor: "var(--app-bg)", transition: "background-color 0.5s ease" }}>
-    <svg 
-      style={{ 
-        position: "absolute", top: "-50%", left: "-50%", width: "200%", height: "200%", zIndex: 2, opacity: 0.4,
-        transform: "translateZ(0)", WebkitTransform: "translateZ(0)", willChange: "transform" 
-      }} 
-      viewBox="0 0 100 100" preserveAspectRatio="none"
-    >
-      <defs>
-        <linearGradient id="tentacleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
-          <stop offset="100%" stopColor="#c084fc" stopOpacity="0.2" />
-        </linearGradient>
-      </defs>
-      <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.5" d="M0,20 Q30,50 60,10 T100,80" style={{ animation: "wave 15s infinite alternate ease-in-out" }} />
-      <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.8" d="M0,40 Q40,10 70,70 T100,30" style={{ animation: "wave 18s infinite alternate-reverse ease-in-out" }} />
-      <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.6" d="M0,60 Q50,90 80,40 T100,90" style={{ animation: "wave 20s infinite alternate ease-in-out" }} />
-      <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.4" d="M0,80 Q20,20 50,60 T100,10" style={{ animation: "wave 22s infinite alternate-reverse ease-in-out" }} />
-      <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.7" d="M100,20 Q70,50 40,10 T0,80" style={{ animation: "wave 16s infinite alternate ease-in-out" }} />
-      <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.5" d="M100,40 Q60,10 30,70 T0,30" style={{ animation: "wave 19s infinite alternate-reverse ease-in-out" }} />
-      <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.9" d="M100,60 Q50,90 20,40 T0,90" style={{ animation: "wave 21s infinite alternate ease-in-out" }} />
-      <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.3" d="M100,80 Q80,20 50,60 T0,10" style={{ animation: "wave 23s infinite alternate-reverse ease-in-out" }} />
-    </svg>
-    <style>{`@keyframes wave { 0% { transform: translateY(0) scaleY(1); } 100% { transform: translateY(5px) scaleY(1.1); } }`}</style>
-  </div>
-);
-
-// ==========================================
-// 💡 TypeScriptの型定義
-// ==========================================
-type StepData = {
-  step: number;
-  title: string;
-  content: string;
-  imgUrl: string; 
-  aiImgDesc?: string; 
+// ✨ 背景の光の粒（ローズテーマに合わせたカームデザイン）
+const PixieDust = () => {
+  const [stars, setStars] = useState<{ id: number; left: string; top: string; delay: string; size: string }[]>([]);
+  useEffect(() => {
+    const generatedStars = Array.from({ length: 50 }).map((_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}vw`,
+      top: `${Math.random() * 100}vh`,
+      delay: `${Math.random() * 5}s`,
+      size: `${Math.random() * 3 + 1}px`
+    }));
+    setStars(generatedStars);
+  }, []);
+  return (
+    <div className="particles-container">
+      {stars.map(star => (
+        <div key={star.id} className="star" style={{ left: star.left, top: star.top, width: star.size, height: star.size, animationDelay: star.delay }} />
+      ))}
+    </div>
+  );
 };
 
-type ManualData = {
-  id: string;
-  icon: string;
-  title: string;
-  desc: string;
-  badge?: string;
-  steps: StepData[];
-};
-
-// ==========================================
-// 📚 マニュアルのデータ構造
-// ==========================================
-const MANUAL_DATA: ManualData[] = [
-  {
-    id: "dup-email",
-    icon: "📧",
-    title: "メアド重複対処法",
-    desc: "Krakenでメールアドレスが重複した場合の統合・回避手順です。",
-    steps: [
-      { step: 1, title: "アカウント画面開く", content: "クラーケンの「メッセージ送信」から「パスワードリセット」を選択。", imgUrl: "/dup-email-1.png" },
-      { step: 2, title: "パスワードリセットURLコピー", content: "本文のURLをCommand＋Cではなく、右クリックでコピー。", imgUrl: "/dup-email-2.png" },
-      { step: 3, title: "URLをブラウザで検索", content: "初期パスワードを”名前＋電話番号下４桁”などわかりやすいもので変更。（受付時に事前にお客さんに伝えておくとベスト！）", imgUrl: "/dup-email-3.png"},
-    ]
-  },
-  {
-    id: "inv-bh",
-    icon: "🛑",
-    title: "無効化＆BH処理",
-    desc: "契約の無効化処理と、BH（ブラックホール）送りの手順です。",
-    steps: [
-      { step: 1, title: "アカウントの無効化", content: "管理画面から「アカウントを無効化する」オプションを選択します。", imgUrl: "", aiImgDesc: "アカウント設定画面で「無効化」ボタンが強調されている。" },
-      { step: 2, title: "BH送りの設定", content: "システム上でBHフラグを立て、これ以上の通知がいかないように設定します。", imgUrl: "", aiImgDesc: "BHフラグのチェックボックスが表示された画面。" }
-    ]
-  },
-  {
-    id: "plan-cancel",
-    icon: "🔄",
-    title: "プラン変更＆申込取消",
-    desc: "お客様からのプラン変更依頼、または申し込みキャンセルの処理手順です。",
-    steps: [
-      { step: 1, title: "プランの確認", content: "Customer ページから現在の適用プランを確認します。", imgUrl: "", aiImgDesc: "プラン詳細が表示されたCustomer画面。" },
-      { step: 2, title: "プラン変更の実行", content: "アクションメニューから「Change Plan」を選択し、新しいプランを選びます。", imgUrl: "", aiImgDesc: "プラン変更プルダウンが表示された画面。" },
-      { step: 3, title: "キャンセルの実行", content: "申し込みキャンセルの場合は、「Cancel Account」をクリックして処理します。", imgUrl: "", aiImgDesc: "キャンセル確認画面。" },
-    ]
-  },
-  {
-    id: "move-out",
-    icon: "🏠",
-    title: "MOVE OUT（退去処理）",
-    badge: "未完成",
-    desc: "引越し等に伴う退去（Move Out）の処理手順です。",
-    steps: [
-      { step: 1, title: "退去日の入力", content: "お客様から申告された退去日をシステムに入力します。", imgUrl: "", aiImgDesc: "退去日入力フィールドがある画面。" },
-      { step: 2, title: "最終検針の確認", content: "※現在フロー整備中につき、管理者に確認してください。", imgUrl: "", aiImgDesc: "検針ステータスが「未確認」となっている画面。" }
-    ]
-  },
-  {
-    id: "re-ignition",
-    icon: "🔥",
-    title: "直近再点対応",
-    desc: "直近で供給停止になったお客様の再点火（再契約）フローです。",
-    steps: [
-      { step: 1, title: "停止理由の確認", content: "直近の供給停止理由（未払い等）をヒストリーから確認します。", imgUrl: "", aiImgDesc: "アカウントヒストリー画面。" },
-      { step: 2, title: "再点処理の実行", content: "問題が解消されている場合、再点火のプロシージャを実行します。", imgUrl: "", aiImgDesc: "再点火実行ボタンがある画面。" }
-    ]
-  },
-  {
-    id: "inv-address",
-    icon: "❌",
-    title: "無効なアドレス対処法",
-    desc: "送信エラー（バウンス）になったメールアドレスの修正手順です。",
-    steps: [
-      { step: 1, title: "エラーログの確認", content: "バウンスログから「無効なアドレス」であることを確認します。", imgUrl: "", aiImgDesc: "エラーログ詳細画面。" },
-      { step: 2, title: "お客様への連絡と修正", content: "お客様に確認し、正しいアドレスに修正してシステムを上書きします。", imgUrl: "", aiImgDesc: "アドレス修正画面。" }
-    ]
-  },
-  {
-    id: "addr-spin",
-    icon: "📍",
-    title: "住所変更＆SPIN入力",
-    desc: "供給先住所の変更と、SPIN（供給地点特定番号）の入力手順です。",
-    steps: [
-      { step: 1, title: "新住所の特定", content: "新しい住所を検索し、正確な表記を確認します。", imgUrl: "", aiImgDesc: "住所検索ツール。" },
-      { step: 2, title: "SPIN番号の紐付け", content: "取得した22桁のSPIN番号を入力フォームに貼り付けます。", imgUrl: "", aiImgDesc: "SPIN入力フィールド。" }
-    ]
-  }
-];
-
-export default function ProcedureWizard() {
+export default function SmsKraken() {
   const router = useRouter();
 
   // 🌟 状態管理
-  const [isReady, setIsReady] = useState(false);
-  const [activeManualId, setActiveManualId] = useState(MANUAL_DATA[0].id);
-  const [expandedSteps, setExpandedSteps] = useState<number[]>([1]); 
-  
-  // 🍔 メニューとテーマ・通知の状態
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true); // Krakenはデフォルトダークが似合う！
+  const [smsType, setSmsType] = useState("重説");
+  const [company, setCompany] = useState("");
+  const [phone, setPhone] = useState("");
+  const [preview, setPreview] = useState("");
   const [toast, setToast] = useState({ show: false, msg: "", type: "success" });
+  
+  // 🍔 メニューとローディング状態
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+
+  // ☀️ テーマ管理
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  const companies = [
+    "My賃貸", "春風不動産", "エステートプラス", "アパマンショップ蟹江店",
+    "不動産ランドすまいる", "ピタットハウス神宮南", "Access", "ルームコレクション",
+    "すまいらんど", "株式会社東栄", "株式会社STYプランニング", "なごやか不動産",
+    "楽々不動産", "ひまわりカンパニー", "株式会社Terrace Home本店"
+  ];
 
   useEffect(() => {
     setIsReady(true);
@@ -154,14 +59,6 @@ export default function ProcedureWizard() {
     return () => observer.disconnect();
   }, []);
 
-  const activeManual = MANUAL_DATA.find(m => m.id === activeManualId) || MANUAL_DATA[0];
-
-  const toggleStep = (stepNumber: number) => {
-    setExpandedSteps(prev => 
-      prev.includes(stepNumber) ? prev.filter(s => s !== stepNumber) : [...prev, stepNumber]
-    );
-  };
-
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
     showToast(!isDarkMode ? "🌙 ダークモードに切り替えました" : "☀️ ライトモードに切り替えました", "info");
@@ -172,168 +69,235 @@ export default function ProcedureWizard() {
     setTimeout(() => setToast({ show: false, msg: "", type: "success" }), 3000);
   };
 
+  const copyPhone = async () => {
+    if (!phone) { showToast("⚠️ 電話番号を入力してください！", "error"); return; }
+    const cleaned = phone.replace(/[ー\-‐\s]/g, "").trim();
+    const formattedPhone = cleaned.startsWith("0") ? `+81${cleaned.substring(1)}` : cleaned;
+    setPreview(`> SYSTEM.DESTINATION = ${formattedPhone}\n> READY TO SEND.`);
+    try {
+      await navigator.clipboard.writeText(formattedPhone);
+      showToast("📱 宛先（電話番号）をコピーしました！", "info");
+    } catch (err) { alert("コピーに失敗しました"); }
+  };
+
+  const copySmsText = async () => {
+    if (smsType === "不出" && !company) { showToast("⚠️ 不動産会社を選択してください！", "error"); return; }
+    let smsText = "";
+    if (smsType === "重説") {
+      smsText = "オクトパスエナジーでございます🐙\n以下のURLより、内容確認とご同意をお願いします。\n\nhttps://forms.gle/hEiC6B61ctNy7F3U6\n\n恐れ入りますが、フォームの入力お願いいたします。\nお急ぎの方やリンクが開けない方は、このメッセージに「確認しました」とご返信ください！";
+    } else if (smsType === "不出") {
+      smsText = `【ご新居のお申込ありがとうございます】\n\nお世話になっております。\nオクトパスエナジーでございます。\n\nこの度、ご新居のお申込いただいた 【 ${company} 】 様からご依頼ございまして、\nご新居でお使いいただく電気、ガス、水道、インターネット（現金キャッシュバック特典付き！）などのライフラインのお手続きでのご連絡となります。\n\n新生活スタートを不動産会社様、管理会社様と一緒にサポートさせていただきます！\n\n本メールご覧いただけましたら、下記電話番号までご連絡よろしくお願いいたします！\n\n━━━━━━━━━━━━━━━━━━\nライフライン窓口\nmail：toranosuke.higashi@octopusenergy.co.jp\nTEL：0120-402-778（通話無料）\n受付時間: 9:00〜20:00（土日祝もOK）\n━━━━━━━━━━━━━━━━━━`;
+    }
+    setPreview(`> SYSTEM.TEXT_GENERATED:\n\n${smsText}`);
+    try {
+      await navigator.clipboard.writeText(smsText);
+      showToast(`📝 ${smsType} の本文をコピーしました！`, "success");
+    } catch (err) { alert("コピーに失敗しました"); }
+  };
+
+  const clearAll = () => {
+    if (!confirm("入力内容をすべてリセットしますか？")) return;
+    setSmsType("重説"); setCompany(""); setPhone(""); setPreview("");
+  };
+
   return (
-    // 💡 Macノイズ防壁テント ＋ テーマ切り替え対応
-    <div className={`procedure-wrapper ${isDarkMode ? "theme-dark" : "theme-light"}`} style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", backgroundColor: "var(--app-bg)", color: "var(--text-main)", zIndex: 9999, overflowX: "hidden", overflowY: "auto", margin: 0, padding: 0, fontFamily: "'Inter', 'Noto Sans JP', sans-serif", transition: "background-color 0.5s, color 0.5s" }}>
-      <OctopusBackground />
-      
-      <style dangerouslySetInnerHTML={{ __html: `
-        .procedure-wrapper * { box-sizing: border-box; }
-
-        /* 🌊 Kraken手順辞書専用：Ocean/Cyan テーマ */
-        .theme-light {
-          --app-bg: #f0f9ff;
-          --text-main: #0f172a;
-          --text-sub: #334155;
-          --card-bg: rgba(255, 255, 255, 0.7);
-          --card-border: rgba(255, 255, 255, 1);
-          --card-hover-border: #38bdf8;
-          --card-hover-bg: rgba(255, 255, 255, 0.95);
-          --card-shadow: 0 10px 30px rgba(2, 132, 199, 0.05);
-          --title-color: #0284c7; 
-          --accent-color: #0ea5e9; 
-          --input-bg: rgba(255, 255, 255, 0.9);
-          --accordion-text-bg: rgba(2, 132, 199, 0.05);
-          --toast-bg: #ffffff;
-        }
-        
-        .theme-dark {
-          --app-bg: #020617;
-          --text-main: #f8fafc;
-          --text-sub: #94a3b8;
-          --card-bg: rgba(15, 23, 42, 0.65);
-          --card-border: rgba(255, 255, 255, 0.1);
-          --card-hover-border: #38bdf8;
-          --card-hover-bg: rgba(30, 41, 59, 0.85);
-          --card-shadow: 0 20px 50px rgba(0,0,0,0.8);
-          --title-color: #38bdf8; 
-          --accent-color: #38bdf8;
-          --input-bg: rgba(0, 0, 0, 0.4);
-          --accordion-text-bg: rgba(0, 0, 0, 0.3);
-          --toast-bg: rgba(30, 41, 59, 0.85);
-        }
-
-        .app-wrapper { padding: 20px 40px 100px 40px; position: relative; z-index: 10; opacity: 0; transition: 0.8s ease; max-width: 1400px; margin: 0 auto; }
-        .app-wrapper.ready { opacity: 1; }
-
-        /* 🍔 ハンバーガーボタン (SMS Kraken共通) */
-        .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 10001; background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; box-shadow: var(--card-shadow); transition: 0.3s; }
-        .hamburger-btn:hover { background: var(--card-hover-bg); transform: scale(1.05); }
-        .hamburger-line { width: 22px; height: 3px; background: var(--text-sub); border-radius: 3px; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
-        .hamburger-btn.open .line1 { transform: translateY(8px) rotate(45deg); background: var(--accent-color); }
-        .hamburger-btn.open .line2 { opacity: 0; transform: translateX(-10px); }
-        .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: var(--accent-color); }
-
-        /* 🌌 メニューオーバーレイ */
-        .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px); z-index: 9999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
-        .menu-overlay.open { opacity: 1; pointer-events: auto; }
-
-        /* 🗄️ サイドメニュー（全ツール網羅！） */
-        .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 10000; box-shadow: var(--card-shadow); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
-        .side-menu.open { left: 0; }
-        .menu-title-sidebar { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--card-border); letter-spacing: 1px; }
-
-        .side-link { text-decoration: none; padding: 14px 20px; border-radius: 14px; background: var(--input-bg); color: var(--text-main); font-weight: 800; font-size: 14px; border: 1px solid var(--card-border); transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
-        .side-link:hover { border-color: var(--card-hover-border); transform: translateX(8px); color: var(--accent-color); }
-        .side-link.current-page { background: linear-gradient(135deg, #0ea5e9, #4f46e5); color: #fff; border: none; box-shadow: 0 6px 15px rgba(14, 165, 233, 0.3); pointer-events: none; }
-
-        /* 🎈 ナビゲーション（中央配置） */
-        .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 40px; margin-top: 10px; }
-        .glass-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 50px; box-shadow: var(--card-shadow); max-width: 800px; width: 100%; }
-        
-        .nav-left { display: flex; gap: 12px; align-items: center; }
-        .glass-nav-link { text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 800; background: var(--input-bg); color: var(--text-sub); border: 1px solid var(--card-border); transition: 0.2s; font-size: 14px; }
-        .glass-nav-link:hover { color: var(--accent-color); border-color: var(--card-hover-border); }
-        .glass-nav-active { padding: 10px 20px; border-radius: 30px; font-weight: 900; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); font-size: 14px; }
-
-        /* テーマ切り替えボタン */
-        .theme-toggle-btn { background: var(--input-bg); border: 1px solid var(--card-border); padding: 10px 20px; border-radius: 30px; cursor: pointer; transition: 0.3s; font-size: 14px; color: var(--text-main); font-weight: 800; }
-        .theme-toggle-btn:hover { border-color: var(--card-hover-border); transform: scale(1.05); }
-
-        /* メインレイアウト */
-        .layout-grid { display: grid; grid-template-columns: 320px 1fr; gap: 30px; align-items: start; }
-        @media (max-width: 950px) { .layout-grid { grid-template-columns: 1fr; } }
-        
-        /* 📁 左側：カテゴリーメニュー */
-        .categories-menu { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 24px; padding: 20px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 8px; position: sticky; top: 100px; }
-        .menu-item { padding: 16px 20px; border-radius: 16px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; border: 1px solid transparent; background: var(--input-bg); color: var(--text-main); font-weight: 800; }
-        .menu-item:hover { border-color: var(--card-hover-border); transform: translateX(5px); }
-        .menu-item.active { background: var(--card-hover-bg); border-color: var(--card-hover-border); color: var(--accent-color); box-shadow: 0 0 20px rgba(56,189,248,0.1); }
-        .menu-icon { font-size: 20px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.1); border-radius: 10px; }
-        .menu-item.active .menu-title { color: var(--accent-color); font-weight: 900; }
-        .menu-title { font-weight: 800; font-size: 14px; flex: 1; }
-        .badge { background: #ef4444; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: 900; letter-spacing: 1px; }
-
-        /* 📖 右側コンテンツ */
-        .content-panel { display: flex; flex-direction: column; gap: 20px; }
-        .manual-header { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 24px; padding: 30px; box-shadow: var(--card-shadow); }
-        .m-title { font-size: 28px; font-weight: 900; color: var(--title-color); margin: 0 0 10px 0; display: flex; align-items: center; gap: 12px; }
-        .m-desc { color: var(--text-sub); font-size: 14px; font-weight: 700; line-height: 1.6; margin: 0; }
-
-        /* アコーディオン要素 */
-        .accordion-item { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; overflow: hidden; transition: 0.3s; }
-        .accordion-item.open { border-color: var(--card-hover-border); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        
-        .accordion-header { padding: 20px 30px; display: flex; align-items: center; cursor: pointer; background: transparent; transition: 0.3s; }
-        .accordion-header:hover { background: var(--card-hover-bg); }
-        .step-badge { background: linear-gradient(135deg, #0ea5e9, #4f46e5); color: #fff; font-size: 12px; font-weight: 900; padding: 6px 12px; border-radius: 12px; margin-right: 15px; letter-spacing: 1px; }
-        .accordion-title { font-size: 16px; font-weight: 900; color: var(--text-main); flex: 1; }
-        .chevron { font-size: 14px; color: var(--text-sub); transition: 0.3s; }
-        .accordion-item.open .chevron { transform: rotate(180deg); color: var(--accent-color); }
-
-        .accordion-body { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
-        .accordion-item.open .accordion-body { max-height: 2000px; } 
-        
-        .accordion-content { padding: 0 30px 30px 30px; display: flex; flex-direction: column; gap: 20px; }
-        .accordion-text { color: var(--text-main); font-size: 14px; font-weight: 700; line-height: 1.8; background: var(--accordion-text-bg); padding: 20px; border-radius: 16px; border-left: 4px solid var(--accent-color); }
-        
-        .actual-image-container { width: 100%; border-radius: 16px; overflow: hidden; border: 1px solid var(--card-border); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .actual-image-container img { width: 100%; height: auto; display: block; }
-        
-        .image-placeholder { width: 100%; border: 2px dashed var(--card-border); border-radius: 16px; background: var(--accordion-text-bg); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sub); font-weight: 800; font-size: 12px; padding: 30px; text-align: center; gap: 10px;}
-        .image-placeholder span { display: block; }
-
-        /* 通知トースト */
-        #toast { visibility: hidden; position: fixed; bottom: 40px; right: 40px; background: var(--toast-bg); color: var(--accent-color); border: 1px solid var(--accent-color); padding: 16px 24px; border-radius: 12px; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 20000; opacity: 0; transition: 0.4s; backdrop-filter: blur(10px); }
-        #toast.show { visibility: visible; opacity: 1; transform: translateY(-10px); }
-
-        /* 🪄 スクロール連動アニメーション */
-        .fade-up-element { opacity: 0; transform: translateY(40px); transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
-        .fade-up-element.visible { opacity: 1; transform: translateY(0); }
-      `}} />
-
-      {/* 🍔 ハンバーガーボタン */}
-      <div className={`hamburger-btn ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
-        <div className="hamburger-line line1"></div>
-        <div className="hamburger-line line2"></div>
-        <div className="hamburger-line line3"></div>
+    <>
+      <div className={`entrance-bg ${isDarkMode ? "theme-dark" : "theme-light"}`}>
+        <PixieDust />
       </div>
 
-      {/* 🌌 メニュー展開時の背景オーバーレイ */}
-      <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
+      <main className={`app-wrapper ${isReady ? "ready" : ""} ${isDarkMode ? "theme-dark" : "theme-light"}`}>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .app-wrapper * { box-sizing: border-box; }
 
-      {/* 🗄️ サイドメニュー（全項目網羅！） */}
-      <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
-        <div className="menu-title-sidebar">🧭 TOOL MENU</div>
-        <a href="/kpi-detail" className="side-link">📊 獲得進捗・KPI</a>
-        <a href="/bulk-register" className="side-link">📦 データ一括登録</a>
-        <a href="/net-toss" className="side-link">🌐 ネットトス連携</a>
-        <a href="/self-close" className="side-link">🤝 自己クロ連携</a>
-        <a href="/sms-kraken" className="side-link">📱 SMS (Kraken)送信</a>
-        <a href="/email-template" className="side-link">✉️ メールテンプレート</a>
-        <a href="/procedure-wizard" className="side-link current-page">🗺️ Kraken 手順辞書</a>
-        <a href="/simulator" className="side-link">🆚 料金シミュレーター</a>
-        <a href="/trouble-nav" className="side-link">⚡ トラブル解決ナビ</a>
-      </div>
+          /* 🌺 SMS Kraken専用：Rose/Coral テーマ（完全版） */
+          .theme-light {
+            --bg-gradient: linear-gradient(135deg, #ffe4e6 0%, #fecdd3 50%, #fff1f2 100%);
+            --text-main: #4c0519;
+            --text-sub: #881337;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --card-border: rgba(255, 255, 255, 1);
+            --card-hover-border: #f43f5e;
+            --card-hover-bg: rgba(255, 255, 255, 0.95);
+            --card-shadow: 0 10px 30px rgba(225, 29, 72, 0.05);
+            --title-color: #be123c; 
+            --accent-color: #e11d48; 
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --input-border: rgba(251, 113, 133, 0.4);
+            --svg-color: rgba(225, 29, 72, 0.15);
+            --star-color: #fca5a5;
+            --error-bg: #fff1f2;
+            --error-border: #e11d48;
+          }
+          
+          .theme-dark {
+            --bg-gradient: radial-gradient(ellipse at top right, #4c0519 0%, #0a0205 100%);
+            --text-main: #fff1f2;
+            --text-sub: #fecdd3;
+            --card-bg: rgba(30, 5, 15, 0.65);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --card-hover-border: #fb7185;
+            --card-hover-bg: rgba(60, 10, 25, 0.85);
+            --card-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            --title-color: #fda4af; 
+            --accent-color: #fb7185;
+            --input-bg: rgba(0, 0, 0, 0.4);
+            --input-border: rgba(244, 63, 94, 0.3);
+            --svg-color: rgba(251, 113, 133, 0.15);
+            --star-color: #ffe4e6;
+            --error-bg: rgba(225, 29, 72, 0.2);
+            --error-border: #fb7185;
+          }
 
-      <main className={`app-wrapper ${isReady ? "ready" : ""}`}>
-        
+          .app-wrapper { 
+            min-height: 100vh; padding: 20px 40px 100px 40px; 
+            font-family: 'Inter', 'Noto Sans JP', sans-serif; 
+            color: var(--text-main); font-size: 13px; 
+            transition: color 0.5s; overflow-x: hidden; position: relative;
+          }
+
+          .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; transition: background 0.8s ease; }
+          .entrance-bg.theme-light { background: var(--bg-gradient); }
+          .entrance-bg.theme-dark { background: var(--bg-gradient); }
+
+          .particles-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
+          .star { position: absolute; border-radius: 50%; background: var(--star-color); box-shadow: 0 0 10px var(--star-color); animation: twinkle 4s infinite ease-in-out; transition: background 0.5s, box-shadow 0.5s; }
+          @keyframes twinkle { 0% { opacity: 0.1; transform: scale(0.5) translateY(0); } 50% { opacity: 1; transform: scale(1.2) translateY(-20px); } 100% { opacity: 0.1; transform: scale(0.5) translateY(0); } }
+
+          /* 🌟 SVGアニメーション背景 */
+          .magic-svg-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.8; }
+          .magic-path { fill: none; stroke: var(--svg-color); stroke-width: 3; stroke-dasharray: 3000; stroke-dashoffset: 3000; animation: drawMagic 12s ease-in-out infinite alternate; transition: stroke 0.5s; }
+          @keyframes drawMagic { 0% { stroke-dashoffset: 3000; } 100% { stroke-dashoffset: 0; } }
+
+          /* 🍔 ハンバーガーボタン */
+          .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 1001; background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; box-shadow: var(--card-shadow); transition: 0.3s; }
+          .hamburger-btn:hover { background: var(--card-hover-bg); transform: scale(1.05); }
+          .hamburger-line { width: 22px; height: 3px; background: var(--text-sub); border-radius: 3px; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+          .hamburger-btn.open .line1 { transform: translateY(8px) rotate(45deg); background: var(--accent-color); }
+          .hamburger-btn.open .line2 { opacity: 0; transform: translateX(-10px); }
+          .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: var(--accent-color); }
+
+          /* 🌌 メニューオーバーレイ */
+          .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
+          .menu-overlay.open { opacity: 1; pointer-events: auto; }
+
+          /* 🗄️ サイドメニュー（全ツール網羅！） */
+          .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+          .side-menu.open { left: 0; }
+          .menu-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--card-border); letter-spacing: 1px; }
+
+          .side-link { text-decoration: none; padding: 14px 20px; border-radius: 14px; background: var(--input-bg); color: var(--text-main); font-weight: 800; font-size: 14px; border: 1px solid var(--card-border); transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
+          .side-link:hover { border-color: var(--card-hover-border); transform: translateX(8px); color: var(--accent-color); }
+          .side-link.current-page { background: linear-gradient(135deg, #f43f5e, #be123c); color: #fff; border: none; box-shadow: 0 6px 15px rgba(225, 29, 72, 0.3); pointer-events: none; }
+
+          /* 🎈 ナビゲーション（中央配置） */
+          .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 30px; }
+          .glass-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 50px; box-shadow: var(--card-shadow); max-width: 800px; width: 100%; }
+          
+          .nav-left { display: flex; gap: 12px; align-items: center; }
+          .glass-nav-link { text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 800; background: var(--input-bg); color: var(--text-sub); border: 1px solid var(--card-border); transition: 0.2s; font-size: 14px; }
+          .glass-nav-link:hover { color: var(--accent-color); border-color: var(--card-hover-border); }
+          .glass-nav-active { padding: 10px 20px; border-radius: 30px; font-weight: 900; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); font-size: 14px; }
+
+          /* テーマ切り替えボタン */
+          .theme-toggle-btn { background: var(--input-bg); border: 1px solid var(--card-border); padding: 10px 20px; border-radius: 30px; cursor: pointer; transition: 0.3s; font-size: 14px; color: var(--text-main); font-weight: 800; }
+          .theme-toggle-btn:hover { border-color: var(--card-hover-border); transform: scale(1.05); }
+
+          /* 🌟 レイアウト：左の注意事項 ＋ 右の入力フォーム */
+          .main-layout { display: grid; grid-template-columns: 320px 1fr; gap: 30px; max-width: 1000px; margin: 0 auto 50px auto; }
+          @media (max-width: 950px) { .main-layout { grid-template-columns: 1fr; } }
+
+          /* ℹ️ 左側：注意事項パネル */
+          .info-sidebar { display: flex; flex-direction: column; gap: 20px; }
+          .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow); }
+          .info-title { font-size: 15px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
+          .info-list { padding-left: 20px; margin: 0; color: var(--text-main); font-size: 13px; line-height: 1.8; }
+          .info-list li { margin-bottom: 8px; }
+
+          /* 📝 右側：メインフォームエリア */
+          .form-main-area { display: flex; flex-direction: column; gap: 24px; }
+
+          .glass-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 30px; box-shadow: var(--card-shadow); transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s; }
+          .glass-panel:hover { border-color: var(--card-hover-border); transform: translateY(-2px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+          
+          .input-group { display: flex; flex-direction: column; margin-bottom: 24px; }
+          .input-group label { font-size: 13px; font-weight: 800; color: var(--text-sub); margin-bottom: 8px; border-left: 3px solid var(--accent-color); padding-left: 8px; }
+          
+          .input-control { width: 100%; padding: 12px 14px; border: 1px solid var(--input-border); border-radius: 10px; font-size: 14px; background: var(--input-bg); color: var(--text-main); transition: 0.3s; font-weight: 700; outline: none; }
+          .input-control:focus { border-color: var(--card-hover-border); box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.2); background: var(--card-hover-bg); }
+          .input-control:disabled { background: var(--input-border); opacity: 0.5; cursor: not-allowed; }
+          .input-control option { background: #4c0519; color: #fff; }
+          .theme-light .input-control option { background: #fff; color: #4c0519; }
+
+          /* ラジオボタンエリア */
+          .radio-group { display: flex; flex-wrap: wrap; gap: 24px; padding: 16px 20px; border-radius: 10px; background: var(--input-bg); border: 1px solid var(--input-border); }
+          .radio-group label { margin: 0; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--text-main); border: none; padding: 0; font-weight: 800; }
+          .radio-group input[type="radio"] { width: 18px; height: 18px; accent-color: var(--accent-color); cursor: pointer; margin: 0; }
+
+          .preview-area { width: 100%; height: 250px; padding: 20px; background: var(--input-bg); color: var(--text-main); border-radius: 12px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; border: 2px solid var(--accent-color); outline: none; resize: vertical; box-shadow: inset 0 4px 10px rgba(0,0,0,0.05); }
+          
+          .footer-bar { position: fixed; bottom: 0; left: 0; width: 100%; padding: 16px 40px; background: var(--card-bg); backdrop-filter: blur(12px); border-top: 1px solid var(--card-border); display: flex; gap: 16px; z-index: 100; justify-content: center; }
+          .btn-footer { max-width: 300px; width: 100%; padding: 16px; border-radius: 30px; font-weight: 900; font-size: 15px; border: none; cursor: pointer; transition: 0.3s; letter-spacing: 1px; color: #fff; }
+          
+          .btn-copy-phone { background: linear-gradient(135deg, #f43f5e, #be123c); box-shadow: 0 5px 15px rgba(225, 29, 72, 0.3); }
+          .btn-copy-phone:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(225, 29, 72, 0.5); }
+          
+          .btn-copy-text { background: linear-gradient(135deg, #f97316, #c2410c); box-shadow: 0 5px 15px rgba(249, 115, 22, 0.3); }
+          .btn-copy-text:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(249, 115, 22, 0.5); }
+          
+          .btn-clear { background: var(--input-bg); color: var(--text-sub); border: 2px solid var(--card-border); }
+          .btn-clear:hover { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+
+          #toast { visibility: hidden; position: fixed; bottom: 100px; right: 40px; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); padding: 16px 24px; border-radius: 12px; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 200; opacity: 0; transition: 0.4s; backdrop-filter: blur(10px); }
+          #toast.show { visibility: visible; opacity: 1; transform: translateY(-10px); }
+          #toast.error { background: #fee2e2; color: #e11d48; border-color: #f43f5e; box-shadow: 0 10px 30px rgba(225, 29, 72, 0.2); }
+          #toast.info { color: #f43f5e; border-color: #be123c; }
+          .theme-dark #toast.error { background: rgba(225, 29, 72, 0.2); border-color: #fb7185; }
+
+          /* 🪄 スクロール連動 */
+          .fade-up-element { opacity: 0; transform: translateY(40px); transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+          .fade-up-element.visible { opacity: 1; transform: translateY(0); }
+        `}} />
+
+        {/* 🌟 SVG魔法の軌跡 */}
+        <svg className="magic-svg-bg" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path className="magic-path" d="M -10,30 Q 30,80 50,50 T 110,40" />
+          <path className="magic-path" d="M -10,70 Q 40,20 70,60 T 110,80" style={{animationDelay: "4s", opacity: 0.5}} />
+        </svg>
+
+        {/* 🍔 ハンバーガーボタン */}
+        <div className={`hamburger-btn ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+          <div className="hamburger-line line1"></div>
+          <div className="hamburger-line line2"></div>
+          <div className="hamburger-line line3"></div>
+        </div>
+
+        {/* 🌌 メニュー展開時の背景オーバーレイ */}
+        <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
+
+        {/* 🗄️ サイドメニュー（全項目網羅！） */}
+        <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
+          <div className="menu-title">🧭 TOOL MENU</div>
+          <a href="/kpi-detail" className="side-link">📊 獲得進捗・KPI</a>
+          <a href="/bulk-register" className="side-link">📦 データ一括登録</a>
+          <a href="/net-toss" className="side-link">🌐 ネットトス連携</a>
+          <a href="/self-close" className="side-link">🤝 自己クロ連携</a>
+          <a href="/sms-kraken" className="side-link current-page">📱 SMS (Kraken)送信</a>
+          <a href="/email-template" className="side-link">✉️ メールテンプレート</a>
+          <a href="/procedure-wizard" className="side-link">🗺️ Kraken 手順辞書</a>
+          <a href="/simulator" className="side-link">🆚 料金シミュレーター</a>
+          <a href="/trouble-nav" className="side-link">⚡ トラブル解決ナビ</a>
+          <div className="side-link" style={{ opacity: 0.5, cursor: "not-allowed", background: "transparent", border: "1px dashed var(--card-border)", color: "var(--text-sub)", marginTop: "10px" }}>
+            🔒 新ツール（開発中...）
+          </div>
+        </div>
+
         {/* 🎈 ナビゲーション & テーマ切り替え（中央配置） */}
-        <div className="glass-nav-wrapper fade-up-element">
+        <div className="glass-nav-wrapper fade-up-element" style={{ "--delay": "0s" } as any}>
           <div className="glass-nav">
             <div className="nav-left">
               <a href="/" className="glass-nav-link">← 司令室に戻る</a>
-              <div className="glass-nav-active">🗺️ Kraken 手順辞書</div>
+              <div className="glass-nav-active">📱 SMS (Kraken)送信</div>
             </div>
             <button className="theme-toggle-btn" onClick={toggleTheme}>
               {isDarkMode ? "🎇 NIGHT" : "☀️ DAY"}
@@ -341,73 +305,94 @@ export default function ProcedureWizard() {
           </div>
         </div>
 
-        <div className="layout-grid">
+        {/* 🌟 メインレイアウト（左：注意事項 / 右：入力フォーム） */}
+        <div className="main-layout">
           
-          {/* 左側：カテゴリーメニュー */}
-          <div className="categories-menu fade-up-element" style={{ transitionDelay: "0.1s" }}>
-            <h3 style={{fontSize:"11px", color:"var(--text-sub)", fontWeight:900, letterSpacing:"2px", margin:"0 0 10px 10px"}}>CATEGORIES</h3>
-            {MANUAL_DATA.map(manual => (
-              <div 
-                key={manual.id} 
-                className={`menu-item ${activeManualId === manual.id ? "active" : ""}`}
-                onClick={() => { setActiveManualId(manual.id); setExpandedSteps([1]); }}
-              >
-                <div className="menu-icon">{manual.icon}</div>
-                <div className="menu-title">{manual.title}</div>
-                {manual.badge && <span className="badge">{manual.badge}</span>}
-              </div>
-            ))}
-          </div>
-
-          {/* 右側：マニュアルコンテンツ */}
-          <div className="content-panel">
-            <div className="manual-header fade-up-element" style={{ transitionDelay: "0.2s" }}>
-              <h2 className="m-title"><span style={{fontSize: "32px"}}>{activeManual.icon}</span> {activeManual.title}</h2>
-              <p className="m-desc">{activeManual.desc}</p>
+          {/* ℹ️ 左カラム：注意事項・備考パネル */}
+          <aside className="info-sidebar">
+            <div className="info-panel fade-up-element">
+              <h3 className="info-title">📌 Kraken連携の注意事項</h3>
+              <ul className="info-list">
+                <li>「不出」を選択した場合、必ず不動産会社を選択してください。</li>
+                <li>宛先（電話番号）をコピーすると、SMS送信システム（Kraken等）の宛先フォーマットに合わせて <b>+81</b> を自動付与し、ハイフンを取り除きます。</li>
+                <li>生成された本文はそのままコピーして送信できます。</li>
+              </ul>
             </div>
+            
+            <div className="info-panel fade-up-element" style={{ transitionDelay: "0.1s" }}>
+              <h3 className="info-title">🛠️ 運用ステータス</h3>
+              <ul className="info-list">
+                <li>国際電話番号（+81）変換：有効</li>
+                <li>テンプレート展開：正常</li>
+              </ul>
+            </div>
+          </aside>
 
-            {activeManual.steps.map((step, index) => {
-              const isOpen = expandedSteps.includes(step.step);
-              return (
-                <div key={step.step} className={`accordion-item fade-up-element ${isOpen ? "open" : ""}`} style={{ transitionDelay: `${0.3 + (index * 0.1)}s` }}>
-                  
-                  <div className="accordion-header" onClick={() => toggleStep(step.step)}>
-                    <div className="step-badge">STEP {step.step}</div>
-                    <div className="accordion-title">{step.title}</div>
-                    <div className="chevron">▼</div>
-                  </div>
+          {/* 📝 右カラム：メインフォームエリア */}
+          <div className="form-main-area">
+            
+            <section className="glass-panel fade-up-element">
+              <div style={{ fontWeight: 900, marginBottom: "20px", color: "var(--title-color)", fontSize: "16px", borderBottom: "2px dashed var(--card-border)", paddingBottom: "15px" }}>💬 メッセージ作成＆宛先変換</div>
 
-                  <div className="accordion-body">
-                    <div className="accordion-content">
-                      <div className="accordion-text">{step.content}</div>
-                      
-                      {step.imgUrl ? (
-                        <div className="actual-image-container">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={step.imgUrl} alt={step.title} />
-                        </div>
-                      ) : (
-                        <div className="image-placeholder">
-                          <span style={{fontSize: "24px"}}>📸</span>
-                          <span>ここにAI生成画像が入ります！</span>
-                          {step.aiImgDesc && <span style={{color: "var(--accent-color)", opacity: 0.8}}>{step.aiImgDesc}</span>}
-                          <span style={{fontSize: "10px", opacity: 0.7}}>publicフォルダに画像を保存し、コード内のimgUrlを設定してください</span>
-                        </div>
-                      )}
-                      
-                    </div>
-                  </div>
-
+              <div className="input-group">
+                <label>🎯 種類を選択</label>
+                <div className="radio-group">
+                  <label>
+                    <input type="radio" name="smsType" value="重説" checked={smsType === "重説"} onChange={(e) => setSmsType(e.target.value)} />
+                    重説
+                  </label>
+                  <label>
+                    <input type="radio" name="smsType" value="不出" checked={smsType === "不出"} onChange={(e) => setSmsType(e.target.value)} />
+                    不出
+                  </label>
                 </div>
-              );
-            })}
+              </div>
+
+              <div className="input-group">
+                <label>🏢 不動産会社（「不出」の時のみ使用）</label>
+                <select 
+                  className="input-control" 
+                  value={company} 
+                  onChange={(e) => setCompany(e.target.value)}
+                  disabled={smsType !== "不出"}
+                >
+                  <option value="">-- 選択してください --</option>
+                  {companies.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+
+              <div className="input-group" style={{ marginBottom: "10px" }}>
+                <label>📞 顧客電話番号（ハイフンあり・なし どちらでもOK）</label>
+                <input 
+                  className="input-control" 
+                  type="text" 
+                  placeholder="例：090-1234-5678" 
+                  value={phone} 
+                  onChange={(e) => setPhone(e.target.value)} 
+                />
+              </div>
+            </section>
+
+            {preview && (
+              <section className="glass-panel fade-up-element" style={{ transitionDelay: "0.1s" }}>
+                <div style={{ fontWeight: 900, fontSize: "15px", color: "var(--accent-color)", marginBottom: "15px" }}>{`> SYSTEM.PREVIEW // コピー内容確認`}</div>
+                <textarea className="preview-area" value={preview} readOnly />
+              </section>
+            )}
+
           </div>
-
         </div>
-      </main>
 
-      {/* 🍞 通知トースト */}
-      <div id="toast" className={toast.show ? "show" : ""}>{toast.msg}</div>
-    </div>
+        {/* 🛠️ フッター操作 */}
+        <div className="footer-bar">
+          <button className="btn-footer btn-clear" onClick={clearAll}>🗑️ リセット</button>
+          <button className="btn-footer btn-copy-phone" onClick={copyPhone}>📱 宛先(+81)コピー</button>
+          <button className="btn-footer btn-copy-text" onClick={copySmsText}>📝 本文コピー</button>
+        </div>
+
+        {/* 🍞 通知 */}
+        <div id="toast" className={`${toast.show ? "show" : ""} ${toast.type}`}>{toast.msg}</div>
+      </main>
+    </>
   );
 }
