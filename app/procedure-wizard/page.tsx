@@ -3,30 +3,49 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-// --- 🐙 オクトパスライン背景コンポーネント（余計な魔法を全排除した超安定版） ---
-const OctopusBackground = () => (
-  <svg 
-    style={{ 
-      position: "fixed", top: "-50%", left: "-50%", width: "200%", height: "200%", zIndex: -1, opacity: 0.4, pointerEvents: "none"
-    }} 
-    viewBox="0 0 100 100" preserveAspectRatio="none"
-  >
-    <defs>
-      <linearGradient id="tentacleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
-        <stop offset="100%" stopColor="#c084fc" stopOpacity="0.2" />
-      </linearGradient>
-    </defs>
-    <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.5" d="M0,20 Q30,50 60,10 T100,80" style={{ animation: "wave 15s infinite alternate ease-in-out" }} />
-    <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.8" d="M0,40 Q40,10 70,70 T100,30" style={{ animation: "wave 18s infinite alternate-reverse ease-in-out" }} />
-    <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.6" d="M0,60 Q50,90 80,40 T100,90" style={{ animation: "wave 20s infinite alternate ease-in-out" }} />
-    <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.4" d="M0,80 Q20,20 50,60 T100,10" style={{ animation: "wave 22s infinite alternate-reverse ease-in-out" }} />
-    <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.7" d="M100,20 Q70,50 40,10 T0,80" style={{ animation: "wave 16s infinite alternate ease-in-out" }} />
-    <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.5" d="M100,40 Q60,10 30,70 T0,30" style={{ animation: "wave 19s infinite alternate-reverse ease-in-out" }} />
-    <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.9" d="M100,60 Q50,90 20,40 T0,90" style={{ animation: "wave 21s infinite alternate ease-in-out" }} />
-    <path fill="none" stroke="url(#tentacleGrad)" strokeWidth="0.3" d="M100,80 Q80,20 50,60 T0,10" style={{ animation: "wave 23s infinite alternate-reverse ease-in-out" }} />
-    <style>{`@keyframes wave { 0% { transform: translateY(0) scaleY(1); } 100% { transform: translateY(5px) scaleY(1.1); } }`}</style>
-  </svg>
+// --- 🌊 ノイズ完全ゼロ！深海オーロラ背景（SVG不使用） ---
+const KrakenAuroraBackground = () => (
+  <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: -2, backgroundColor: "var(--app-bg)", overflow: "hidden", transition: "background-color 0.3s ease" }}>
+    <div className="kraken-gradient grad-1"></div>
+    <div className="kraken-gradient grad-2"></div>
+    <div className="kraken-gradient grad-3"></div>
+    <style>{`
+      /* Macに一切負担をかけない「光の玉」のアニメーション */
+      .kraken-gradient {
+        position: absolute;
+        border-radius: 50%;
+        animation: floatGrad 25s infinite ease-in-out alternate;
+        pointer-events: none;
+      }
+      .grad-1 {
+        width: 80vw; height: 80vw;
+        background: radial-gradient(circle, rgba(56,189,248,0.15) 0%, rgba(56,189,248,0) 70%);
+        top: -20vw; left: -20vw;
+        animation-delay: 0s;
+      }
+      .grad-2 {
+        width: 90vw; height: 90vw;
+        background: radial-gradient(circle, rgba(192,132,252,0.15) 0%, rgba(192,132,252,0) 70%);
+        bottom: -20vw; right: -20vw;
+        animation-delay: -7s;
+      }
+      .grad-3 {
+        width: 70vw; height: 70vw;
+        background: radial-gradient(circle, rgba(14,165,233,0.15) 0%, rgba(14,165,233,0) 70%);
+        top: 20vh; left: 15vw;
+        animation-delay: -12s;
+      }
+      @keyframes floatGrad {
+        0% { transform: translate(0, 0) scale(1); }
+        100% { transform: translate(5vw, 5vh) scale(1.1); }
+      }
+      
+      /* ライトモード時の色調整 */
+      .theme-light .grad-1 { background: radial-gradient(circle, rgba(56,189,248,0.3) 0%, rgba(56,189,248,0) 70%); }
+      .theme-light .grad-2 { background: radial-gradient(circle, rgba(192,132,252,0.3) 0%, rgba(192,132,252,0) 70%); }
+      .theme-light .grad-3 { background: radial-gradient(circle, rgba(14,165,233,0.3) 0%, rgba(14,165,233,0) 70%); }
+    `}</style>
+  </div>
 );
 
 // ==========================================
@@ -167,9 +186,8 @@ export default function ProcedureWizard() {
   };
 
   return (
-    // 💡 フワッとした色の変化（transition）を完全に削除しました！パッと切り替わるので絶対にバグりません！
-    <div className={`procedure-wrapper ${isDarkMode ? "theme-dark" : "theme-light"}`} style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", backgroundColor: "var(--app-bg)", color: "var(--text-main)", zIndex: 9999, overflowX: "hidden", overflowY: "auto", margin: 0, padding: 0, fontFamily: "'Inter', 'Noto Sans JP', sans-serif" }}>
-      <OctopusBackground />
+    <div className={`procedure-wrapper ${isDarkMode ? "theme-dark" : "theme-light"}`} style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", color: "var(--text-main)", zIndex: 9999, overflowX: "hidden", overflowY: "auto", margin: 0, padding: 0, fontFamily: "'Inter', 'Noto Sans JP', sans-serif" }}>
+      <KrakenAuroraBackground />
       
       <style dangerouslySetInnerHTML={{ __html: `
         .procedure-wrapper * { box-sizing: border-box; }
