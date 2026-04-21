@@ -23,7 +23,7 @@ const KrakenAuroraBackground = () => (
 );
 
 // ==========================================
-// 💡 TypeScriptの型定義
+// 💡 TypeScriptの型定義（タブ分岐を追加！）
 // ==========================================
 type StepData = {
   step: number;
@@ -33,13 +33,20 @@ type StepData = {
   aiImgDesc?: string; 
 };
 
+type ManualTab = {
+  id: string;
+  label: string;
+  steps: StepData[];
+};
+
 type ManualData = {
   id: string;
   icon: string;
   title: string;
   desc: string;
   badge?: string;
-  steps: StepData[];
+  steps?: StepData[]; // 単一ルートの場合はコッチ
+  tabs?: ManualTab[]; // 💡 分岐がある場合はコッチを使う！
 };
 
 // ==========================================
@@ -86,7 +93,7 @@ const MANUAL_DATA: ManualData[] = [
     desc: "当日再点や、明日再点など直近の申込を受け付ける時、「契約中」のSPINだと申し込みできません🐵\nしかし、ステータスが「契約中」なだけで「廃止の申込」がされている地点かもしれません。\nそのため、SPINから「廃止受付年月日」を調べます💡",
     steps: [
       { step: 1, title: "設備情報取得", content: "SPINを調べて設備情報取得で検索する", imgUrl: "/re-ignition1.png"},
-      { step: 2, title: "「異動申込受付年月日」確認", content: "「idoMoshikomiUketsukes」までスクロールし、「異動申込受付年月日」に書かれてる日付に再点日を合わせてOBJ。\n「前の契約がなくなるのが〇月〇日なので、翌日から料金発生開始となります。」と伝える。", imgUrl: "/re-ignition1.png", }
+      { step: 2, title: "「異動申込受付年月日」確認", content: "「idoMoshikomiUketsukes」までスクロールし、「異動申込受付年月日」に書かれてる日付に再点日を合わせてOBJ。\n「前の契約がなくなるのが〇月〇日なので、翌日から料金発生開始となります。」と伝える。", imgUrl: "/re-ignition1.png" }
     ]
   },
   {
@@ -103,10 +110,25 @@ const MANUAL_DATA: ManualData[] = [
     id: "addr-spin",
     icon: "📍",
     title: "住所変更＆SPIN入力",
-    desc: "供給先住所の変更と、SPIN（供給地点特定番号）の入力手順です。",
-    steps: [
-      { step: 1, title: "新住所の特定", content: "新しい住所を検索し、正確な表記を確認します。", imgUrl: "", aiImgDesc: "住所検索ツール。" },
-      { step: 2, title: "SPIN番号の紐付け", content: "取得した22桁のSPIN番号を入力フォームに貼り付けます。", imgUrl: "", aiImgDesc: "SPIN入力フィールド。" }
+    desc: "供給先住所の変更と、SPIN（供給地点特定番号）の入力手順です。\nお客様の状況（SPINの有無）に合わせてタブを選択してください。",
+    // 💡 ここが分岐（タブ）の書き方です！！「steps」の代わりに「tabs」を使います！
+    tabs: [
+      {
+        id: "with-spin",
+        label: "✅ SPINありの場合",
+        steps: [
+          { step: 1, title: "SPIN番号の確認", content: "お客様から連携された22桁のSPIN番号をコピーします。", imgUrl: "" },
+          { step: 2, title: "システムの入力欄へ", content: "指定の入力フォームにSPIN番号を貼り付けて検索を実行します。", imgUrl: "" }
+        ]
+      },
+      {
+        id: "no-spin",
+        label: "❌ SPINなしの場合",
+        steps: [
+          { step: 1, title: "住所からの検索", content: "設備情報取得ツールを開き、お客様の住所からSPIN番号を特定します。\n※番地や部屋番号の表記ゆれに注意！", imgUrl: "" },
+          { step: 2, title: "新規登録フローへ移行", content: "特定したSPINを紐付けるか、新設の場合は別のプロシージャを実行します。", imgUrl: "" }
+        ]
+      }
     ]
   }
 ];
@@ -118,20 +140,45 @@ export default function ProcedureWizard() {
   const [activeManualId, setActiveManualId] = useState(MANUAL_DATA[0].id);
   const [expandedSteps, setExpandedSteps] = useState<number[]>([1]); 
   
+  // 💡 分岐（タブ）用のステートを追加
+  const [activeTabId, setActiveTabId] = useState<string>("");
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [toast, setToast] = useState({ show: false, msg: "", type: "success" });
+
+  const activeManual = MANUAL_DATA.find(m => m.id === activeManualId) || MANUAL_DATA[0];
+
+  // 💡 マニュアルが切り替わった時の処理（タブの初期化など）
+  useEffect(() => {
+    if (activeManual.tabs && activeManual.tabs.length > 0) {
+      setActiveTabId(activeManual.tabs[0].id); // タブがあれば最初のタブを選択
+    } else {
+      setActiveTabId(""); // なければ空にする
+    }
+    setExpandedSteps([1]);
+  }, [activeManualId, activeManual]);
+
+  // 💡 現在表示すべきSTEPのリストを決定する
+  const currentSteps = activeManual.tabs 
+    ? activeManual.tabs.find(t => t.id === activeTabId)?.steps || []
+    : activeManual.steps || [];
 
   useEffect(() => {
     setIsReady(true);
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("visible"); });
     }, { threshold: 0.1 });
-    document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, [activeManualId]);
+    
+    const timeoutId = setTimeout(() => {
+      document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
+    }, 100);
 
-  const activeManual = MANUAL_DATA.find(m => m.id === activeManualId) || MANUAL_DATA[0];
+    return () => {
+      clearTimeout(timeoutId);
+      observer.disconnect();
+    };
+  }, [activeManualId, activeTabId]); // タブが切り替わった時もアニメーションを発動！
 
   const toggleStep = (stepNumber: number) => {
     setExpandedSteps(prev => 
@@ -235,7 +282,13 @@ export default function ProcedureWizard() {
         .content-panel { display: flex; flex-direction: column; gap: 20px; }
         .manual-header { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 24px; padding: 30px; box-shadow: var(--card-shadow); }
         .m-title { font-size: 28px; font-weight: 900; color: var(--title-color); margin: 0 0 10px 0; display: flex; align-items: center; gap: 12px; }
-        .m-desc { color: var(--text-sub); font-size: 14px; font-weight: 700; line-height: 1.6; margin: 0; white-space: pre-wrap;}
+        .m-desc { color: var(--text-sub); font-size: 14px; font-weight: 700; line-height: 1.6; margin: 0; white-space: pre-wrap; }
+
+        /* 💡 タブ切り替えボタンのCSSを追加！ */
+        .tab-switcher { display: flex; gap: 10px; background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); padding: 8px; border-radius: 16px; box-shadow: var(--card-shadow); margin-bottom: 10px; }
+        .tab-btn { flex: 1; padding: 14px; border-radius: 12px; border: none; background: transparent; color: var(--text-sub); font-weight: 900; font-size: 15px; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .tab-btn:hover { background: rgba(255,255,255,0.05); color: var(--accent-color); }
+        .tab-btn.active { background: var(--accent-color); color: #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.2); pointer-events: none; }
 
         .accordion-item { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; overflow: hidden; transition: 0.3s; }
         .accordion-item.open { border-color: var(--card-hover-border); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
@@ -251,7 +304,7 @@ export default function ProcedureWizard() {
         .accordion-item.open .accordion-body { max-height: 2000px; } 
         
         .accordion-content { padding: 0 30px 30px 30px; display: flex; flex-direction: column; gap: 20px; }
-        .accordion-text { color: var(--text-main); font-size: 14px; font-weight: 700; line-height: 1.8; background: var(--accordion-text-bg); padding: 20px; border-radius: 16px; border-left: 4px solid var(--accent-color); white-space: pre-wrap;}
+        .accordion-text { color: var(--text-main); font-size: 14px; font-weight: 700; line-height: 1.8; background: var(--accordion-text-bg); padding: 20px; border-radius: 16px; border-left: 4px solid var(--accent-color); white-space: pre-wrap; }
         
         .actual-image-container { width: 100%; border-radius: 16px; overflow: hidden; border: 1px solid var(--card-border); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         .actual-image-container img { width: 100%; height: auto; display: block; }
@@ -330,10 +383,25 @@ export default function ProcedureWizard() {
               <p className="m-desc">{activeManual.desc}</p>
             </div>
 
-            {activeManual.steps.map((step, index) => {
+            {/* 💡 ここに新機能！タブが存在する場合は、切り替えボタンを表示する！ */}
+            {activeManual.tabs && (
+              <div className="tab-switcher fade-up-element" style={{ transitionDelay: "0.25s" }}>
+                {activeManual.tabs.map(tab => (
+                  <button 
+                    key={tab.id}
+                    className={`tab-btn ${activeTabId === tab.id ? "active" : ""}`}
+                    onClick={() => { setActiveTabId(tab.id); setExpandedSteps([1]); }}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* 💡 currentSteps（選択中のタブのSTEP、もしくは通常のSTEP）を展開！ */}
+            {currentSteps.map((step, index) => {
               const isOpen = expandedSteps.includes(step.step);
               return (
-                // 💡 ここが修正ポイント！アニメーションの箱と、中身の箱を分離しました！
                 <div key={step.step} className="fade-up-element" style={{ transitionDelay: `${0.3 + (index * 0.1)}s` }}>
                   <div className={`accordion-item ${isOpen ? "open" : ""}`}>
                     
