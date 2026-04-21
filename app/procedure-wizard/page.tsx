@@ -43,7 +43,7 @@ const MANUAL_DATA = [
     title: "メアド重複対処法",
     desc: "Krakenでメールアドレスが重複した場合の統合・回避手順です。",
     steps: [
-      { step: 1, title: "顧客データの検索", content: "対象のメールアドレスでKraken内を検索し、既存アカウントを特定します。", imgUrl: "dup-email-1.png" },
+      { step: 1, title: "顧客データの検索", content: "対象のメールアドレスでKraken内を検索し、既存アカウントを特定します。", imgUrl: "/dup-email-1.png" },
       { step: 2, title: "アカウント統合ボタンの押下", content: "「紐付け（マージ）」ボタンをクリックしてアカウントを統合します。", aiImgDesc: "マージボタンが強調されたKrakenの顧客詳細画面。", imgUrl: "" },
       { step: 3, title: "統合完了の確認", content: "統合が正常に完了したことを確認し、顧客に案内します。", aiImgDesc: "統合完了メッセージが表示された顧客アカウント画面。", imgUrl: "" },
     ]
