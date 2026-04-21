@@ -3,44 +3,18 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-// --- 🌊 ノイズ完全ゼロ！深海オーロラ背景（SVG不使用） ---
+// --- 🌊 ノイズ完全ゼロ！深海オーロラ背景 ---
 const KrakenAuroraBackground = () => (
   <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: -2, backgroundColor: "var(--app-bg)", overflow: "hidden", transition: "background-color 0.3s ease" }}>
     <div className="kraken-gradient grad-1"></div>
     <div className="kraken-gradient grad-2"></div>
     <div className="kraken-gradient grad-3"></div>
     <style>{`
-      /* Macに一切負担をかけない「光の玉」のアニメーション */
-      .kraken-gradient {
-        position: absolute;
-        border-radius: 50%;
-        animation: floatGrad 25s infinite ease-in-out alternate;
-        pointer-events: none;
-      }
-      .grad-1 {
-        width: 80vw; height: 80vw;
-        background: radial-gradient(circle, rgba(56,189,248,0.15) 0%, rgba(56,189,248,0) 70%);
-        top: -20vw; left: -20vw;
-        animation-delay: 0s;
-      }
-      .grad-2 {
-        width: 90vw; height: 90vw;
-        background: radial-gradient(circle, rgba(192,132,252,0.15) 0%, rgba(192,132,252,0) 70%);
-        bottom: -20vw; right: -20vw;
-        animation-delay: -7s;
-      }
-      .grad-3 {
-        width: 70vw; height: 70vw;
-        background: radial-gradient(circle, rgba(14,165,233,0.15) 0%, rgba(14,165,233,0) 70%);
-        top: 20vh; left: 15vw;
-        animation-delay: -12s;
-      }
-      @keyframes floatGrad {
-        0% { transform: translate(0, 0) scale(1); }
-        100% { transform: translate(5vw, 5vh) scale(1.1); }
-      }
-      
-      /* ライトモード時の色調整 */
+      .kraken-gradient { position: absolute; border-radius: 50%; animation: floatGrad 25s infinite ease-in-out alternate; pointer-events: none; }
+      .grad-1 { width: 80vw; height: 80vw; background: radial-gradient(circle, rgba(56,189,248,0.15) 0%, rgba(56,189,248,0) 70%); top: -20vw; left: -20vw; animation-delay: 0s; }
+      .grad-2 { width: 90vw; height: 90vw; background: radial-gradient(circle, rgba(192,132,252,0.15) 0%, rgba(192,132,252,0) 70%); bottom: -20vw; right: -20vw; animation-delay: -7s; }
+      .grad-3 { width: 70vw; height: 70vw; background: radial-gradient(circle, rgba(14,165,233,0.15) 0%, rgba(14,165,233,0) 70%); top: 20vh; left: 15vw; animation-delay: -12s; }
+      @keyframes floatGrad { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(5vw, 5vh) scale(1.1); } }
       .theme-light .grad-1 { background: radial-gradient(circle, rgba(56,189,248,0.3) 0%, rgba(56,189,248,0) 70%); }
       .theme-light .grad-2 { background: radial-gradient(circle, rgba(192,132,252,0.3) 0%, rgba(192,132,252,0) 70%); }
       .theme-light .grad-3 { background: radial-gradient(circle, rgba(14,165,233,0.3) 0%, rgba(14,165,233,0) 70%); }
@@ -369,35 +343,38 @@ export default function ProcedureWizard() {
             {activeManual.steps.map((step, index) => {
               const isOpen = expandedSteps.includes(step.step);
               return (
-                <div key={step.step} className={`accordion-item fade-up-element ${isOpen ? "open" : ""}`} style={{ transitionDelay: `${0.3 + (index * 0.1)}s` }}>
-                  
-                  <div className="accordion-header" onClick={() => toggleStep(step.step)}>
-                    <div className="step-badge">STEP {step.step}</div>
-                    <div className="accordion-title">{step.title}</div>
-                    <div className="chevron">▼</div>
-                  </div>
-
-                  <div className="accordion-body">
-                    <div className="accordion-content">
-                      <div className="accordion-text">{step.content}</div>
-                      
-                      {step.imgUrl ? (
-                        <div className="actual-image-container">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={step.imgUrl} alt={step.title} />
-                        </div>
-                      ) : (
-                        <div className="image-placeholder">
-                          <span style={{fontSize: "24px"}}>📸</span>
-                          <span>ここにAI生成画像が入ります！</span>
-                          {step.aiImgDesc && <span style={{color: "var(--accent-color)", opacity: 0.8}}>{step.aiImgDesc}</span>}
-                          <span style={{fontSize: "10px", opacity: 0.7}}>publicフォルダに画像を保存し、コード内のimgUrlを設定してください</span>
-                        </div>
-                      )}
-                      
+                // 💡 ここが修正ポイント！アニメーションの箱と、中身の箱を分離しました！
+                <div key={step.step} className="fade-up-element" style={{ transitionDelay: `${0.3 + (index * 0.1)}s` }}>
+                  <div className={`accordion-item ${isOpen ? "open" : ""}`}>
+                    
+                    <div className="accordion-header" onClick={() => toggleStep(step.step)}>
+                      <div className="step-badge">STEP {step.step}</div>
+                      <div className="accordion-title">{step.title}</div>
+                      <div className="chevron">▼</div>
                     </div>
-                  </div>
 
+                    <div className="accordion-body">
+                      <div className="accordion-content">
+                        <div className="accordion-text">{step.content}</div>
+                        
+                        {step.imgUrl ? (
+                          <div className="actual-image-container">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={step.imgUrl} alt={step.title} />
+                          </div>
+                        ) : (
+                          <div className="image-placeholder">
+                            <span style={{fontSize: "24px"}}>📸</span>
+                            <span>ここにAI生成画像が入ります！</span>
+                            {step.aiImgDesc && <span style={{color: "var(--accent-color)", opacity: 0.8}}>{step.aiImgDesc}</span>}
+                            <span style={{fontSize: "10px", opacity: 0.7}}>publicフォルダに画像を保存し、コード内のimgUrlを設定してください</span>
+                          </div>
+                        )}
+                        
+                      </div>
+                    </div>
+
+                  </div>
                 </div>
               );
             })}
