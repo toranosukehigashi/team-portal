@@ -76,7 +76,7 @@ const MANUAL_DATA: ManualData[] = [
       { step: 1, title: "契約状況確認", content: "顧客画面から契約タブを選択。", imgUrl: "/p.henkou-1.png"},
       { step: 2, title: "現電気料金メニュー確認", content: "電気料金メニューにある「料金メニュー変更」を押す。", imgUrl: "/p.henkou-2.png"},
       { step: 3, title: "商材の変更", content: "Productの上にある「全商品を含む」を押す。", imgUrl: "/p.henkou-3.png"},
-      { step: 3, title: "変更プラン選択", content: "Product から変更するプランを選ぶ。", imgUrl: "/p.henkou-4.png"},
+      { step: 4, title: "変更プラン選択", content: "Product から変更するプランを選ぶ。", imgUrl: "/p.henkou-4.png"},
     ]
   },
   {
