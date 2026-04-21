@@ -43,9 +43,9 @@ const MANUAL_DATA = [
     title: "メアド重複対処法",
     desc: "Krakenでメールアドレスが重複した場合の統合・回避手順です。",
     steps: [
-      { step: 1, title: "顧客データの検索", content: "対象のメールアドレスでKraken内を検索し、既存アカウントを特定します。", imgUrl: "/dup-email-1.png" },
-      { step: 2, title: "アカウント統合ボタンの押下", content: "「紐付け（マージ）」ボタンをクリックしてアカウントを統合します。", aiImgDesc: "マージボタンが強調されたKrakenの顧客詳細画面。", imgUrl: "" },
-      { step: 3, title: "統合完了の確認", content: "統合が正常に完了したことを確認し、顧客に案内します。", aiImgDesc: "統合完了メッセージが表示された顧客アカウント画面。", imgUrl: "" },
+      { step: 1, title: "アカウント画面開く", content: "クラーケンの「メッセージ送信」から「パスワードリセット」を選択。", imgUrl: "/dup-email-1.png" },
+      { step: 2, title: "パスワードリセットURLコピー", content: "本文のURLをCommand＋Cではなく、右クリックでコピー。", imgUrl: "" },
+      { step: 3, title: "URLをブラウザで検索", content: "初期パスワードを”名前＋電話番号下４桁”などわかりやすいもので変更。（受付時に事前にお客さんに伝えておくとベスト！）", imgUrl: ""},
     ]
   },
   {
@@ -243,7 +243,7 @@ export default function ProcedureWizard() {
                         <div className="image-placeholder">
                           <span style={{fontSize: "24px"}}>📸</span>
                           <span>ここにAI生成画像が入ります</span>
-                          <span style={{color: "#38bdf8", opacity: 0.8}}>{step.aiImgDesc}</span>
+                          <span style={{color: "#38bdf8", opacity: 0.8}}>{(step as any).aiImgDesc}</span>
                           <span style={{fontSize: "10px", opacity: 0.7}}>publicフォルダに画像を保存し、コード内のimgUrlを設定してください</span>
                         </div>
                       )}
