@@ -50,7 +50,7 @@ const MANUAL_DATA: ManualData[] = [
     id: "dup-email",
     icon: "📧",
     title: "メアド重複対処法",
-    desc: "Krakenでメールアドレスが重複した場合の統合・回避手順です。",
+    desc: "「オール電化2025-04＋オール電化ゼロ」申し込み時やアドレス重複時に便利！",
     steps: [
       { step: 1, title: "アカウント画面開く", content: "クラーケンの「メッセージ送信」から「パスワードリセット」を選択。", imgUrl: "/dup-email-1.png" },
       { step: 2, title: "パスワードリセットURLコピー", content: "本文のURLをCommand＋Cではなく、右クリックでコピー。", imgUrl: "/dup-email-2.png" },
@@ -60,11 +60,11 @@ const MANUAL_DATA: ManualData[] = [
   {
     id: "inv-bh",
     icon: "🛑",
-    title: "無効化＆BH処理",
-    desc: "契約の無効化処理と、BH（ブラックホール）送りの手順です。",
+    title: "アカウント無効化",
+    desc: "既存アカウントが原因でOBJエラーが起きた時などに有効！",
     steps: [
-      { step: 1, title: "アカウントの無効化", content: "管理画面から「アカウントを無効化する」オプションを選択します。", imgUrl: "", aiImgDesc: "アカウント設定画面で「無効化」ボタンが強調されている。" },
-      { step: 2, title: "BH送りの設定", content: "システム上でBHフラグを立て、これ以上の通知がいかないように設定します。", imgUrl: "", aiImgDesc: "BHフラグのチェックボックスが表示された画面。" }
+      { step: 1, title: "アカウントの無効化", content: "名前の下にある「取消にする」ボタンを選択します。", imgUrl: "mukouka-1.png" },
+      { step: 2, title: "メアド未所持設定", content: "「ユーザータブ」の「編集」を押し、「お客様がメールアドレスを持っていない」にチェック押す。（警告が出るけど無視して進んでOK!）", imgUrl: "mukouka-2.png"},
     ]
   },
   {
