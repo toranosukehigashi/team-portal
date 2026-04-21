@@ -111,6 +111,7 @@ const MANUAL_DATA = [
 ];
 
 export default function ProcedureWizard() {
+  return <h1 style={{color: "red", fontSize: "100px"}}>ここ見てるかーーーーーー！？</h1>;
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
   const [activeManualId, setActiveManualId] = useState(MANUAL_DATA[0].id);
