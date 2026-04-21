@@ -140,7 +140,7 @@ export default function ProcedureWizard() {
     }, { threshold: 0.1 });
     document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, []);
+  }, [activeManualId]);
 
   const activeManual = MANUAL_DATA.find(m => m.id === activeManualId) || MANUAL_DATA[0];
 
