@@ -132,7 +132,6 @@ export default function ProcedureWizard() {
   const [activeManualId, setActiveManualId] = useState(MANUAL_DATA[0].id);
   const [expandedSteps, setExpandedSteps] = useState<number[]>([1]); 
   
-  // 🍔 ハンバーガーメニュー用のステート
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -156,10 +155,10 @@ export default function ProcedureWizard() {
         .app-wrapper { padding: 40px; position: relative; z-index: 10; opacity: 0; transition: 0.8s ease; max-width: 1400px; margin: 0 auto; }
         .app-wrapper.ready { opacity: 1; }
 
-        /* 🍔 グローバル・サイドバー */
-        .global-sidebar { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border-right: 1px solid rgba(255,255,255,0.1); z-index: 9999; transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 20px 0 50px rgba(0,0,0,0.5); padding: 40px 20px; display: flex; flex-direction: column; gap: 15px; }
+        /* 🍔 Macバグ対策済みのサイドバー（blurを削除） */
+        .global-sidebar { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: #0f172a; border-right: 1px solid rgba(255,255,255,0.1); z-index: 9999; transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 20px 0 50px rgba(0,0,0,0.5); padding: 40px 20px; display: flex; flex-direction: column; gap: 15px; }
         .global-sidebar.open { left: 0; }
-        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 9998; opacity: 0; pointer-events: none; transition: 0.3s; }
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 9998; opacity: 0; pointer-events: none; transition: 0.3s; }
         .sidebar-overlay.open { opacity: 1; pointer-events: auto; }
         .gs-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 16px; color: #f8fafc; font-weight: 900; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; font-size: 14px; text-align: left; }
         .gs-btn:hover { background: rgba(56, 189, 248, 0.2); border-color: #38bdf8; transform: translateX(5px); }
@@ -173,8 +172,8 @@ export default function ProcedureWizard() {
 
         .layout-grid { display: grid; grid-template-columns: 320px 1fr; gap: 30px; align-items: start; }
         
-        /* 📁 左側メニュー */
-        .sidebar-menu { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 8px; position: sticky; top: 40px; }
+        /* 📁 Macバグ対策済みのカード（blurを削除、背景を少し濃く） */
+        .sidebar-menu { background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 8px; position: sticky; top: 40px; }
         .menu-item { padding: 16px 20px; border-radius: 16px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; border: 1px solid transparent; background: rgba(255,255,255,0.02); }
         .menu-item:hover { background: rgba(255,255,255,0.05); transform: translateX(5px); }
         .menu-item.active { background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.4); box-shadow: 0 0 20px rgba(56,189,248,0.1); }
@@ -183,13 +182,13 @@ export default function ProcedureWizard() {
         .menu-item.active .menu-title { color: #38bdf8; font-weight: 900; }
         .badge { background: #ef4444; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: 900; letter-spacing: 1px; }
 
-        /* 📖 右側コンテンツ */
+        /* 📖 Macバグ対策済みのコンテンツパネル */
         .content-panel { display: flex; flex-direction: column; gap: 20px; }
-        .manual-header { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .manual-header { background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         .m-title { font-size: 28px; font-weight: 900; color: #fff; margin: 0 0 10px 0; display: flex; align-items: center; gap: 12px; }
         .m-desc { color: #94a3b8; font-size: 14px; font-weight: 700; line-height: 1.6; margin: 0; }
 
-        .accordion-item { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; overflow: hidden; transition: 0.3s; }
+        .accordion-item { background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; overflow: hidden; transition: 0.3s; }
         .accordion-item.open { border-color: rgba(56, 189, 248, 0.4); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         
         .accordion-header { padding: 20px 30px; display: flex; align-items: center; cursor: pointer; background: rgba(255,255,255,0.02); transition: 0.3s; }
@@ -216,7 +215,7 @@ export default function ProcedureWizard() {
       <div className={`sidebar-overlay ${isSidebarOpen ? "open" : ""}`} onClick={() => setIsSidebarOpen(false)}></div>
       <div className={`global-sidebar ${isSidebarOpen ? "open" : ""}`}>
         <button className="gs-close" onClick={() => setIsSidebarOpen(false)}>×</button>
-        <h2 style={{color: "#38bdf8", fontWeight: 900, fontSize: "16px", marginBottom: "20px", letterSpacing: "2px"}}>🌐 MENU</h2>
+        <h2 style={{color: "#38bdf8", fontWeight: 900, fontSize: "16px", margin: "0 0 20px 0", letterSpacing: "2px"}}>🌐 MENU</h2>
         <button className="gs-btn" onClick={() => router.push("/")}>🏠 Workspace Home</button>
         <button className="gs-btn" onClick={() => router.push("/kpi-detail")}>📊 KPI Dashboard</button>
         <button className="gs-btn" onClick={() => router.push("/simulator")}>🆚 Cost Simulator</button>
