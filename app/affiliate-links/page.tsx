@@ -36,26 +36,33 @@ const AGENCY_GROUPS: AgencyGroup[] = [
     name: "名古屋案件", 
     themeColor: "#0ea5e9", // 鮮やかなブルー
     explanationLink: "https://forms.gle/hEiC6B61ctNy7F3U6" 
+  },
+  { 
+    id: "vacant", 
+    name: "空室通電", 
+    themeColor: "#10b981", // エメラルドグリーン
+    explanationLink: "https://docs.google.com/forms/d/1i7OHDzZxShImK9E3TnjjAs5yIciWk8pZbc5YOjPSY1k/viewform?edit_requested=true" 
   }
 ];
 
 // ==========================================
-// 💡 アフィリエイトリンクのデータ（ご主人様の本物データ完全反映！）
+// 💡 アフィリエイトリンクのデータ
 // ==========================================
 type AgencyLink = {
   id: string;
   groupId: string;
   name: string;
   url: string;
-  gas: string;     // 具体的な業者名（TOKAIなど）
-  water: string;   // 名古屋市水道局など
-  net: string;     // Wizなど
-  ws: string;      // プレミアムウォーターなど
-  area: string;    // 中部電力など
+  gas: string;
+  water: string;
+  net: string;
+  ws: string;
+  area: string;
   note: string;
 };
 
 const AGENCY_DATA: AgencyLink[] = [
+  // 🟦 名古屋案件 (1~15)
   { id: "1", groupId: "nagoya", name: "My賃貸", url: "https://octopusenergy.co.jp/affiliate/05-ryosukehirokawa", gas: "TOKAI", water: "名古屋市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
   { id: "2", groupId: "nagoya", name: "春風不動産", url: "https://octopusenergy.co.jp/affiliate/03-ryosukehirokawa", gas: "東 邦", water: "名古屋市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
   { id: "3", groupId: "nagoya", name: "エステートプラス", url: "https://octopusenergy.co.jp/affiliate/04-ryosukehirokawa", gas: "TOKAI", water: "名古屋市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
@@ -70,7 +77,25 @@ const AGENCY_DATA: AgencyLink[] = [
   { id: "12", groupId: "nagoya", name: "なごやか不動産", url: "https://octopusenergy.co.jp/affiliate/05-ryosukehirokawa", gas: "TOKAI", water: "名古屋市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
   { id: "13", groupId: "nagoya", name: "楽々不動産", url: "https://octopusenergy.co.jp/affiliate/03-ryosukehirokawa", gas: "TOKAI", water: "名古屋市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
   { id: "14", groupId: "nagoya", name: "ひまわりカンパニー株式会社", url: "https://octopusenergy.co.jp/affiliate/04-ryosukehirokawa", gas: "TOKAI", water: "名古屋市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
-  { id: "15", groupId: "nagoya", name: "Terrace Home本店", url: "https://octopusenergy.co.jp/affiliate/01-yutainoue", gas: "なし", water: "なし", net: "Wiz", ws: "プレミアムウォーター", area: "北海道電力", note: "" }
+  { id: "15", groupId: "nagoya", name: "Terrace Home本店", url: "https://octopusenergy.co.jp/affiliate/01-yutainoue", gas: "なし", water: "なし", net: "Wiz", ws: "プレミアムウォーター", area: "北海道電力", note: "" },
+
+  // 🟩 空室通電 (16~31)
+  { id: "16", groupId: "vacant", name: "芳賀", url: "https://octopusenergy.co.jp/affiliate/haga?affiliate=haga", gas: "ー", water: "ー", net: "OK", ws: "OK", area: "九州電力", note: "" },
+  { id: "17", groupId: "vacant", name: "アイユーホーム", url: "https://octopusenergy.co.jp/affiliate/aiy?affiliate=aiy", gas: "ー", water: "ー", net: "NO", ws: "NO", area: "九州電力", note: "" },
+  { id: "18", groupId: "vacant", name: "ニコニコ不動産", url: "https://octopusenergy.co.jp/affiliate/nikoniko?affiliate=nikoniko", gas: "ー", water: "ー", net: "OK", ws: "OK", area: "九州電力", note: "" },
+  { id: "19", groupId: "vacant", name: "洞口不動産", url: "https://octopusenergy.co.jp/affiliate/horaguchi2?affiliate=horaguchi2", gas: "ー", water: "ー", net: "NO", ws: "NO", area: "中部電力", note: "" },
+  { id: "20", groupId: "vacant", name: "スリーケー企画", url: "https://octopusenergy.co.jp/affiliate/3k?affiliate=3k", gas: "ー", water: "ー", net: "NO", ws: "NO", area: "北海道電力", note: "" },
+  { id: "21", groupId: "vacant", name: "三世建物管理", url: "https://octopusenergy.co.jp/affiliate/sansei?affiliate=sansei", gas: "ー", water: "ー", net: "NO", ws: "NO", area: "北海道電力", note: "" },
+  { id: "22", groupId: "vacant", name: "ランエステート", url: "https://octopusenergy.co.jp/affiliate/run?affiliate=run", gas: "ー", water: "ー", net: "NO", ws: "NO", area: "北海道電力", note: "" },
+  { id: "23", groupId: "vacant", name: "トライホーム", url: "https://octopusenergy.co.jp/affiliate/tryhome?affiliate=tryhome", gas: "ー", water: "ー", net: "NO", ws: "NO", area: "北海道電力", note: "" },
+  { id: "24", groupId: "vacant", name: "オクムラ", url: "https://octopusenergy.co.jp/affiliate/okm?affiliate=okm", gas: "ー", water: "ー", net: "NO", ws: "NO", area: "北海道電力", note: "" },
+  { id: "25", groupId: "vacant", name: "ウィノベーション", url: "https://octopusenergy.co.jp/affiliate/win?affiliate=win", gas: "ー", water: "ー", net: "NO", ws: "NO", area: "北海道電力", note: "" },
+  { id: "26", groupId: "vacant", name: "めぐみ企画", url: "https://octopusenergy.co.jp/affiliate/mgm?affiliate=mgm", gas: "ー", water: "ー", net: "NO", ws: "NO", area: "北海道電力", note: "" },
+  { id: "27", groupId: "vacant", name: "カンリーコーポ", url: "https://octopusenergy.co.jp/affiliate/kanry?affiliate=kanry", gas: "ー", water: "ー", net: "NO", ws: "NO", area: "北海道電力", note: "" },
+  { id: "28", groupId: "vacant", name: "株式会社フォーディー", url: "https://octopusenergy.co.jp/affiliate/4d", gas: "ー", water: "ー", net: "NO", ws: "NO", area: "北海道電力", note: "" },
+  { id: "29", groupId: "vacant", name: "アンサンブル株式会社", url: "https://octopusenergy.co.jp/affiliate/ensem?affiliate=ensem", gas: "ー", water: "ー", net: "NO", ws: "NO", area: "北海道電力", note: "" },
+  { id: "30", groupId: "vacant", name: "株式会社北総研", url: "https://octopusenergy.co.jp/affiliate/3k?affiliate=3k", gas: "ー", water: "ー", net: "NO", ws: "NO", area: "北海道電力", note: "" },
+  { id: "31", groupId: "vacant", name: "フィリックス株式会社", url: "https://octopusenergy.co.jp/affiliate/felixchubu?affiliate=felixchubu", gas: "ー", water: "ー", net: "OK", ws: "OK", area: "中部電力", note: "" }
 ];
 
 export default function AffiliateLinks() {
@@ -113,23 +138,26 @@ export default function AffiliateLinks() {
     }
   };
 
-  // 💡 高度な絞り込みロジック
+  // 💡 「なし」「ー」「NO」「空文字」のいずれかであれば、無効（グレーアウト）と判定するヘルパー関数！
+  const isNone = (val: string) => {
+    return val === "なし" || val === "ー" || val === "NO" || val === "";
+  };
+
+  // 高度な絞り込みロジック
   const filteredData = AGENCY_DATA.filter(item => {
-    // 検索ワード判定（会社名、エリア、具体的な業者名もヒット対象に！）
     const searchLower = searchTerm.toLowerCase();
     const matchSearch = item.name.toLowerCase().includes(searchLower) || 
                         item.area.toLowerCase().includes(searchLower) ||
                         item.gas.toLowerCase().includes(searchLower) ||
                         item.net.toLowerCase().includes(searchLower);
     
-    // グループタブ判定
     const matchGroup = activeGroupFilter === "all" || item.groupId === activeGroupFilter;
 
-    // チェックボックス判定（「なし」以外の文字が入っていればTrue）
-    const matchGas = filterGas ? (item.gas !== "なし" && item.gas !== "") : true;
-    const matchWater = filterWater ? (item.water !== "なし" && item.water !== "") : true;
-    const matchNet = filterNet ? (item.net !== "なし" && item.net !== "") : true;
-    const matchWs = filterWs ? (item.ws !== "なし" && item.ws !== "") : true;
+    // チェックボックス判定（「なし」「ー」「NO」以外ならTrue）
+    const matchGas = filterGas ? !isNone(item.gas) : true;
+    const matchWater = filterWater ? !isNone(item.water) : true;
+    const matchNet = filterNet ? !isNone(item.net) : true;
+    const matchWs = filterWs ? !isNone(item.ws) : true;
 
     return matchSearch && matchGroup && matchGas && matchWater && matchNet && matchWs;
   });
@@ -212,8 +240,10 @@ export default function AffiliateLinks() {
           
           .detail-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
           .detail-icon { font-size: 14px; opacity: 0.8; }
+          
+          /* 💡 「なし」「ー」「NO」の場合は、色を薄くして取り消し線を入れる！ */
           .detail-value { font-weight: 900; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-          .detail-value.none { color: var(--text-sub); opacity: 0.5; font-weight: 600; text-decoration: line-through; }
+          .detail-value.none { color: var(--text-sub); opacity: 0.4; font-weight: 600; text-decoration: line-through; }
 
           .info-row { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; color: var(--text-sub); }
           .info-label { font-size: 11px; color: var(--text-sub); opacity: 0.8; }
@@ -228,8 +258,8 @@ export default function AffiliateLinks() {
           .btn-obj { background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #fff; }
           .btn-obj:hover { box-shadow: 0 8px 20px rgba(14, 165, 233, 0.4); }
           
-          .btn-terms { background: linear-gradient(135deg, #f43f5e, #e11d48); color: #fff; }
-          .btn-terms:hover { box-shadow: 0 8px 20px rgba(244, 63, 94, 0.4); }
+          .btn-terms { background: linear-gradient(135deg, #10b981, #059669); color: #fff; } /* グリーンの重説ボタンに色変更！ */
+          .btn-terms:hover { box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4); }
           
           .btn-full { grid-column: 1 / -1; }
 
@@ -335,23 +365,22 @@ export default function AffiliateLinks() {
                         <span className="area-badge">📍 {agency.area}</span>
                       </div>
                       
-                      {/* 💡 業者名を美しく表示する専用グリッド！ */}
                       <div className="details-grid">
                         <div className="detail-item">
                           <span className="detail-icon">🔥</span>
-                          <span className={`detail-value ${agency.gas === "なし" ? "none" : ""}`}>{agency.gas}</span>
+                          <span className={`detail-value ${isNone(agency.gas) ? "none" : ""}`}>{agency.gas}</span>
                         </div>
                         <div className="detail-item">
                           <span className="detail-icon">💧</span>
-                          <span className={`detail-value ${agency.water === "なし" ? "none" : ""}`}>{agency.water}</span>
+                          <span className={`detail-value ${isNone(agency.water) ? "none" : ""}`}>{agency.water}</span>
                         </div>
                         <div className="detail-item">
                           <span className="detail-icon">🌐</span>
-                          <span className={`detail-value ${agency.net === "なし" ? "none" : ""}`}>{agency.net}</span>
+                          <span className={`detail-value ${isNone(agency.net) ? "none" : ""}`}>{agency.net}</span>
                         </div>
                         <div className="detail-item">
                           <span className="detail-icon">🚰</span>
-                          <span className={`detail-value ${agency.ws === "なし" ? "none" : ""}`}>{agency.ws}</span>
+                          <span className={`detail-value ${isNone(agency.ws) ? "none" : ""}`}>{agency.ws}</span>
                         </div>
                       </div>
 
