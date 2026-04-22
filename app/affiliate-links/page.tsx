@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 
-// ✨ 背景の光の粒（静寂なカームデザイン）
+// ✨ 背景の光の粒
 const PixieDust = () => {
   const [stars, setStars] = useState<{ id: number; left: string; top: string; delay: string; size: string }[]>([]);
   useEffect(() => {
@@ -22,13 +22,12 @@ const PixieDust = () => {
 
 // ==========================================
 // 💡 グループ（リスト）の定義
-// ここに新しいグループを追加するだけで、自動的に色や重説リンクが適用されます！
 // ==========================================
 type AgencyGroup = {
   id: string;
   name: string;
-  themeColor: string;      // グループのテーマカラー（HEXコード）
-  explanationLink: string; // グループ共通の重説リンク（空文字にするとボタンが消えます）
+  themeColor: string;
+  explanationLink: string;
 };
 
 const AGENCY_GROUPS: AgencyGroup[] = [
@@ -37,48 +36,41 @@ const AGENCY_GROUPS: AgencyGroup[] = [
     name: "名古屋案件", 
     themeColor: "#0ea5e9", // 鮮やかなブルー
     explanationLink: "https://forms.gle/hEiC6B61ctNy7F3U6" 
-  },
-  // 🔽 今後、新しいグループができたらここに追加するだけ！
-  // { 
-  //   id: "kansai", 
-  //   name: "関西案件", 
-  //   themeColor: "#f43f5e", // ピンク
-  //   explanationLink: "https://forms.gle/xxxxxxxxx" 
-  // }
+  }
 ];
 
 // ==========================================
-// 💡 アフィリエイトリンクのデータ
+// 💡 アフィリエイトリンクのデータ（ご主人様の本物データ完全反映！）
 // ==========================================
 type AgencyLink = {
   id: string;
-  groupId: string;     // どのグループに属するか（AGENCY_GROUPSのidと一致させる）
-  name: string;        // B: アフィリエイト名
-  url: string;         // C: OBJリンク
-  hasGas: boolean;     // E: ガス
-  hasWater: boolean;   // F: 水道
-  hasNet: boolean;     // G: ネット
-  hasWs: boolean;      // H: WS
-  area: string;        // I: 対象エリア
-  note: string;        // J: 備考
+  groupId: string;
+  name: string;
+  url: string;
+  gas: string;     // 具体的な業者名（TOKAIなど）
+  water: string;   // 名古屋市水道局など
+  net: string;     // Wizなど
+  ws: string;      // プレミアムウォーターなど
+  area: string;    // 中部電力など
+  note: string;
 };
 
 const AGENCY_DATA: AgencyLink[] = [
-  { id: "1", groupId: "nagoya", name: "My賃貸", url: "https://octopusenergy.co.jp/affiliate/05-ryosukehirokawa", hasGas: true, hasWater: true, hasNet: false, hasWs: false, area: "全国", note: "入居日確認必須" },
-  { id: "2", groupId: "nagoya", name: "春風不動産", url: "https://octopusenergy.co.jp/affiliate/03-ryosukehirokawa", hasGas: true, hasWater: false, hasNet: true, hasWs: false, area: "関東・中部", note: "ネットはSoftbankのみ" },
-  { id: "3", groupId: "nagoya", name: "エステートプラス", url: "https://octopusenergy.co.jp/affiliate/04-ryosukehirokawa", hasGas: false, hasWater: true, hasNet: true, hasWs: true, area: "関西", note: "" },
-  { id: "4", groupId: "nagoya", name: "アパマンショップ蟹江店", url: "https://octopusenergy.co.jp/affiliate/01-yutainoue", hasGas: true, hasWater: true, hasNet: false, hasWs: false, area: "愛知県", note: "ガスセット提案推奨" },
-  { id: "5", groupId: "nagoya", name: "不動産ランドすまいる", url: "https://octopusenergy.co.jp/affiliate/04-yutainoue", hasGas: true, hasWater: true, hasNet: true, hasWs: true, area: "全国", note: "フルセット提案" },
-  { id: "6", groupId: "nagoya", name: "ピタットハウス神宮南", url: "https://octopusenergy.co.jp/affiliate/05-yutainoue", hasGas: true, hasWater: false, hasNet: false, hasWs: false, area: "愛知県", note: "" },
-  { id: "7", groupId: "nagoya", name: "Access", url: "https://octopusenergy.co.jp/affiliate/06-yutainoue", hasGas: false, hasWater: false, hasNet: true, hasWs: false, area: "全国", note: "ネット単体での獲得が多い" },
-  { id: "8", groupId: "nagoya", name: "ルームコレクション", url: "https://octopusenergy.co.jp/affiliate/06-ryosukehirokawa", hasGas: true, hasWater: true, hasNet: false, hasWs: false, area: "中部・関西", note: "" },
-  { id: "9", groupId: "nagoya", name: "すまいらんど", url: "https://octopusenergy.co.jp/affiliate/07-ryosukehirokawa", hasGas: true, hasWater: false, hasNet: true, hasWs: true, area: "全国", note: "WSのキャンペーンあり" },
-  { id: "10", groupId: "nagoya", name: "株式会社東栄", url: "https://octopusenergy.co.jp/affiliate/08-ryosukehirokawa", hasGas: false, hasWater: true, hasNet: false, hasWs: false, area: "関東", note: "" },
-  { id: "11", groupId: "nagoya", name: "株式会社STYプランニング", url: "https://octopusenergy.co.jp/affiliate/10-ryosukehirokawa", hasGas: true, hasWater: true, hasNet: true, hasWs: false, area: "全国", note: "" },
-  { id: "12", groupId: "nagoya", name: "なごやか不動産", url: "https://octopusenergy.co.jp/affiliate/05-ryosukehirokawa", hasGas: true, hasWater: false, hasNet: false, hasWs: false, area: "愛知県", note: "" },
-  { id: "13", groupId: "nagoya", name: "楽々不動産", url: "https://octopusenergy.co.jp/affiliate/03-ryosukehirokawa", hasGas: true, hasWater: true, hasNet: true, hasWs: true, area: "全国", note: "全体的に獲得率高め" },
-  { id: "14", groupId: "nagoya", name: "ひまわりカンパニー株式会社", url: "https://octopusenergy.co.jp/affiliate/04-ryosukehirokawa", hasGas: false, hasWater: true, hasNet: false, hasWs: false, area: "関東", note: "" },
-  { id: "15", groupId: "nagoya", name: "Terrace Home本店", url: "https://octopusenergy.co.jp/affiliate/01-yutainoue", hasGas: true, hasWater: false, hasNet: true, hasWs: false, area: "中部", note: "" }
+  { id: "1", groupId: "nagoya", name: "My賃貸", url: "https://octopusenergy.co.jp/affiliate/05-ryosukehirokawa", gas: "TOKAI", water: "名古屋市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
+  { id: "2", groupId: "nagoya", name: "春風不動産", url: "https://octopusenergy.co.jp/affiliate/03-ryosukehirokawa", gas: "東 邦", water: "名古屋市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
+  { id: "3", groupId: "nagoya", name: "エステートプラス", url: "https://octopusenergy.co.jp/affiliate/04-ryosukehirokawa", gas: "TOKAI", water: "名古屋市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
+  { id: "4", groupId: "nagoya", name: "アパマンショップ蟹江店", url: "https://octopusenergy.co.jp/affiliate/01-yutainoue", gas: "TOKAI", water: "名古屋市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
+  { id: "5", groupId: "nagoya", name: "不動産ランドすまいる", url: "https://octopusenergy.co.jp/affiliate/04-yutainoue", gas: "東 邦", water: "名古屋市水道局", net: "希望者のみ", ws: "希望者のみプレミ", area: "中部電力", note: "" },
+  { id: "6", groupId: "nagoya", name: "ピタットハウス神宮南", url: "https://octopusenergy.co.jp/affiliate/05-yutainoue", gas: "TOKAI", water: "名古屋市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
+  { id: "7", groupId: "nagoya", name: "Access", url: "https://octopusenergy.co.jp/affiliate/06-yutainoue", gas: "TOKAI", water: "名古屋市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
+  { id: "8", groupId: "nagoya", name: "ルームコレクション", url: "https://octopusenergy.co.jp/affiliate/06-ryosukehirokawa", gas: "TOKAI", water: "名古屋市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
+  { id: "9", groupId: "nagoya", name: "すまいらんど", url: "https://octopusenergy.co.jp/affiliate/07-ryosukehirokawa", gas: "TOKAI", water: "名古屋市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
+  { id: "10", groupId: "nagoya", name: "株式会社東栄", url: "https://octopusenergy.co.jp/affiliate/08-ryosukehirokawa", gas: "TOKAI", water: "碧南市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
+  { id: "11", groupId: "nagoya", name: "株式会社STYプランニング", url: "https://octopusenergy.co.jp/affiliate/10-ryosukehirokawa", gas: "TOKAI", water: "名古屋市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
+  { id: "12", groupId: "nagoya", name: "なごやか不動産", url: "https://octopusenergy.co.jp/affiliate/05-ryosukehirokawa", gas: "TOKAI", water: "名古屋市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
+  { id: "13", groupId: "nagoya", name: "楽々不動産", url: "https://octopusenergy.co.jp/affiliate/03-ryosukehirokawa", gas: "TOKAI", water: "名古屋市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
+  { id: "14", groupId: "nagoya", name: "ひまわりカンパニー株式会社", url: "https://octopusenergy.co.jp/affiliate/04-ryosukehirokawa", gas: "TOKAI", water: "名古屋市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
+  { id: "15", groupId: "nagoya", name: "Terrace Home本店", url: "https://octopusenergy.co.jp/affiliate/01-yutainoue", gas: "なし", water: "なし", net: "Wiz", ws: "プレミアムウォーター", area: "北海道電力", note: "" }
 ];
 
 export default function AffiliateLinks() {
@@ -123,20 +115,21 @@ export default function AffiliateLinks() {
 
   // 💡 高度な絞り込みロジック
   const filteredData = AGENCY_DATA.filter(item => {
-    // 検索ワード判定
+    // 検索ワード判定（会社名、エリア、具体的な業者名もヒット対象に！）
     const searchLower = searchTerm.toLowerCase();
     const matchSearch = item.name.toLowerCase().includes(searchLower) || 
                         item.area.toLowerCase().includes(searchLower) ||
-                        item.note.toLowerCase().includes(searchLower);
+                        item.gas.toLowerCase().includes(searchLower) ||
+                        item.net.toLowerCase().includes(searchLower);
     
     // グループタブ判定
     const matchGroup = activeGroupFilter === "all" || item.groupId === activeGroupFilter;
 
-    // チェックボックス判定
-    const matchGas = filterGas ? item.hasGas : true;
-    const matchWater = filterWater ? item.hasWater : true;
-    const matchNet = filterNet ? item.hasNet : true;
-    const matchWs = filterWs ? item.hasWs : true;
+    // チェックボックス判定（「なし」以外の文字が入っていればTrue）
+    const matchGas = filterGas ? (item.gas !== "なし" && item.gas !== "") : true;
+    const matchWater = filterWater ? (item.water !== "なし" && item.water !== "") : true;
+    const matchNet = filterNet ? (item.net !== "なし" && item.net !== "") : true;
+    const matchWs = filterWs ? (item.ws !== "なし" && item.ws !== "") : true;
 
     return matchSearch && matchGroup && matchGas && matchWater && matchNet && matchWs;
   });
@@ -156,7 +149,7 @@ export default function AffiliateLinks() {
           .star { position: absolute; border-radius: 50%; background: var(--star-color); box-shadow: 0 0 10px var(--star-color); animation: twinkle 4s infinite ease-in-out; }
           @keyframes twinkle { 0% { opacity: 0.1; transform: scale(0.5) translateY(0); } 50% { opacity: 1; transform: scale(1.2) translateY(-20px); } 100% { opacity: 0.1; transform: scale(0.5) translateY(0); } }
 
-          /* ナビ＆メニュー等 */
+          /* ナビ＆メニュー */
           .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 1001; background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; box-shadow: var(--card-shadow); transition: 0.3s; }
           .hamburger-btn:hover { background: var(--card-hover-bg); transform: scale(1.05); }
           .hamburger-line { width: 22px; height: 3px; background: var(--text-sub); border-radius: 3px; transition: 0.4s; }
@@ -165,7 +158,7 @@ export default function AffiliateLinks() {
           .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: var(--accent-color); }
           .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
           .menu-overlay.open { opacity: 1; pointer-events: auto; }
-          .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+          .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s; padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
           .side-menu.open { left: 0; }
           .menu-title { font-size: 13px; font-weight: 900; color: var(--text-sub); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--card-border); letter-spacing: 1px; }
           .side-link { text-decoration: none; padding: 14px 20px; border-radius: 14px; background: var(--input-bg); color: var(--text-main); font-weight: 800; border: 1px solid var(--card-border); transition: 0.2s; display: flex; align-items: center; gap: 12px; }
@@ -177,7 +170,7 @@ export default function AffiliateLinks() {
           .glass-nav-active { padding: 10px 20px; border-radius: 30px; font-weight: 900; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); font-size: 14px; }
           .theme-toggle-btn { background: var(--input-bg); border: 1px solid var(--card-border); padding: 10px 20px; border-radius: 30px; cursor: pointer; font-weight: 800; color: var(--text-main); transition: 0.3s; }
 
-          /* 💡 UI本体 */
+          /* メインレイアウト */
           .main-container { max-width: 1200px; margin: 0 auto; }
           
           /* 検索パネル */
@@ -211,22 +204,22 @@ export default function AffiliateLinks() {
           .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
           .agency-name { font-size: 18px; font-weight: 900; color: var(--title-color); margin: 0; line-height: 1.4; }
 
-          .service-tags { display: flex; gap: 8px; flex-wrap: wrap; }
-          .tag { font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 6px; background: rgba(148, 163, 184, 0.1); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.2); }
-          .tag.active-gas { background: rgba(245, 158, 11, 0.1); color: #d97706; border-color: rgba(245, 158, 11, 0.3); }
-          .theme-dark .tag.active-gas { color: #fcd34d; }
-          .tag.active-water { background: rgba(14, 165, 233, 0.1); color: #0284c7; border-color: rgba(14, 165, 233, 0.3); }
-          .theme-dark .tag.active-water { color: #38bdf8; }
-          .tag.active-net { background: rgba(139, 92, 246, 0.1); color: #7c3aed; border-color: rgba(139, 92, 246, 0.3); }
-          .theme-dark .tag.active-net { color: #a78bfa; }
-          .tag.active-ws { background: rgba(16, 185, 129, 0.1); color: #059669; border-color: rgba(16, 185, 129, 0.3); }
-          .theme-dark .tag.active-ws { color: #34d399; }
+          .area-badge { font-size: 11px; font-weight: 800; background: var(--card-hover-bg); color: var(--accent-color); padding: 4px 10px; border-radius: 20px; border: 1px solid var(--card-hover-border); display: inline-flex; align-items: center; gap: 4px; }
+
+          /* 💡 詳細情報の美しいグリッド（SaaS風） */
+          .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 5px 0; background: rgba(0,0,0,0.03); padding: 14px; border-radius: 12px; border: 1px solid var(--input-border); }
+          .theme-dark .details-grid { background: rgba(255,255,255,0.03); }
+          
+          .detail-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+          .detail-icon { font-size: 14px; opacity: 0.8; }
+          .detail-value { font-weight: 900; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+          .detail-value.none { color: var(--text-sub); opacity: 0.5; font-weight: 600; text-decoration: line-through; }
 
           .info-row { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; color: var(--text-sub); }
           .info-label { font-size: 11px; color: var(--text-sub); opacity: 0.8; }
           .info-value { color: var(--text-main); }
 
-          /* 💡 コピーボタンを2つ並べる設計！ */
+          /* アクションボタン */
           .action-area { margin-top: auto; padding-top: 16px; border-top: 1px dashed var(--input-border); display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
           
           .copy-btn { border: none; border-radius: 12px; padding: 12px; font-weight: 900; font-size: 13px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -238,7 +231,7 @@ export default function AffiliateLinks() {
           .btn-terms { background: linear-gradient(135deg, #f43f5e, #e11d48); color: #fff; }
           .btn-terms:hover { box-shadow: 0 8px 20px rgba(244, 63, 94, 0.4); }
           
-          .btn-full { grid-column: 1 / -1; } /* 1つしかない時は幅いっぱいにする */
+          .btn-full { grid-column: 1 / -1; }
 
           .empty-state { grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-sub); font-size: 16px; font-weight: 800; background: var(--card-bg); border-radius: 20px; border: 2px dashed var(--card-border); }
 
@@ -283,13 +276,12 @@ export default function AffiliateLinks() {
             <input 
               type="text" 
               className="search-input" 
-              placeholder="🔍 不動産名、エリア、備考から検索..." 
+              placeholder="🔍 不動産名、業者名(TOKAI等)、エリアから検索..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             
             <div className="controls-row">
-              {/* グループ切り替えタブ */}
               <div className="group-tabs">
                 <button 
                   className={`group-tab-btn ${activeGroupFilter === "all" ? "active" : ""}`}
@@ -308,9 +300,8 @@ export default function AffiliateLinks() {
                 ))}
               </div>
 
-              {/* 商材による絞り込み機能 */}
               <div className="filter-group">
-                <div className="filter-label">💡 絞り込み：</div>
+                <div className="filter-label">💡 取扱いありで絞る：</div>
                 <label className="filter-checkbox"><input type="checkbox" checked={filterGas} onChange={(e)=>setFilterGas(e.target.checked)} /> ガス</label>
                 <label className="filter-checkbox"><input type="checkbox" checked={filterWater} onChange={(e)=>setFilterWater(e.target.checked)} /> 水道</label>
                 <label className="filter-checkbox"><input type="checkbox" checked={filterNet} onChange={(e)=>setFilterNet(e.target.checked)} /> ネット</label>
@@ -319,14 +310,11 @@ export default function AffiliateLinks() {
             </div>
           </div>
 
-          {/* 💡 グループごとにセクションを分けて美しく表示！ */}
           {AGENCY_GROUPS.map(group => {
-            // 現在のタブが「all」か「このグループ」の場合のみ表示
             if (activeGroupFilter !== "all" && activeGroupFilter !== group.id) return null;
 
-            // このグループに属していて、かつフィルターに合致する不動産だけを抽出
             const groupAgencies = filteredData.filter(agency => agency.groupId === group.id);
-            if (groupAgencies.length === 0) return null; // 該当なしならセクションごと非表示
+            if (groupAgencies.length === 0) return null;
 
             return (
               <div key={group.id} className="group-section">
@@ -344,18 +332,27 @@ export default function AffiliateLinks() {
                     >
                       <div className="card-header">
                         <h3 className="agency-name">{agency.name}</h3>
+                        <span className="area-badge">📍 {agency.area}</span>
                       </div>
                       
-                      <div className="service-tags">
-                        <span className={`tag ${agency.hasGas ? 'active-gas' : ''}`}>ガス</span>
-                        <span className={`tag ${agency.hasWater ? 'active-water' : ''}`}>水道</span>
-                        <span className={`tag ${agency.hasNet ? 'active-net' : ''}`}>ネット</span>
-                        <span className={`tag ${agency.hasWs ? 'active-ws' : ''}`}>WS</span>
-                      </div>
-                      
-                      <div className="info-row">
-                        <span className="info-label">📍 対象エリア</span>
-                        <span className="info-value">{agency.area || "未設定"}</span>
+                      {/* 💡 業者名を美しく表示する専用グリッド！ */}
+                      <div className="details-grid">
+                        <div className="detail-item">
+                          <span className="detail-icon">🔥</span>
+                          <span className={`detail-value ${agency.gas === "なし" ? "none" : ""}`}>{agency.gas}</span>
+                        </div>
+                        <div className="detail-item">
+                          <span className="detail-icon">💧</span>
+                          <span className={`detail-value ${agency.water === "なし" ? "none" : ""}`}>{agency.water}</span>
+                        </div>
+                        <div className="detail-item">
+                          <span className="detail-icon">🌐</span>
+                          <span className={`detail-value ${agency.net === "なし" ? "none" : ""}`}>{agency.net}</span>
+                        </div>
+                        <div className="detail-item">
+                          <span className="detail-icon">🚰</span>
+                          <span className={`detail-value ${agency.ws === "なし" ? "none" : ""}`}>{agency.ws}</span>
+                        </div>
                       </div>
 
                       {agency.note && (
@@ -365,7 +362,6 @@ export default function AffiliateLinks() {
                         </div>
                       )}
 
-                      {/* 💡 コピーボタンを2つ並べる！ */}
                       <div className="action-area">
                         <button 
                           className={`copy-btn btn-obj ${!group.explanationLink ? "btn-full" : ""}`} 
@@ -374,7 +370,6 @@ export default function AffiliateLinks() {
                           🐙 OBJリンク
                         </button>
                         
-                        {/* グループに重説リンクが設定されていれば、赤いボタンを表示！ */}
                         {group.explanationLink && (
                           <button 
                             className="copy-btn btn-terms" 
