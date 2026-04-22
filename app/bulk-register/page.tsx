@@ -261,7 +261,6 @@ export default function BulkRegister() {
     try { await navigator.clipboard.writeText(text); showToast(successMsg, true); } catch (e) { alert("コピー失敗"); }
   };
 
-  // 💡 QoL爆上がり機能！ワンクリックで個別の値をコピーする専用関数！
   const handleSingleCopy = (text: string, fieldName: string) => {
     if (!text) {
       showToast(`⚠️ ${fieldName} は空っぽです！`, false);
@@ -380,8 +379,9 @@ export default function BulkRegister() {
           .glass-nav-link:hover { color: var(--accent-color); border-color: var(--card-hover-border); }
           .glass-nav-active { padding: 10px 20px; border-radius: 30px; font-weight: 900; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); font-size: 14px; }
           
-          .env-toggle-container { display: flex; border-radius: 30px; padding: 4px; background: var(--input-bg); border: 1px solid var(--card-border); }
-          .env-label { padding: 10px 20px; font-size: 13px; font-weight: 900; border-radius: 26px; cursor: pointer; color: var(--text-sub); transition: 0.3s; text-align: center; }
+          /* 💡 ここが修正の肝！ env-toggle-container を Grid（1fr 1fr）にして均等に広げる！！ */
+          .env-toggle-container { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; border-radius: 12px; padding: 4px; background: var(--input-bg); border: 1px solid var(--card-border); width: 100%; }
+          .env-label { padding: 12px 0; font-size: 13px; font-weight: 900; border-radius: 8px; cursor: pointer; color: var(--text-sub); transition: 0.3s; text-align: center; width: 100%; display: flex; justify-content: center; align-items: center; }
           input[name="environment"]:checked + .test-label { background: var(--card-hover-bg); color: #0ea5e9; border: 1px solid #38bdf8; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.2); }
           input[name="environment"]:checked + .prod-label { background: #fee2e2; color: #e11d48; border: 1px solid #f43f5e; box-shadow: 0 4px 10px rgba(225, 29, 72, 0.3); }
 
@@ -407,7 +407,6 @@ export default function BulkRegister() {
           
           .input-group { display: flex; flex-direction: column; }
           
-          /* 💡 コピーボタン用の新しいCSS（ここがQoL爆上がりポイント！） */
           .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-left: 3px solid var(--accent-color); padding-left: 8px; }
           .label-row label { font-size: 12px; font-weight: 800; color: var(--text-sub); margin: 0; }
           .copy-btn { background: none; border: none; cursor: pointer; font-size: 14px; opacity: 0.5; transition: 0.2s; padding: 0 4px; display: flex; align-items: center; justify-content: center; }
@@ -451,6 +450,7 @@ export default function BulkRegister() {
           summary { font-weight: 800; cursor: pointer; padding: 16px; background: var(--card-bg); border-radius: 12px; border-left: 4px solid var(--accent-color); list-style: none; transition: 0.3s; border: 1px solid var(--card-border); }
           summary:hover { border-color: var(--card-hover-border); }
 
+          /* 💡 エラー修正で追記した必須アニメーション */
           .fade-up-element { opacity: 0; transform: translateY(40px); transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
           .fade-up-element.visible { opacity: 1; transform: translateY(0); }
         `}} />
@@ -507,16 +507,20 @@ export default function BulkRegister() {
           
           {/* ℹ️ 左カラム：注意事項 */}
           <aside className="info-sidebar">
-            <div className="info-panel fade-up-element" style={{ padding: "16px", textAlign: "center", borderTop: env === "prod" ? "4px solid #e11d48" : "4px solid #38bdf8" }}>
-              <div style={{ fontSize: "13px", fontWeight: 900, marginBottom: "10px", color: "var(--title-color)" }}>🚀 送信先環境の選択</div>
+            <div className="info-panel fade-up-element" style={{ padding: "20px", textAlign: "center", borderTop: env === "prod" ? "4px solid #e11d48" : "4px solid #38bdf8", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <div style={{ fontSize: "14px", fontWeight: 900, marginBottom: "12px", color: "var(--title-color)", letterSpacing: "1px" }}>🚀 送信先環境の選択</div>
+              
+              {/* 💡 ここが修正の核心！Gridレイアウトを適用して左右均等にピタッと広げました！ */}
               <div className="env-toggle-container">
                 <input type="radio" id="envTest" name="environment" value="test" checked={env === "test"} onChange={(e) => setEnv(e.target.value)} hidden />
                 <label htmlFor="envTest" className="env-label test-label">🧪Test</label>
+                
                 <input type="radio" id="envProd" name="environment" value="prod" checked={env === "prod"} onChange={(e) => setEnv(e.target.value)} hidden />
-                <label htmlFor="envProd" className="env-label prod-label">🚨Production</label>
+                <label htmlFor="envProd" className="env-label prod-label">🚨Prod</label>
               </div>
+              
               {env === "prod" && (
-                <div style={{ marginTop: "10px", fontSize: "12px", color: "#e11d48", fontWeight: 800 }}>※成約後シートへ直接書き込まれます。ご注意ください。</div>
+                <div style={{ marginTop: "12px", fontSize: "12px", color: "#e11d48", fontWeight: 800 }}>※成約後シートへ直接書き込まれます。ご注意ください。</div>
               )}
             </div>
 
@@ -544,7 +548,9 @@ export default function BulkRegister() {
           <div className="form-main-area">
             
             <section className="glass-panel fade-up-element">
-              <div style={{ fontWeight: 900, marginBottom: "12px", color: "var(--title-color)", fontSize: "15px" }}>1. データの貼り付けと解析</div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
+                <div style={{ fontWeight: 900, color: "var(--title-color)", fontSize: "15px" }}>1. データの貼り付けと解析</div>
+              </div>
               <textarea className="paste-area" placeholder="Warpからコピーしたデータを貼り付けてください" value={rawText} onChange={(e) => setRawText(e.target.value)} />
               <button className="btn-primary" onClick={() => doParse(rawText)}>✨ 自動振り分けを実行</button>
             </section>
@@ -558,7 +564,6 @@ export default function BulkRegister() {
                 </div>
               </div>
               
-              {/* 💡 基本情報のすべての項目に「コピーボタン」を搭載しました！！！ */}
               <div className="form-grid-3">
                 <div className="input-group">
                   <div className="label-row"><label>B: リスト種別</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colB, 'リスト種別')} title="コピー">📋</button></div>
