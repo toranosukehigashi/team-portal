@@ -107,7 +107,7 @@ export default function AffiliateLinks() {
   
   // モーダル用のステート
   const [isRatesModalOpen, setIsRatesModalOpen] = useState(false);
-  const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false); // 💡 新しい案内用モーダルステート！
+  const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -125,15 +125,6 @@ export default function AffiliateLinks() {
   const showToast = (msg: string) => {
     setToast({ show: true, msg });
     setTimeout(() => setToast({ show: false, msg: "" }), 3000);
-  };
-
-  const copyToClipboard = async (text: string, successMsg: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      showToast(`📋 ${successMsg}`);
-    } catch (err) {
-      alert("コピーに失敗しました");
-    }
   };
 
   const isNone = (val: string) => {
@@ -232,7 +223,6 @@ export default function AffiliateLinks() {
           .group-tab-btn:hover { border-color: var(--accent-color); color: var(--accent-color); transform: translateY(-1px); }
           .group-tab-btn.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); box-shadow: 0 4px 10px rgba(147, 51, 234, 0.3); pointer-events: none; }
 
-          /* 💡 ヘルプボタンたち（料金表 ＆ 必須案内） */
           .help-actions { display: flex; gap: 10px; margin-left: auto; flex-wrap: wrap; }
           .rate-btn { padding: 8px 16px; border-radius: 20px; font-weight: 900; font-size: 12px; cursor: pointer; border: none; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #fff; transition: 0.3s; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3); display: flex; align-items: center; gap: 6px; }
           .rate-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(245, 158, 11, 0.5); }
@@ -269,12 +259,13 @@ export default function AffiliateLinks() {
 
           .action-area { margin-top: auto; padding-top: 6px; border-top: 1px dashed var(--input-border); display: flex; justify-content: flex-end; }
           
-          .copy-btn { border: none; border-radius: 6px; padding: 6px 10px; font-weight: 900; font-size: 10px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); color: #fff; }
-          .copy-btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+          /* 💡 コピーボタンではなく「開く」ボタンとしてのスタイル */
+          .open-link-btn { width: 100%; border: none; border-radius: 6px; padding: 6px 10px; font-weight: 900; font-size: 11px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); color: #fff; }
+          .open-link-btn:hover { transform: translateY(-1px); filter: brightness(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
 
           .empty-state { grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--text-sub); font-size: 14px; font-weight: 800; background: var(--card-bg); border-radius: 16px; border: 2px dashed var(--card-border); }
 
-          /* 💡 モーダル群のCSS */
+          /* モーダル群のCSS */
           .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px); z-index: 2000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; }
           .modal-overlay.open { opacity: 1; pointer-events: auto; }
           
@@ -292,7 +283,6 @@ export default function AffiliateLinks() {
           .rate-label { color: var(--text-sub); font-weight: 800; }
           .rate-value { color: var(--text-main); font-weight: 900; }
           
-          /* 💡 必須案内の美しいリストデザイン */
           .notice-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; }
           .notice-icon { font-size: 18px; line-height: 1; }
           .notice-text { font-size: 14px; font-weight: 800; color: var(--text-main); line-height: 1.4; }
@@ -366,7 +356,6 @@ export default function AffiliateLinks() {
                 ))}
               </div>
 
-              {/* 💡 ヘルプボタンたち（料金表＆必須案内） */}
               <div className="help-actions">
                 <button className="rate-btn" onClick={() => setIsRatesModalOpen(true)}>
                   💡 料金単価
@@ -436,13 +425,14 @@ export default function AffiliateLinks() {
                         </div>
                       </div>
 
+                      {/* 💡 コピーボタンを廃止し、「新しいタブで開く」ボタンに変更！ */}
                       <div className="action-area">
                         <button 
-                          className="copy-btn" 
+                          className="open-link-btn" 
                           style={{ backgroundColor: group.themeColor }}
-                          onClick={() => copyToClipboard(agency.url, `${agency.name}のOBJリンク`)}
+                          onClick={() => window.open(agency.url, "_blank")}
                         >
-                          📋 OBJコピー
+                          🐙 OBJはこちら
                         </button>
                       </div>
                     </div>
@@ -459,7 +449,6 @@ export default function AffiliateLinks() {
           )}
         </div>
 
-        {/* 💡 料金表モーダル */}
         <div className={`modal-overlay ${isRatesModalOpen ? "open" : ""}`} onClick={() => setIsRatesModalOpen(false)}>
           <div className="rate-modal" onClick={(e) => e.stopPropagation()}>
             <h3 className="rate-modal-title">⚡ LLオクトパス2025-06 料金単価</h3>
@@ -489,7 +478,6 @@ export default function AffiliateLinks() {
           </div>
         </div>
 
-        {/* 💡 必須案内モーダル */}
         <div className={`modal-overlay ${isNoticeModalOpen ? "open" : ""}`} onClick={() => setIsNoticeModalOpen(false)}>
           <div className="rate-modal" onClick={(e) => e.stopPropagation()}>
             <h3 className="rate-modal-title" style={{ color: "#ef4444", borderColor: "rgba(239, 68, 68, 0.3)" }}>
