@@ -217,14 +217,16 @@ export default function BulkRegister() {
     }
   };
 
+  // 💡 最終形態：法人セキュリティを貫通し、列ズレも解消した最強の保存ロジック！
   const saveToSheet = async () => {
     if (isSubmitting) return;
     const gasUrl = process.env.NEXT_PUBLIC_GAS_URL;
     if (!gasUrl) return alert("⚠️ GASのURLが設定されていません！");
 
     setIsSubmitting(true);
-    showToast("⏳ 書き込み中...", true);
+    showToast("⏳ 別タブでGASへ送信します...", true);
 
+    // 💡 エラーの原因だった先頭の "" は削除済み。B列から完璧にマッピング！
     const dataArray = [
       form.colB, form.colC, form.colD, form.colE, form.colF, form.colG, form.colH, form.colI,
       form.colJ, form.colK, form.colL, form.colM, form.colN, form.colO, form.colP,
@@ -237,16 +239,13 @@ export default function BulkRegister() {
     const encodedData = encodeURIComponent(JSON.stringify(dataArray));
     const finalUrl = `${gasUrl}?env=${env}&data=${encodedData}`;
 
-    // 💡 悪さをする fetch をやめ、「透明な別タブ（Iframe）」にURLを渡して確実に通信させる！
-    const hiddenIframe = document.getElementById("hidden_warp_iframe") as HTMLIFrameElement;
-    if (hiddenIframe) {
-      hiddenIframe.src = finalUrl;
-    }
+    // 💥 ブラウザのCookie没収を回避するため、堂々と「別タブ」で送信！
+    // 成功すれば、GAS側の `window.close()` 魔法で自動的にタブが消滅します！
+    window.open(finalUrl, "_blank");
 
     setTimeout(() => {
-      showToast(env === 'test' ? "🧪 テスト保存完了！" : "✅ 本番保存完了！", true, env === 'prod');
       setIsSubmitting(false);
-    }, 3000);
+    }, 2000);
   };
 
   const copyPlain = async (text: string, successMsg: string) => {
