@@ -150,23 +150,21 @@ export default function KpiDetailDashboard() {
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
           
-          /* 💡 ライトモードのカラーを活気ある【サンセット・オレンジ】へ大刷新！！ */
           .theme-light { 
             --bg-gradient: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%); 
             --text-main: #1e293b; --text-sub: #475569; 
             --card-bg: rgba(255, 255, 255, 0.75); --card-border: rgba(255, 255, 255, 1); 
-            --card-hover-border: #f59e0b; /* アンバー */
+            --card-hover-border: #f59e0b; 
             --card-hover-bg: rgba(255, 255, 255, 0.95); 
             --card-shadow: 0 10px 30px rgba(0,0,0,0.05); 
-            --title-color: #b45309; /* 濃いオレンジ */
-            --accent-color: #f97316; /* オレンジ */
+            --title-color: #b45309; 
+            --accent-color: #f97316; 
             --input-bg: rgba(255, 255, 255, 0.9); --input-border: rgba(203, 213, 225, 0.8); 
             --star-color: #f59e0b; 
             --nav-accent: #f97316;
             --nav-bg-hover: rgba(249, 115, 22, 0.1);
             --table-header: rgba(249, 115, 22, 0.1);
             --table-border: rgba(203, 213, 225, 0.5);
-            /* グラフ等のグラデーションカラー */
             --prog-grad: linear-gradient(90deg, #f97316, #fbbf24);
           }
           
@@ -183,7 +181,6 @@ export default function KpiDetailDashboard() {
             --nav-bg-hover: rgba(56, 189, 248, 0.2);
             --table-header: rgba(56, 189, 248, 0.1);
             --table-border: rgba(255, 255, 255, 0.1);
-            /* グラフ等のグラデーションカラー */
             --prog-grad: linear-gradient(90deg, #0ea5e9, #8b5cf6);
           }
 
@@ -238,14 +235,13 @@ export default function KpiDetailDashboard() {
           .dashboard-grid { display: grid; grid-template-columns: 350px 1fr; gap: 30px; }
           @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
-          /* 💡 進捗リングのズレを完全に修正！ */
+          /* 💡 進捗リング（上から時計回りに変更！） */
           .ring-container { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 20px; position: relative; }
-          .ring-svg { width: 200px; height: 200px; transform: rotate(-90deg); }
+          /* transform: rotate(-90deg); を削除し、正しい描画方向に！ */
+          .ring-svg { width: 200px; height: 200px; }
           .ring-bg { fill: none; stroke: var(--input-bg); stroke-width: 4; }
-          /* 💡 リングの色もテーマに合わせて変化！ */
           .ring-fill { fill: none; stroke: var(--accent-color); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: ${100 - progressPercent}; transition: 1.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
           
-          /* 💡 ここがズレの原因でした！ topとleftとtransformを追加してド真ん中に固定！ */
           .ring-text-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
           .ring-percent { font-size: 36px; font-weight: 900; color: var(--text-main); line-height: 1; }
           .ring-target { font-size: 13px; font-weight: 800; color: var(--text-sub); margin-top: 6px; }
@@ -257,7 +253,6 @@ export default function KpiDetailDashboard() {
           .op-row { margin-bottom: 16px; }
           .op-header { display: flex; justify-content: space-between; font-weight: 900; font-size: 13px; margin-bottom: 6px; color: var(--text-main); }
           .op-prog-bg { width: 100%; height: 8px; background: var(--input-bg); border-radius: 4px; overflow: hidden; border: 1px solid var(--input-border); }
-          /* 💡 プログレスバーの色もテーマに追従！ */
           .op-prog-fill { height: 100%; background: var(--prog-grad); transition: width 1.5s cubic-bezier(0.2, 0.8, 0.2, 1); border-radius: 4px; }
 
           /* クロス集計テーブル */
