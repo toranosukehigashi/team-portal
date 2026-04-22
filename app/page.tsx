@@ -134,8 +134,9 @@ export default function ThemeParkEntrance() {
   const [isCmdKOpen, setIsCmdKOpen] = useState(false);
   const [cmdKQuery, setCmdKQuery] = useState("");
 
-  const mockKpi = { current: 12, target: 20 };
-  const progressPercent = Math.min(100, Math.round((mockKpi.current / mockKpi.target) * 100));
+  // 💡 KPIデータを動的に管理するステート（初期値は0）
+  const [kpiData, setKpiData] = useState({ current: 0, target: 20 });
+  const progressPercent = kpiData.target > 0 ? Math.min(100, Math.round((kpiData.current / kpiData.target) * 100)) : 0;
 
   const callTreeBookmarks = [
     { id: 'b1', icon: '📦', title: 'データ一括取得（Warp）', copyName: 'Warp一括取得', copyUrl: 'javascript:(function(){/* 一括取得のスクリプト */ alert("Warpデータを取得しました");})();' },
@@ -143,7 +144,7 @@ export default function ThemeParkEntrance() {
     { id: 'b3', icon: '🌐', title: 'ネットトス自動入力', copyName: 'ネットトス自動入力', copyUrl: 'javascript:(function(){/* 自動入力のスクリプト */ alert("自動入力しました");})();' }
   ];
 
-  // ✨ Cmd+K インテント検索用リスト（OBJリンクポータルを追加！）
+  // ✨ Cmd+K インテント検索用リスト
   const allCmdKLinks = [
     { id: 'affiliate', name: "🔗 OBJリンクポータルを開く", desc: "各不動産会社のOBJリンク、重説フォームのコピー", url: "/affiliate-links", search: ["リンク", "アフィリエイト", "affiliate", "link", "obj", "不動産", "重説", "コピー", "ポータル", "空室", "名古屋"] },
     { id: 'sim', name: "🆚 料金シミュレーターへ移動", desc: "乗り換え費用、スマホセット割、違約金の計算", url: "/simulator", search: ["sim", "シミュレーター", "料金", "cost", "見積もり", "比較", "乗り換え", "違約金", "スマホ割", "安く", "解約金", "シミュ", "計算"] },
@@ -173,6 +174,21 @@ export default function ThemeParkEntrance() {
     }
 
     const savedNews = localStorage.getItem("team_portal_news"); if (savedNews) setNewsText(savedNews);
+
+    // 💡 KPIデータをローカルストレージから読み込むロジック！
+    const loadKpi = () => {
+      const savedKpi = localStorage.getItem("team_portal_kpi");
+      if(savedKpi) {
+        try {
+          const parsed = JSON.parse(savedKpi);
+          setKpiData({ current: Number(parsed.current) || 0, target: Number(parsed.target) || 20 });
+        } catch(e){}
+      }
+    };
+    loadKpi();
+
+    // 💡 他のタブ（kpi-detail画面など）でデータが更新されたら即座に反映！
+    window.addEventListener("storage", loadKpi);
     
     const observerTimer = setTimeout(() => {
       const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("visible"); }); }, { threshold: 0.05, rootMargin: "0px 0px 50px 0px" });
@@ -189,6 +205,7 @@ export default function ThemeParkEntrance() {
       if (readyTimeout) clearTimeout(readyTimeout);
       clearTimeout(observerTimer); 
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener("storage", loadKpi); // クリーンアップ
     };
   }, []);
 
@@ -388,7 +405,6 @@ export default function ThemeParkEntrance() {
 
           .avatar-circle { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #fde047, #f59e0b); display: flex; align-items: center; justify-content: center; color: #451a03; font-weight: 900; font-size: 18px; box-shadow: 0 0 10px rgba(250,204,21,0.5); flex-shrink: 0; }
 
-          /* 💡 カードのpaddingを減らして全体をスリム化！ */
           .magic-card { position: relative; border-radius: 20px; padding: 18px; background: var(--card-bg); backdrop-filter: blur(25px); display: flex; flex-direction: column; gap: 10px; height: 100%; cursor: pointer; box-shadow: var(--card-shadow); overflow: hidden; }
           .card-static-glow { position: absolute; inset: 0; border-radius: 20px; padding: 2px; background: linear-gradient(135deg, transparent, var(--card-hover-border), transparent); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 2; }
           .magic-card:hover .card-static-glow { opacity: 1; }
@@ -430,10 +446,6 @@ export default function ThemeParkEntrance() {
           .cmdk-hint-bar:hover { border-color: var(--card-hover-border); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
           .cmdk-shortcut { display: flex; gap: 4px; }
           .cmdk-shortcut kbd { background: var(--card-bg); border: 1px solid var(--card-border); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-family: monospace; color: var(--text-sub); }
-
-          .context-ticker { background: var(--card-bg); backdrop-filter: blur(15px); padding: 8px 20px; border-radius: 30px; border: 1px solid var(--card-border); font-size: 12px; font-weight: 800; color: var(--text-main); display: flex; gap: 15px; box-shadow: var(--card-shadow); }
-          .ticker-item { display: flex; align-items: center; gap: 6px; }
-          .ticker-divider { width: 4px; height: 4px; background: var(--card-hover-border); border-radius: 50%; opacity: 0.5; }
 
           .top-bar-actions { display: flex; gap: 15px; align-items: center; }
           .theme-toggle-btn { background: var(--card-bg); border: 1px solid var(--card-border); padding: 10px 15px; border-radius: 20px; transition: 0.3s; font-size: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); backdrop-filter: blur(8px); color: var(--text-main); cursor: pointer; }
@@ -523,7 +535,6 @@ export default function ThemeParkEntrance() {
           .popover-copy-icon { font-size: 12px; opacity: 0.6; transition: 0.2s; }
           .popover-row:hover .popover-copy-icon { opacity: 1; color: var(--accent-color); transform: scale(1.1); }
 
-          /* 💡 カードグリッド - 全体的に少し小さく圧縮！ */
           .attraction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; perspective: 1200px; align-content: flex-start; flex: 1; width: 100%; transition: 0.4s; }
           .fade-up-element { opacity: 0; transform: translateY(50px) scale(0.95); transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: var(--delay); }
           .fade-up-element.visible { opacity: 1; transform: translateY(0) scale(1); }
@@ -535,7 +546,6 @@ export default function ThemeParkEntrance() {
           .theme-dark .card-glare { background: radial-gradient(circle at center, rgba(255,255,255,0.15) 0%, transparent 60%); }
           .card-content-3d { z-index: 2; position: relative; transform: translateZ(30px); transform-style: preserve-3d; display: flex; flex-direction: column; height: 100%; pointer-events: none; }
           
-          /* 💡 フォントサイズも微調整して一覧性アップ！ */
           .attraction-name { font-size: 9px; color: var(--accent-color); font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
           .card-title { font-size: 16px; font-weight: 900; color: var(--title-color); margin: 0; line-height: 1.4; letter-spacing: 1px; transition: color 0.3s; }
           .card-desc { font-size: 11px; color: var(--text-sub); margin: 6px 0 0 0; line-height: 1.5; font-weight: 700; transform: translateZ(15px); transition: color 0.3s; flex: 1; }
@@ -553,7 +563,7 @@ export default function ThemeParkEntrance() {
           .kpi-target { font-size: 11px; font-weight: 800; color: var(--text-sub); }
           .kpi-bar-bg { width: 100%; height: 6px; background: rgba(0,0,0,0.1); border-radius: 3px; overflow: hidden; margin-top: 6px; }
           .theme-dark .kpi-bar-bg { background: rgba(255,255,255,0.1); }
-          .kpi-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #818cf8); border-radius: 3px; }
+          .kpi-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #818cf8); border-radius: 3px; transition: width 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
 
           .quick-utility { position: fixed; bottom: 40px; right: 40px; z-index: 1000; }
           .utility-fab { width: 70px; height: 70px; background: linear-gradient(135deg, #fbbf24, #d97706); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(0,0,0,0.2), inset 0 0 15px rgba(255,255,255,0.6); transition: 0.3s; font-size: 28px; border: 2px solid rgba(255,255,255,0.6); list-style: none; cursor: pointer; flex-direction: column; gap: 2px; }
@@ -690,15 +700,17 @@ export default function ThemeParkEntrance() {
             )}
 
             <div className="attraction-grid">
-              {/* 💡 ここに「OBJリンクポータル」を追加し、順序（delay）を整えました！ */}
+              <MagicCard delay={animDelayOffset + 0.5} attraction="AFFILIATE LINKS" badge="NEW" title="🔗 OBJリンクポータル" desc="各不動産会社のOBJリンクと共通重説フォームを素早くコピー。" onClick={(e: any) => { e.stopPropagation(); router.push("/affiliate-links"); }} />
+
+              {/* 💡 ここでローカルストレージと連動する kpiData を利用して進捗バーを描画！ */}
               <MagicCard delay={animDelayOffset + 0.6} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="本日の目標まであと何件か、リアルタイムで確認。" liveData={`${progressPercent}%`} sparkline={true} onClick={(e: any) => { e.stopPropagation(); router.push("/kpi-detail"); }}>
                 <div className="kpi-widget">
-                  <div className="kpi-numbers"><span className="kpi-current">{mockKpi.current}</span><span className="kpi-target">/ {mockKpi.target}件</span></div>
+                  <div className="kpi-numbers"><span className="kpi-current">{kpiData.current}</span><span className="kpi-target">/ {kpiData.target}件</span></div>
                   <div className="kpi-bar-bg"><div className="kpi-bar-fill" style={{ width: `${progressPercent}%` }}></div></div>
                 </div>
               </MagicCard>
+
               <MagicCard delay={animDelayOffset + 0.7} attraction="BULK REGISTER" title="📦 データ一括登録" desc="成約後シートに自動で書き込みます。" liveData="Ready" onClick={(e: any) => { e.stopPropagation(); router.push("/bulk-register"); }} />
-              <MagicCard delay={animDelayOffset + 0.5} attraction="AFFILIATE LINKS" badge="NEW" title="🔗 OBJリンクポータル" desc="各不動産会社のOBJリンクと共通重説フォームを素早くコピー。" onClick={(e: any) => { e.stopPropagation(); router.push("/affiliate-links"); }} />
               <MagicCard delay={animDelayOffset + 0.8} attraction="NET TOSS" title="🌐 ネットトス連携" desc="ネットトスFMTを作成します。" onClick={(e: any) => { e.stopPropagation(); router.push("/net-toss"); }} />
               <MagicCard delay={animDelayOffset + 0.9} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="自己クロFMTを作成します。" onClick={(e: any) => { e.stopPropagation(); router.push("/self-close"); }} />
               <MagicCard delay={animDelayOffset + 1.0} attraction="SMS KRAKEN" title="📱 SMS 送信" desc="Krakenを用いたSMS送信とテンプレート展開。" liveData="Active" onClick={(e: any) => { e.stopPropagation(); router.push("/sms-kraken"); }} />
