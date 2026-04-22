@@ -163,13 +163,12 @@ export default function BulkRegister() {
       else if (planRaw.includes("ゼロ")) newForm.colC = "オール電化オクトパスゼロ";
       else if (planRaw.includes("電化")) newForm.colC = "オール電化オクトパス2025-04";
       
-      // 💡 超強化版！あらゆる表記ゆれに対応した最強のリスト種別（colB）振り分け！！
       if (listRaw.includes("空室")) {
         newForm.colB = "空室通電";
-      } else if (listRaw.includes("WEB") || listRaw.includes("ウェブ")) { // "WEBクルー"も"ウェブクルー"もここでキャッチ！
+      } else if (listRaw.includes("WEB") || listRaw.includes("ウェブ")) { 
         newForm.colB = "ウェブクルー";
       } else if (listRaw.includes("その他")) {
-        newForm.colB = "引越侍その他"; // ⚠️「引越侍その他」に反応させるため、先にこれをチェック！
+        newForm.colB = "引越侍その他"; 
       } else if (listRaw.includes("名古屋")) {
         newForm.colB = "名古屋案件";
       } else if (listRaw.includes("レ点") || listRaw.includes("引越侍")) {
@@ -177,7 +176,7 @@ export default function BulkRegister() {
       } else if (listRaw.includes("SUUMO")) {
         newForm.colB = "SUUMO";
       } else {
-        newForm.colB = listRaw; // どれにも当てはまらない場合（MOMIやタクトなど）はそのまま
+        newForm.colB = listRaw; 
       }
 
       newForm.colD = lines[2] || `${new Date().getMonth() + 1}/${new Date().getDate()}`;
@@ -224,8 +223,6 @@ export default function BulkRegister() {
     }
   };
 
-  // 💡 別タブ（ポップアップ）を完全廃止し、透明なIframeで裏側通信する最強のUX
-  // 💡 真の最終形態：別タブで送信し、アプリ側から強制的にタブを抹消する！
   const saveToSheet = () => {
     if (isSubmitting) return;
     const gasUrl = process.env.NEXT_PUBLIC_GAS_URL;
@@ -249,13 +246,11 @@ export default function BulkRegister() {
     const encodedData = encodeURIComponent(JSON.stringify(dataArray));
     const finalUrl = `${gasUrl}?env=${env}&data=${encodedData}`;
 
-    // 💥 別タブを開き、そのタブの「操作権限（リモコン）」を newWindow として握っておく！
     const newWindow = window.open(finalUrl, "_blank");
 
-    // 💡 GASの処理が終わる頃（2.5秒後）に、アプリ側からリモコンの「消去ボタン」を押す！
     setTimeout(() => {
       if (newWindow) {
-        newWindow.close(); // 檻の外から強制的にタブを消滅させる！
+        newWindow.close();
       }
       showToast(env === 'test' ? "🧪 テスト送信完了！" : "✅ 本番送信完了！", true, env === 'prod');
       setIsSubmitting(false);
@@ -264,6 +259,15 @@ export default function BulkRegister() {
 
   const copyPlain = async (text: string, successMsg: string) => {
     try { await navigator.clipboard.writeText(text); showToast(successMsg, true); } catch (e) { alert("コピー失敗"); }
+  };
+
+  // 💡 QoL爆上がり機能！ワンクリックで個別の値をコピーする専用関数！
+  const handleSingleCopy = (text: string, fieldName: string) => {
+    if (!text) {
+      showToast(`⚠️ ${fieldName} は空っぽです！`, false);
+      return;
+    }
+    copyPlain(text, `📋 ${fieldName} をコピーしました！`);
   };
 
   const copyForOctopus = () => {
@@ -402,7 +406,12 @@ export default function BulkRegister() {
           @media (max-width: 600px) { .form-grid-3 { grid-template-columns: 1fr; } }
           
           .input-group { display: flex; flex-direction: column; }
-          .input-group label { font-size: 12px; font-weight: 800; color: var(--text-sub); margin-bottom: 6px; border-left: 3px solid var(--accent-color); padding-left: 8px; }
+          
+          /* 💡 コピーボタン用の新しいCSS（ここがQoL爆上がりポイント！） */
+          .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-left: 3px solid var(--accent-color); padding-left: 8px; }
+          .label-row label { font-size: 12px; font-weight: 800; color: var(--text-sub); margin: 0; }
+          .copy-btn { background: none; border: none; cursor: pointer; font-size: 14px; opacity: 0.5; transition: 0.2s; padding: 0 4px; display: flex; align-items: center; justify-content: center; }
+          .copy-btn:hover { opacity: 1; transform: scale(1.2) translateY(-2px); text-shadow: 0 2px 10px rgba(56,189,248,0.5); }
           
           .input-control { width: 100%; padding: 12px 14px; border: 1px solid var(--input-border); border-radius: 10px; font-size: 13px; background: var(--input-bg); color: var(--text-main); transition: 0.3s; font-weight: 700; outline: none; }
           .input-control:focus { border-color: var(--card-hover-border); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); background: var(--card-hover-bg); }
@@ -515,6 +524,7 @@ export default function BulkRegister() {
               <h3 className="info-title">📌 入力時の注意事項</h3>
               <ul className="info-list">
                 <li>「WarpID」が含まれたテキストをコピーすると、この画面を開いた瞬間に<b>自動でデータが反映</b>されます。</li>
+                <li>各項目の右上にある「📋」ボタンを押すと、その内容を<b>一瞬でコピー</b>できます。</li>
                 <li>郵便番号を入力すると、自動で住所が検索・補完されます。</li>
                 <li>お名前（漢字）を入力すると、自動でカナが推測入力されます。</li>
               </ul>
@@ -548,24 +558,70 @@ export default function BulkRegister() {
                 </div>
               </div>
               
+              {/* 💡 基本情報のすべての項目に「コピーボタン」を搭載しました！！！ */}
               <div className="form-grid-3">
-                <div className="input-group"><label>B: リスト種別</label><select className="input-control" name="colB" value={form.colB} onChange={handleChange} style={getStyle('colB')}><option value="">選択</option><option value="引越侍レ点有">引越侍レ点有</option><option value="SUUMO">SUUMO</option><option value="ウェブクルー">ウェブクルー</option><option value="引越侍その他">引越侍その他</option><option value="名古屋案件">名古屋案件</option><option value="MOMI">MOMI</option><option value="空室通電">空室通電</option><option value="タクト">タクト</option><option value="リスト該当なし">リスト該当なし</option></select></div>
-                <div className="input-group"><label>C: プラン名</label><select className="input-control" name="colC" value={form.colC} onChange={handleChange} style={getStyle('colC')}><option value="">選択</option><option value="シンプルオクトパス2024-10">シンプルオクトパス2024-10</option><option value="グリーンオクトパス2023-12">グリーンオクトパス2023-12</option><option value="オール電化オクトパス2025-04">オール電化オクトパス2025-04</option><option value="LLオクトパス">LLオクトパス</option><option value="オール電化オクトパスゼロ">オール電化オクトパスゼロ</option></select></div>
-                <div className="input-group"><label>D: 受付日</label><input className="input-control" type="text" name="colD" value={form.colD} onChange={handleChange} style={getStyle('colD')} /></div>
-                <div className="input-group"><label>E: 担当者</label><input className="input-control" type="text" name="colE" value={form.colE} onChange={handleChange} style={getStyle('colE')} /></div>
-                <div className="input-group"><label>F: 電話番号</label><input className="input-control" type="text" name="colF" value={form.colF} onChange={handleChange} style={getStyle('colF')} /></div>
-                <div className="input-group"><label>G: アカウント</label><input className="input-control" type="text" name="colG" value={form.colG} onChange={handleChange} style={getStyle('colG')} /></div>
-                <div className="input-group"><label>H: 姓</label><input className="input-control" type="text" name="colH" value={form.colH} onChange={handleChange} onCompositionUpdate={(e) => handleKanaUpdate(e, "colJ")} style={getStyle('colH')} /></div>
-                <div className="input-group"><label>I: 名</label><input className="input-control" type="text" name="colI" value={form.colI} onChange={handleChange} onCompositionUpdate={(e) => handleKanaUpdate(e, "colK")} style={getStyle('colI')} /></div>
-                <div className="input-group"><label>J: 姓カナ</label><input className="input-control" type="text" name="colJ" value={form.colJ} onChange={handleChange} style={getStyle('colJ')} /></div>
-                <div className="input-group"><label>K: 名カナ</label><input className="input-control" type="text" name="colK" value={form.colK} onChange={handleChange} style={getStyle('colK')} /></div>
-                <div className="input-group"><label>L: 再点日</label><input className="input-control" type="text" name="colL" value={form.colL} onChange={handleChange} style={getStyle('colL')} /></div>
-                <div className="input-group"><label>M: 郵便番号</label><input className="input-control" type="text" name="colM" value={form.colM} onChange={handleZipChange} style={getStyle('colM')} /></div>
-                <div className="input-group"><label>N: 都道府県〜番地</label><input className="input-control" type="text" name="colN" value={form.colN} onChange={handleChange} style={getStyle('colN')} /></div>
-                <div className="input-group"><label>O: 建物名・部屋</label><input className="input-control" type="text" name="colO" value={form.colO} onChange={handleChange} style={getStyle('colO')} /></div>
-                <div className="input-group"><label>P: 送付先</label><select className="input-control" name="colP" value={form.colP} onChange={handleChange} style={getStyle('colP')}><option value="">選択</option><option value="引越先">引越先</option><option value="現住所">現住所</option><option value="請求先">請求先</option></select></div>
                 <div className="input-group">
-                  <label>🏠 物件種別</label>
+                  <div className="label-row"><label>B: リスト種別</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colB, 'リスト種別')} title="コピー">📋</button></div>
+                  <select className="input-control" name="colB" value={form.colB} onChange={handleChange} style={getStyle('colB')}><option value="">選択</option><option value="引越侍レ点有">引越侍レ点有</option><option value="SUUMO">SUUMO</option><option value="ウェブクルー">ウェブクルー</option><option value="引越侍その他">引越侍その他</option><option value="名古屋案件">名古屋案件</option><option value="MOMI">MOMI</option><option value="空室通電">空室通電</option><option value="タクト">タクト</option><option value="リスト該当なし">リスト該当なし</option></select>
+                </div>
+                <div className="input-group">
+                  <div className="label-row"><label>C: プラン名</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colC, 'プラン名')} title="コピー">📋</button></div>
+                  <select className="input-control" name="colC" value={form.colC} onChange={handleChange} style={getStyle('colC')}><option value="">選択</option><option value="シンプルオクトパス2024-10">シンプルオクトパス2024-10</option><option value="グリーンオクトパス2023-12">グリーンオクトパス2023-12</option><option value="オール電化オクトパス2025-04">オール電化オクトパス2025-04</option><option value="LLオクトパス">LLオクトパス</option><option value="オール電化オクトパスゼロ">オール電化オクトパスゼロ</option></select>
+                </div>
+                <div className="input-group">
+                  <div className="label-row"><label>D: 受付日</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colD, '受付日')} title="コピー">📋</button></div>
+                  <input className="input-control" type="text" name="colD" value={form.colD} onChange={handleChange} style={getStyle('colD')} />
+                </div>
+                <div className="input-group">
+                  <div className="label-row"><label>E: 担当者</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colE, '担当者')} title="コピー">📋</button></div>
+                  <input className="input-control" type="text" name="colE" value={form.colE} onChange={handleChange} style={getStyle('colE')} />
+                </div>
+                <div className="input-group">
+                  <div className="label-row"><label>F: 電話番号</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colF, '電話番号')} title="コピー">📋</button></div>
+                  <input className="input-control" type="text" name="colF" value={form.colF} onChange={handleChange} style={getStyle('colF')} />
+                </div>
+                <div className="input-group">
+                  <div className="label-row"><label>G: アカウント</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colG, 'アカウント')} title="コピー">📋</button></div>
+                  <input className="input-control" type="text" name="colG" value={form.colG} onChange={handleChange} style={getStyle('colG')} />
+                </div>
+                <div className="input-group">
+                  <div className="label-row"><label>H: 姓</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colH, '姓')} title="コピー">📋</button></div>
+                  <input className="input-control" type="text" name="colH" value={form.colH} onChange={handleChange} onCompositionUpdate={(e) => handleKanaUpdate(e, "colJ")} style={getStyle('colH')} />
+                </div>
+                <div className="input-group">
+                  <div className="label-row"><label>I: 名</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colI, '名')} title="コピー">📋</button></div>
+                  <input className="input-control" type="text" name="colI" value={form.colI} onChange={handleChange} onCompositionUpdate={(e) => handleKanaUpdate(e, "colK")} style={getStyle('colI')} />
+                </div>
+                <div className="input-group">
+                  <div className="label-row"><label>J: 姓カナ</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colJ, '姓カナ')} title="コピー">📋</button></div>
+                  <input className="input-control" type="text" name="colJ" value={form.colJ} onChange={handleChange} style={getStyle('colJ')} />
+                </div>
+                <div className="input-group">
+                  <div className="label-row"><label>K: 名カナ</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colK, '名カナ')} title="コピー">📋</button></div>
+                  <input className="input-control" type="text" name="colK" value={form.colK} onChange={handleChange} style={getStyle('colK')} />
+                </div>
+                <div className="input-group">
+                  <div className="label-row"><label>L: 再点日</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colL, '再点日')} title="コピー">📋</button></div>
+                  <input className="input-control" type="text" name="colL" value={form.colL} onChange={handleChange} style={getStyle('colL')} />
+                </div>
+                <div className="input-group">
+                  <div className="label-row"><label>M: 郵便番号</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colM, '郵便番号')} title="コピー">📋</button></div>
+                  <input className="input-control" type="text" name="colM" value={form.colM} onChange={handleZipChange} style={getStyle('colM')} />
+                </div>
+                <div className="input-group">
+                  <div className="label-row"><label>N: 都道府県〜番地</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colN, '都道府県〜番地')} title="コピー">📋</button></div>
+                  <input className="input-control" type="text" name="colN" value={form.colN} onChange={handleChange} style={getStyle('colN')} />
+                </div>
+                <div className="input-group">
+                  <div className="label-row"><label>O: 建物名・部屋</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colO, '建物名・部屋')} title="コピー">📋</button></div>
+                  <input className="input-control" type="text" name="colO" value={form.colO} onChange={handleChange} style={getStyle('colO')} />
+                </div>
+                <div className="input-group">
+                  <div className="label-row"><label>P: 送付先</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colP, '送付先')} title="コピー">📋</button></div>
+                  <select className="input-control" name="colP" value={form.colP} onChange={handleChange} style={getStyle('colP')}><option value="">選択</option><option value="引越先">引越先</option><option value="現住所">現住所</option><option value="請求先">請求先</option></select>
+                </div>
+                <div className="input-group">
+                  <div className="label-row"><label>🏠 物件種別</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.tempPropertyType, '物件種別')} title="コピー">📋</button></div>
                   <select className="input-control" name="tempPropertyType" value={form.tempPropertyType} onChange={handleChange}>
                     <option value="">選択</option><option value="戸建て">戸建て</option><option value="集合住宅">集合住宅</option>
                   </select>
@@ -578,8 +634,14 @@ export default function BulkRegister() {
               <section className="glass-panel" style={{ marginTop: "15px" }}>
                 
                 <div className="form-grid-3">
-                  <div className="input-group"><label>Q: 郵送名義</label><input className="input-control" type="text" name="colQ" value={form.colQ} onChange={handleChange} /></div>
-                  <div className="input-group"><label>R: 連絡先番号</label><input className="input-control" type="text" name="colR" value={form.colR} onChange={handleChange} /></div>
+                  <div className="input-group">
+                    <div className="label-row"><label>Q: 郵送名義</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colQ, '郵送名義')} title="コピー">📋</button></div>
+                    <input className="input-control" type="text" name="colQ" value={form.colQ} onChange={handleChange} />
+                  </div>
+                  <div className="input-group">
+                    <div className="label-row"><label>R: 連絡先番号</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colR, '連絡先番号')} title="コピー">📋</button></div>
+                    <input className="input-control" type="text" name="colR" value={form.colR} onChange={handleChange} />
+                  </div>
                 </div>
                 
                 <div style={{ background: "rgba(229,0,126,0.05)", border: "1px dashed rgba(229,0,126,0.4)", padding: "12px", borderRadius: "12px", marginTop: "15px", marginBottom: "20px" }}>
@@ -596,24 +658,54 @@ export default function BulkRegister() {
                 <div className="special-box theme-blue">
                   <div className="special-title">🧊 ガス</div>
                   <div className="form-grid-3">
-                    <div className="input-group"><label>Z: ガス立会日</label><input className="input-control" type="text" name="colZ" value={form.colZ} onChange={handleChange} /></div>
-                    <div className="input-group"><label>AA: 希望時間帯</label><select className="input-control" name="colAA" value={form.colAA} onChange={handleChange}><option value="">選択</option><option value="1.午前中(9-12)">午前中(9-12)</option><option value="3.13-15">13-15</option><option value="5.15-17">15-17</option><option value="7.17-19(平日)">17-19(平日)</option></select></div>
-                    <div className="input-group"><label>AB: 立会者</label><input className="input-control" type="text" name="colAB" value={form.colAB} onChange={handleChange} /></div>
-                    <div className="input-group"><label>AC: 開栓場所（〒は入れない）</label><input className="input-control" type="text" name="colAC" value={form.colAC} onChange={handleChange} /></div>
-                    <div className="input-group"><label>AD: 建物区分</label><select className="input-control" name="colAD" value={form.colAD} onChange={handleChange}><option value="">選択</option><option value="戸建て（持家）">戸建て（持家）</option><option value="戸建て（賃貸）">戸建て（賃貸）</option><option value="集合住宅（持家）">集合住宅（持家）</option><option value="集合住宅（賃貸）">集合住宅（賃貸）</option></select></div>
-                    <div className="input-group"><label>AE: 新築既設</label><select className="input-control" name="colAE" value={form.colAE} onChange={handleChange}><option value="">選択</option><option value="新築">新築</option><option value="既設">既設</option></select></div>
-                    <div className="input-group"><label>AF: 支払い方法</label><select className="input-control" name="colAF" value={form.colAF} onChange={handleChange}><option value="">選択</option><option value="コンビニ">コンビニ</option><option value="口座">口座</option><option value="クレカ">クレカ</option></select></div>
-                    <div className="input-group" style={{ gridColumn: "1 / -1" }}><label>AG: 不都合時間等</label><textarea className="input-control" rows={2} name="colAG" value={form.colAG} onChange={handleChange} /></div>
+                    <div className="input-group">
+                      <div className="label-row"><label>Z: ガス立会日</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colZ, 'ガス立会日')} title="コピー">📋</button></div>
+                      <input className="input-control" type="text" name="colZ" value={form.colZ} onChange={handleChange} />
+                    </div>
+                    <div className="input-group">
+                      <div className="label-row"><label>AA: 希望時間帯</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colAA, '希望時間帯')} title="コピー">📋</button></div>
+                      <select className="input-control" name="colAA" value={form.colAA} onChange={handleChange}><option value="">選択</option><option value="1.午前中(9-12)">午前中(9-12)</option><option value="3.13-15">13-15</option><option value="5.15-17">15-17</option><option value="7.17-19(平日)">17-19(平日)</option></select>
+                    </div>
+                    <div className="input-group">
+                      <div className="label-row"><label>AB: 立会者</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colAB, '立会者')} title="コピー">📋</button></div>
+                      <input className="input-control" type="text" name="colAB" value={form.colAB} onChange={handleChange} />
+                    </div>
+                    <div className="input-group">
+                      <div className="label-row"><label>AC: 開栓場所</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colAC, '開栓場所')} title="コピー">📋</button></div>
+                      <input className="input-control" type="text" name="colAC" value={form.colAC} onChange={handleChange} />
+                    </div>
+                    <div className="input-group">
+                      <div className="label-row"><label>AD: 建物区分</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colAD, '建物区分')} title="コピー">📋</button></div>
+                      <select className="input-control" name="colAD" value={form.colAD} onChange={handleChange}><option value="">選択</option><option value="戸建て（持家）">戸建て（持家）</option><option value="戸建て（賃貸）">戸建て（賃貸）</option><option value="集合住宅（持家）">集合住宅（持家）</option><option value="集合住宅（賃貸）">集合住宅（賃貸）</option></select>
+                    </div>
+                    <div className="input-group">
+                      <div className="label-row"><label>AE: 新築既設</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colAE, '新築既設')} title="コピー">📋</button></div>
+                      <select className="input-control" name="colAE" value={form.colAE} onChange={handleChange}><option value="">選択</option><option value="新築">新築</option><option value="既設">既設</option></select>
+                    </div>
+                    <div className="input-group">
+                      <div className="label-row"><label>AF: 支払い方法</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colAF, '支払い方法')} title="コピー">📋</button></div>
+                      <select className="input-control" name="colAF" value={form.colAF} onChange={handleChange}><option value="">選択</option><option value="コンビニ">コンビニ</option><option value="口座">口座</option><option value="クレカ">クレカ</option></select>
+                    </div>
+                    <div className="input-group" style={{ gridColumn: "1 / -1" }}>
+                      <div className="label-row"><label>AG: 不都合時間等</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colAG, '不都合時間等')} title="コピー">📋</button></div>
+                      <textarea className="input-control" rows={2} name="colAG" value={form.colAG} onChange={handleChange} />
+                    </div>
                   </div>
                 </div>
 
                 <div className="special-box theme-pink">
                   <div className="special-title">💎 ネットトス</div>
                   <div className="form-grid-3">
-                    <div className="input-group"><label>AH: 獲得日</label><input className="input-control" type="text" name="colAH" value={form.colAH} onChange={handleChange} /></div>
-                    <div className="input-group"><label>AI: 対応者</label><input className="input-control" type="text" name="colAI" value={form.colAI} onChange={handleChange} /></div>
                     <div className="input-group">
-                      <label>AN: 商材</label>
+                      <div className="label-row"><label>AH: 獲得日</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colAH, '獲得日')} title="コピー">📋</button></div>
+                      <input className="input-control" type="text" name="colAH" value={form.colAH} onChange={handleChange} />
+                    </div>
+                    <div className="input-group">
+                      <div className="label-row"><label>AI: 対応者</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colAI, '対応者')} title="コピー">📋</button></div>
+                      <input className="input-control" type="text" name="colAI" value={form.colAI} onChange={handleChange} />
+                    </div>
+                    <div className="input-group">
+                      <div className="label-row"><label>AN: 商材</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colAN, '商材')} title="コピー">📋</button></div>
                       <select className="input-control" name="colAN" value={form.colAN} onChange={handleChange}>
                         <option value="">選択</option>
                         <option value="フレッツ光">フレッツ光</option><option value="ドコモ光">ドコモ光</option><option value="Softbank光">Softbank光</option>
@@ -636,7 +728,7 @@ export default function BulkRegister() {
                   <div className="special-title">🌟 対応依頼内容</div>
                   
                   <div className="input-group">
-                    <label>AP: 対応依頼内容</label>
+                    <div className="label-row"><label>AP: 対応依頼内容</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colAP, '対応依頼内容')} title="コピー">📋</button></div>
                     <div className="quick-tags">
                       <button type="button" className="tag-btn" onClick={() => addPhrase('colAP', 'ガス手配お願いします')}>➕ ガス手配</button>
                       <button type="button" className="tag-btn" onClick={() => addPhrase('colAP', '水道手配お願いします')}>➕ 水道手配</button>
@@ -650,8 +742,14 @@ export default function BulkRegister() {
                   </div>
 
                   <div className="form-grid-3" style={{ marginTop: "15px" }}>
-                    <div className="input-group"><label>AQ: 開始/最終利用日</label><input className="input-control" type="text" name="colAQ" value={form.colAQ} onChange={handleChange} /></div>
-                    <div className="input-group"><label>AR: 都道府県</label><input className="input-control" type="text" name="colAR" value={form.colAR} onChange={handleChange} /></div>
+                    <div className="input-group">
+                      <div className="label-row"><label>AQ: 開始/最終利用日</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colAQ, '開始/最終利用日')} title="コピー">📋</button></div>
+                      <input className="input-control" type="text" name="colAQ" value={form.colAQ} onChange={handleChange} />
+                    </div>
+                    <div className="input-group">
+                      <div className="label-row"><label>AR: 都道府県</label><button type="button" className="copy-btn" onClick={() => handleSingleCopy(form.colAR, '都道府県')} title="コピー">📋</button></div>
+                      <input className="input-control" type="text" name="colAR" value={form.colAR} onChange={handleChange} />
+                    </div>
                   </div>
                 </div>
 
@@ -672,8 +770,6 @@ export default function BulkRegister() {
         {/* トースト通知 */}
         <div id="toast" className={toast.show ? "show" : ""} style={{ background: toast.isProd ? "var(--error-border)" : "#0284c7" }}>{toast.msg}</div>
 
-        {/* 🥷 最強のシームレス通信：透明なIframeで裏側から静かに書き込む！ */}
-        <iframe id="hidden_warp_iframe" style={{ display: "none" }} title="hidden-warp"></iframe>
       </main>
     </>
   );
