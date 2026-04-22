@@ -23,7 +23,7 @@ const KrakenAuroraBackground = () => (
 );
 
 // ==========================================
-// 💡 TypeScriptの型定義（タブ分岐を追加！）
+// 💡 TypeScriptの型定義（サブタブ分岐を追加！）
 // ==========================================
 type StepData = {
   step: number;
@@ -33,20 +33,30 @@ type StepData = {
   aiImgDesc?: string; 
 };
 
-type ManualTab = {
+// 💡 孫階層：サブタブ（これがないと怒られます！）
+type ManualSubTab = {
   id: string;
   label: string;
   steps: StepData[];
 };
 
+// 💡 子階層：メインのタブ
+type ManualTab = {
+  id: string;
+  label: string;
+  steps?: StepData[]; 
+  subTabs?: ManualSubTab[]; // 👈 ここに「subTabs」を追加しました！
+};
+
+// 💡 親階層：マニュアル全体
 type ManualData = {
   id: string;
   icon: string;
   title: string;
   desc: string;
   badge?: string;
-  steps?: StepData[]; // 単一ルートの場合はコッチ
-  tabs?: ManualTab[]; // 💡 分岐がある場合はコッチを使う！
+  steps?: StepData[]; 
+  tabs?: ManualTab[]; 
 };
 
 // ==========================================
@@ -111,29 +121,36 @@ const MANUAL_DATA: ManualData[] = [
     icon: "📍",
     title: "住所変更＆SPIN入力",
     desc: "供給先住所の変更と、SPIN（供給地点特定番号）の入力手順です。\nお客様の状況（SPINの有無）に合わせてタブを選択してください。",
-    // 💡 ここが分岐（タブ）の書き方です！！「steps」の代わりに「tabs」を使います！
     tabs: [
       {
-        id: "with-spin-minor",
-        label: "✅ SPINあり (軽微な修正)",
-        steps: [
-          { step: 1, title: "顧客情報の確認", content: "「プロパティタブ」の「使用場所情報」を押し、「🔧」の「設備情報を編集」を押す", imgUrl: "/with-spin1.png" },
-          { step: 2, title: "システムの入力欄へ", content: "「address」「building name」「郵便番号」を編集し「保存」押して終了。", imgUrl: "/with-spin2.png" }
-        ]
-      },
-      {
-        id: "with-spin-major",
+        id: "with-spin",
         label: "✅ SPINありの場合",
-        steps: [
-          { step: 1, title: "顧客情報の確認", content: "「プロパティタブ」の「使用場所情報」を押し、「🔧」の「設備情報を編集」を押す", imgUrl: "/with-spin1.png" },
-          { step: 2, title: "システムの入力欄へ", content: "「address」「building name」「郵便番号」を編集し「保存」押して終了。", imgUrl: "/with-spin2.png" },
-          { step: 3, title: "※大幅な住所変更の場合は以下作業も追加で必ず行ってください！（番地入力ミスでなく部屋番号ごと違うとか）", content: "「詳細タブ」の「申請」の「🔧」から「電気再点の作成」を押す。", imgUrl: "/with-spin3.png" },
-          { step: 4, title: "変更・修正", content: "正しい「供給地点特定番号」と「Product」を入力。（状況に応じて「接続供給開始年月日」まで）", imgUrl: "/with-spin4.png" }
+        // 💡 「SPINあり」の中に、さらに「軽微」と「大幅」のサブタブを作る！
+        subTabs: [
+          {
+            id: "minor",
+            label: "🔹 軽微な修正",
+            steps: [
+              { step: 1, title: "顧客情報の確認", content: "「プロパティタブ」の「使用場所情報」を押し、「🔧」の「設備情報を編集」を押す", imgUrl: "/with-spin1.png" },
+              { step: 2, title: "システムの入力欄へ", content: "「address」「building name」「郵便番号」を編集し「保存」押して終了。", imgUrl: "/with-spin2.png" }
+            ]
+          },
+          {
+            id: "major",
+            label: "⚠️ 大幅な変更",
+            steps: [
+              { step: 1, title: "顧客情報の確認", content: "「プロパティタブ」の「使用場所情報」を押し、「🔧」の「設備情報を編集」を押す", imgUrl: "/with-spin1.png" },
+              { step: 2, title: "システムの入力欄へ", content: "「address」「building name」「郵便番号」を編集し「保存」押して終了。", imgUrl: "/with-spin2.png" },
+              { step: 3, title: "※大幅な住所変更の場合は以下作業も追加で必ず行ってください！（番地入力ミスでなく部屋番号ごと違うとか）", content: "「詳細タブ」の「申請」の「🔧」から「電気再点の作成」を押す。", imgUrl: "/with-spin3.png" },
+              { step: 4, title: "変更・修正", content: "正しい「供給地点特定番号」と「Product」を入力。（状況に応じて「接続供給開始年月日」まで）", imgUrl: "/with-spin4.png" }
+            ]
+          }
         ]
       },
       {
         id: "no-spin",
         label: "❌ SPINなしの場合",
+        // 💡 「SPINなし」は分岐がないので、そのまま steps を書く！
         steps: [
           { step: 1, title: "顧客情報の確認", content: "「詳細タブ」の「申請」の「ID」を押す。", imgUrl: "/no-spin1.png" },
           { step: 2, title: "再点申し込み ユーザー提供の詳細", content: "「再点処理」の「🔧」を押し、「供給地点特定番号を入力する」を押す", imgUrl: "/no-spin2.png" },
