@@ -52,7 +52,7 @@ const MagicCard = ({ title, attraction, desc, delay, onClick, badge, children, l
         <div className="card-wave-bg"></div>
         <div className="card-content-3d">
           {badge && <span className="badge-new">{badge}</span>}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
             <div className="attraction-name">{attraction}</div>
             {liveData && <div className="live-badge">{liveData}</div>}
           </div>
@@ -143,8 +143,9 @@ export default function ThemeParkEntrance() {
     { id: 'b3', icon: '🌐', title: 'ネットトス自動入力', copyName: 'ネットトス自動入力', copyUrl: 'javascript:(function(){/* 自動入力のスクリプト */ alert("自動入力しました");})();' }
   ];
 
-  // ✨ Cmd+K インテント（意図）検索用リスト（エリア判定を削除！）
+  // ✨ Cmd+K インテント検索用リスト（OBJリンクポータルを追加！）
   const allCmdKLinks = [
+    { id: 'affiliate', name: "🔗 OBJリンクポータルを開く", desc: "各不動産会社のOBJリンク、重説フォームのコピー", url: "/affiliate-links", search: ["リンク", "アフィリエイト", "affiliate", "link", "obj", "不動産", "重説", "コピー", "ポータル", "空室", "名古屋"] },
     { id: 'sim', name: "🆚 料金シミュレーターへ移動", desc: "乗り換え費用、スマホセット割、違約金の計算", url: "/simulator", search: ["sim", "シミュレーター", "料金", "cost", "見積もり", "比較", "乗り換え", "違約金", "スマホ割", "安く", "解約金", "シミュ", "計算"] },
     { id: 'toss', name: "🌐 ネットトス連携へ移動", desc: "フレッツ・光コラボ等の回線手配・情報送信", url: "/net-toss", search: ["toss", "トス", "ネット", "net", "フレッツ", "ドコモ光", "ソフトバンク光", "光コラボ", "事業者変更", "転用", "新規", "回線", "手配"] },
     { id: 'kraken', name: "🐙 Kraken マニュアルを開く", desc: "SMS送信、テンプレート、手続きの業務手順書", url: "/procedure-wizard", search: ["kraken", "マニュアル", "手順", "manual", "sms", "送信", "雛形", "テンプレ", "案内", "やり方", "ルール", "規定"] },
@@ -301,7 +302,7 @@ export default function ThemeParkEntrance() {
         <div className="custom-modal cmdk-modal" onClick={(e) => e.stopPropagation()}>
           <form onSubmit={handleCmdKSearch} style={{display: "flex", alignItems: "center", borderBottom: "1px solid var(--card-border)", paddingBottom: "15px", marginBottom: "15px"}}>
             <span style={{fontSize: "24px", marginRight: "15px"}}>🔍</span>
-            <input type="text" autoFocus={isCmdKOpen} placeholder="例: フレッツ、乗り換え、メモ..." className="cmdk-input" value={cmdKQuery} onChange={(e) => setCmdKQuery(e.target.value)} />
+            <input type="text" autoFocus={isCmdKOpen} placeholder="例: フレッツ、リンク、メモ..." className="cmdk-input" value={cmdKQuery} onChange={(e) => setCmdKQuery(e.target.value)} />
             <span className="cmdk-esc" onClick={() => setIsCmdKOpen(false)}>ESC</span>
           </form>
           <div className="cmdk-list">
@@ -387,8 +388,9 @@ export default function ThemeParkEntrance() {
 
           .avatar-circle { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #fde047, #f59e0b); display: flex; align-items: center; justify-content: center; color: #451a03; font-weight: 900; font-size: 18px; box-shadow: 0 0 10px rgba(250,204,21,0.5); flex-shrink: 0; }
 
-          .magic-card { position: relative; border-radius: 28px; padding: 25px; background: var(--card-bg); backdrop-filter: blur(25px); display: flex; flex-direction: column; gap: 12px; height: 100%; cursor: pointer; box-shadow: var(--card-shadow); overflow: hidden; }
-          .card-static-glow { position: absolute; inset: 0; border-radius: 28px; padding: 2px; background: linear-gradient(135deg, transparent, var(--card-hover-border), transparent); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 2; }
+          /* 💡 カードのpaddingを減らして全体をスリム化！ */
+          .magic-card { position: relative; border-radius: 20px; padding: 18px; background: var(--card-bg); backdrop-filter: blur(25px); display: flex; flex-direction: column; gap: 10px; height: 100%; cursor: pointer; box-shadow: var(--card-shadow); overflow: hidden; }
+          .card-static-glow { position: absolute; inset: 0; border-radius: 20px; padding: 2px; background: linear-gradient(135deg, transparent, var(--card-hover-border), transparent); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 2; }
           .magic-card:hover .card-static-glow { opacity: 1; }
 
           .fluid-card { animation: fluidFloat 6s ease-in-out infinite alternate; }
@@ -471,7 +473,7 @@ export default function ThemeParkEntrance() {
           @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
           /* ✨ 3カラムレイアウト */
-          .main-layout { display: flex; gap: 25px; margin-bottom: 50px; align-items: flex-start; justify-content: center; }
+          .main-layout { display: flex; gap: 20px; margin-bottom: 50px; align-items: flex-start; justify-content: center; }
           .info-sidebar-wrapper { width: 280px; flex-shrink: 0; transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s; overflow: visible; position: relative; z-index: 50; }
           .info-sidebar-wrapper.collapsed { width: 0px; opacity: 0; pointer-events: none; overflow: hidden; }
           
@@ -521,7 +523,8 @@ export default function ThemeParkEntrance() {
           .popover-copy-icon { font-size: 12px; opacity: 0.6; transition: 0.2s; }
           .popover-row:hover .popover-copy-icon { opacity: 1; color: var(--accent-color); transform: scale(1.1); }
 
-          .attraction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; perspective: 1200px; align-content: flex-start; flex: 1; width: 100%; transition: 0.4s; }
+          /* 💡 カードグリッド - 全体的に少し小さく圧縮！ */
+          .attraction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; perspective: 1200px; align-content: flex-start; flex: 1; width: 100%; transition: 0.4s; }
           .fade-up-element { opacity: 0; transform: translateY(50px) scale(0.95); transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: var(--delay); }
           .fade-up-element.visible { opacity: 1; transform: translateY(0) scale(1); }
           .magic-card-wrapper.visible:hover { transform: translateY(0) scale(1.02); z-index: 10; }
@@ -532,24 +535,25 @@ export default function ThemeParkEntrance() {
           .theme-dark .card-glare { background: radial-gradient(circle at center, rgba(255,255,255,0.15) 0%, transparent 60%); }
           .card-content-3d { z-index: 2; position: relative; transform: translateZ(30px); transform-style: preserve-3d; display: flex; flex-direction: column; height: 100%; pointer-events: none; }
           
-          .attraction-name { font-size: 10px; color: var(--accent-color); font-weight: 900; letter-spacing: 3px; text-transform: uppercase; }
-          .card-title { font-size: 18px; font-weight: 900; color: var(--title-color); margin: 0; line-height: 1.4; letter-spacing: 1px; transition: color 0.3s; }
-          .card-desc { font-size: 12px; color: var(--text-sub); margin: 8px 0 0 0; line-height: 1.6; font-weight: 700; transform: translateZ(15px); transition: color 0.3s; flex: 1; }
-          .card-custom-inner { margin-top: 15px; transform: translateZ(25px); pointer-events: auto; }
+          /* 💡 フォントサイズも微調整して一覧性アップ！ */
+          .attraction-name { font-size: 9px; color: var(--accent-color); font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
+          .card-title { font-size: 16px; font-weight: 900; color: var(--title-color); margin: 0; line-height: 1.4; letter-spacing: 1px; transition: color 0.3s; }
+          .card-desc { font-size: 11px; color: var(--text-sub); margin: 6px 0 0 0; line-height: 1.5; font-weight: 700; transform: translateZ(15px); transition: color 0.3s; flex: 1; }
+          .card-custom-inner { margin-top: 12px; transform: translateZ(25px); pointer-events: auto; }
           
-          .badge-new { position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; font-size: 10px; font-weight: 900; padding: 4px 12px; border-radius: 20px; z-index: 3; box-shadow: 0 5px 15px rgba(225,29,72,0.5); letter-spacing: 2px; }
+          .badge-new { position: absolute; top: -8px; right: -8px; background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; font-size: 9px; font-weight: 900; padding: 4px 10px; border-radius: 20px; z-index: 3; box-shadow: 0 5px 15px rgba(225,29,72,0.5); letter-spacing: 1px; }
 
-          .live-badge { font-size: 10px; font-weight: 900; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; gap: 4px; animation: pulseGreen 2s infinite; }
-          .live-badge::before { content:''; width:6px; height:6px; background:#10b981; border-radius:50%; }
+          .live-badge { font-size: 9px; font-weight: 900; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 3px 6px; border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; gap: 4px; animation: pulseGreen 2s infinite; }
+          .live-badge::before { content:''; width:5px; height:5px; background:#10b981; border-radius:50%; }
           @keyframes pulseGreen { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
 
-          .kpi-widget { background: var(--kpi-bg); padding: 12px; border-radius: 16px; border: 1px solid var(--card-border); transition: 0.5s; pointer-events: auto; }
-          .kpi-numbers { display: flex; align-items: baseline; gap: 5px; margin-bottom: 6px; }
-          .kpi-current { font-size: 24px; font-weight: 900; color: #38bdf8; }
-          .kpi-target { font-size: 13px; font-weight: 800; color: var(--text-sub); }
-          .kpi-bar-bg { width: 100%; height: 8px; background: rgba(0,0,0,0.1); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+          .kpi-widget { background: var(--kpi-bg); padding: 10px; border-radius: 12px; border: 1px solid var(--card-border); transition: 0.5s; pointer-events: auto; }
+          .kpi-numbers { display: flex; align-items: baseline; gap: 5px; margin-bottom: 4px; }
+          .kpi-current { font-size: 20px; font-weight: 900; color: #38bdf8; }
+          .kpi-target { font-size: 11px; font-weight: 800; color: var(--text-sub); }
+          .kpi-bar-bg { width: 100%; height: 6px; background: rgba(0,0,0,0.1); border-radius: 3px; overflow: hidden; margin-top: 6px; }
           .theme-dark .kpi-bar-bg { background: rgba(255,255,255,0.1); }
-          .kpi-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #818cf8); border-radius: 4px; }
+          .kpi-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #818cf8); border-radius: 3px; }
 
           .quick-utility { position: fixed; bottom: 40px; right: 40px; z-index: 1000; }
           .utility-fab { width: 70px; height: 70px; background: linear-gradient(135deg, #fbbf24, #d97706); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(0,0,0,0.2), inset 0 0 15px rgba(255,255,255,0.6); transition: 0.3s; font-size: 28px; border: 2px solid rgba(255,255,255,0.6); list-style: none; cursor: pointer; flex-direction: column; gap: 2px; }
@@ -686,22 +690,25 @@ export default function ThemeParkEntrance() {
             )}
 
             <div className="attraction-grid">
-              <MagicCard delay={animDelayOffset + 0.5} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="本日の目標まであと何件か、リアルタイムで確認。" liveData={`${progressPercent}% Achieved`} sparkline={true} onClick={(e: any) => { e.stopPropagation(); router.push("/kpi-detail"); }}>
+              {/* 💡 ここに「OBJリンクポータル」を追加し、順序（delay）を整えました！ */}
+              <MagicCard delay={animDelayOffset + 0.5} attraction="AFFILIATE LINKS" badge="NEW" title="🔗 OBJリンクポータル" desc="各不動産会社のOBJリンクと共通重説フォームを素早くコピー。" onClick={(e: any) => { e.stopPropagation(); router.push("/affiliate-links"); }} />
+
+              <MagicCard delay={animDelayOffset + 0.6} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="本日の目標まであと何件か、リアルタイムで確認。" liveData={`${progressPercent}%`} sparkline={true} onClick={(e: any) => { e.stopPropagation(); router.push("/kpi-detail"); }}>
                 <div className="kpi-widget">
                   <div className="kpi-numbers"><span className="kpi-current">{mockKpi.current}</span><span className="kpi-target">/ {mockKpi.target}件</span></div>
                   <div className="kpi-bar-bg"><div className="kpi-bar-fill" style={{ width: `${progressPercent}%` }}></div></div>
                 </div>
               </MagicCard>
 
-              <MagicCard delay={animDelayOffset + 0.6} attraction="BULK REGISTER" title="📦 データ一括登録" desc="成約後シートに自動で書き込みます。" liveData="Ready" onClick={(e: any) => { e.stopPropagation(); router.push("/bulk-register"); }} />
-              <MagicCard delay={animDelayOffset + 0.7} attraction="NET TOSS" title="🌐 ネットトス連携" desc="ネットトスFMTを作成します。" onClick={(e: any) => { e.stopPropagation(); router.push("/net-toss"); }} />
-              <MagicCard delay={animDelayOffset + 0.8} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="自己クロFMTを作成します。" onClick={(e: any) => { e.stopPropagation(); router.push("/self-close"); }} />
-              <MagicCard delay={animDelayOffset + 0.9} attraction="SMS KRAKEN" title="📱 SMS 送信" desc="Krakenを用いたSMS送信とテンプレート展開。" liveData="System Active" onClick={(e: any) => { e.stopPropagation(); router.push("/sms-kraken"); }} />
-              <MagicCard delay={animDelayOffset + 1.0} attraction="EMAIL TEMPLATE" title="✉️ メールテンプレ" desc="用途に応じたメール文面を素早く作成。" onClick={(e: any) => { e.stopPropagation(); router.push("/email-template"); }} />
-              <MagicCard delay={animDelayOffset + 1.1} attraction="KRAKEN MANUAL" title="🐙 Kraken マニュアル" badge="NEW" desc="様々なイレギュラーに対応できます。" onClick={(e: any) => { e.stopPropagation(); router.push("/procedure-wizard"); }} />
-              <MagicCard delay={animDelayOffset + 1.2} attraction="COST SIMULATOR" title="🆚 料金シミュレーター" badge="NEW" desc="利用状況などをもとに、回線を提案します。" liveData="Avg. ¥4,200/mo" onClick={(e: any) => { e.stopPropagation(); router.push("/simulator"); }} />
+              <MagicCard delay={animDelayOffset + 0.7} attraction="BULK REGISTER" title="📦 データ一括登録" desc="成約後シートに自動で書き込みます。" liveData="Ready" onClick={(e: any) => { e.stopPropagation(); router.push("/bulk-register"); }} />
+              <MagicCard delay={animDelayOffset + 0.8} attraction="NET TOSS" title="🌐 ネットトス連携" desc="ネットトスFMTを作成します。" onClick={(e: any) => { e.stopPropagation(); router.push("/net-toss"); }} />
+              <MagicCard delay={animDelayOffset + 0.9} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="自己クロFMTを作成します。" onClick={(e: any) => { e.stopPropagation(); router.push("/self-close"); }} />
+              <MagicCard delay={animDelayOffset + 1.0} attraction="SMS KRAKEN" title="📱 SMS 送信" desc="Krakenを用いたSMS送信とテンプレート展開。" liveData="Active" onClick={(e: any) => { e.stopPropagation(); router.push("/sms-kraken"); }} />
+              <MagicCard delay={animDelayOffset + 1.1} attraction="EMAIL TEMPLATE" title="✉️ メールテンプレ" desc="用途に応じたメール文面を素早く作成。" onClick={(e: any) => { e.stopPropagation(); router.push("/email-template"); }} />
+              <MagicCard delay={animDelayOffset + 1.2} attraction="KRAKEN MANUAL" title="🐙 Kraken マニュアル" desc="様々なイレギュラーに対応できます。" onClick={(e: any) => { e.stopPropagation(); router.push("/procedure-wizard"); }} />
+              <MagicCard delay={animDelayOffset + 1.3} attraction="COST SIMULATOR" title="🆚 料金シミュレーター" desc="利用状況などをもとに、回線を提案します。" liveData="Avg. ¥4,200" onClick={(e: any) => { e.stopPropagation(); router.push("/simulator"); }} />
 
-              <MagicCard delay={animDelayOffset + 1.3} attraction="QUICK MEMO" title="🍯 クイックメモ" desc="通話中などの一時的な情報を置いておくメモパッド。" onClick={(e: any) => { e.stopPropagation(); setIsMemoOpen(true); }}>
+              <MagicCard delay={animDelayOffset + 1.4} attraction="QUICK MEMO" title="🍯 クイックメモ" desc="通話中などの一時的な情報を置いておくメモパッド。" onClick={(e: any) => { e.stopPropagation(); setIsMemoOpen(true); }}>
                 {memoText ? (
                   <div className="util-result" style={{marginTop:0, padding:"10px", fontSize:"11px", opacity: 0.8}}>
                     {memoText.length > 20 ? memoText.substring(0, 20) + "..." : memoText}
