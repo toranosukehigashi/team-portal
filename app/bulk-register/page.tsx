@@ -35,8 +35,6 @@ export default function BulkRegister() {
   const [errors, setErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  // ☀️ テーマ管理
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // 💡 フォームデータ
@@ -74,17 +72,11 @@ export default function BulkRegister() {
     const targetId = id || name;
     
     setForm(prev => {
-      const nextForm = { 
-        ...prev, 
-        [targetId]: type === "checkbox" ? checked : value 
-      };
-
-      // 💡 ネット（colU）にチェックを入れた瞬間、AH列（獲得日）に今日の日付を自動入力！
+      const nextForm = { ...prev, [targetId]: type === "checkbox" ? checked : value };
       if (targetId === "colU" && type === "checkbox" && checked) {
         const d = new Date();
         nextForm.colAH = `${d.getMonth() + 1}/${d.getDate()}`;
       }
-
       return nextForm;
     });
 
@@ -93,7 +85,6 @@ export default function BulkRegister() {
     }
   };
 
-  // 💡 クイックタグ（ワンクリック入力）の機能を追加！
   const addPhrase = (targetId: string, text: string) => {
     setForm(prev => {
       const currentValue = prev[targetId as keyof typeof prev] as string;
@@ -128,7 +119,7 @@ export default function BulkRegister() {
     };
     window.addEventListener("focus", checkWarpData);
     return () => window.removeEventListener("focus", checkWarpData);
-  }, []);
+  }, [form]);
 
   const handleZipChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     handleChange(e); 
@@ -172,7 +163,23 @@ export default function BulkRegister() {
       else if (planRaw.includes("ゼロ")) newForm.colC = "オール電化オクトパスゼロ";
       else if (planRaw.includes("電化")) newForm.colC = "オール電化オクトパス2025-04";
       
-      newForm.colB = listRaw.includes("レ点") || listRaw.includes("引越侍") ? "引越侍レ点有" : (listRaw.includes("SUUMO") ? "SUUMO" : listRaw);
+      // 💡 超強化版！あらゆる表記ゆれに対応した最強のリスト種別（colB）振り分け！！
+      if (listRaw.includes("空室")) {
+        newForm.colB = "空室通電";
+      } else if (listRaw.includes("WEB") || listRaw.includes("ウェブ")) { // "WEBクルー"も"ウェブクルー"もここでキャッチ！
+        newForm.colB = "ウェブクルー";
+      } else if (listRaw.includes("その他")) {
+        newForm.colB = "引越侍その他"; // ⚠️「引越侍その他」に反応させるため、先にこれをチェック！
+      } else if (listRaw.includes("名古屋")) {
+        newForm.colB = "名古屋案件";
+      } else if (listRaw.includes("レ点") || listRaw.includes("引越侍")) {
+        newForm.colB = "引越侍レ点有";
+      } else if (listRaw.includes("SUUMO")) {
+        newForm.colB = "SUUMO";
+      } else {
+        newForm.colB = listRaw; // どれにも当てはまらない場合（MOMIやタクトなど）はそのまま
+      }
+
       newForm.colD = lines[2] || `${new Date().getMonth() + 1}/${new Date().getDate()}`;
       newForm.colE = lines[3]; newForm.colF = lines[4]; newForm.colG = lines[5];
       newForm.colH = lines[6]; newForm.colI = lines[7]; newForm.colJ = lines[8];
@@ -217,19 +224,15 @@ export default function BulkRegister() {
     }
   };
 
-  // 💡 最終奥義：ポップアップブロックを確実にすり抜け、法人セキュリティも突破する最強保存ロジック！
-  const saveToSheet = () => {
+  // 💡 別タブ（ポップアップ）を完全廃止し、透明なIframeで裏側通信する最強のUX
+  const saveToSheet = async () => {
     if (isSubmitting) return;
     const gasUrl = process.env.NEXT_PUBLIC_GAS_URL;
-    if (!gasUrl) {
-      alert("⚠️ Vercelの環境変数(NEXT_PUBLIC_GAS_URL)が読み込めていません！Redeployしてください！");
-      return;
-    }
+    if (!gasUrl) return alert("⚠️ GASのURLが設定されていません！");
 
     setIsSubmitting(true);
-    showToast("⏳ 別タブでGASへ送信します...", true);
+    showToast("⏳ スプレッドシートへ送信中...", true);
 
-    // 💡 列のズレは完璧に修正済み！B列からスプレッドシートに一直線にマッピング！
     const dataArray = [
       form.colB, form.colC, form.colD, form.colE, form.colF, form.colG, form.colH, form.colI,
       form.colJ, form.colK, form.colL, form.colM, form.colN, form.colO, form.colP,
@@ -239,32 +242,19 @@ export default function BulkRegister() {
       form.colAQ, form.colAR
     ];
 
-    // 💥 ブラウザのポップアップブロックを100%すり抜ける「透明フォーム送信魔法」！
-    const submitForm = document.createElement('form');
-    submitForm.action = gasUrl;
-    submitForm.method = 'GET';
-    submitForm.target = '_blank'; // 絶対に別タブで開く！
+    const encodedData = encodeURIComponent(JSON.stringify(dataArray));
+    const finalUrl = `${gasUrl}?env=${env}&data=${encodedData}`;
 
-    const inputEnv = document.createElement('input');
-    inputEnv.type = 'hidden';
-    inputEnv.name = 'env';
-    inputEnv.value = env;
-    submitForm.appendChild(inputEnv);
-
-    const inputData = document.createElement('input');
-    inputData.type = 'hidden';
-    inputData.name = 'data';
-    inputData.value = JSON.stringify(dataArray); // URIエンコードはブラウザが自動でやってくれる！
-    submitForm.appendChild(inputData);
-
-    // 画面の裏側に一瞬だけフォームを設置して、即座に送信ボタンを「押したこと」にする！
-    document.body.appendChild(submitForm);
-    submitForm.submit(); 
-    document.body.removeChild(submitForm);
+    // 画面の一番下にある透明な iframe にURLを渡し、ユーザーに見えない裏側で静かにGASを叩く！
+    const hiddenIframe = document.getElementById("hidden_warp_iframe") as HTMLIFrameElement;
+    if (hiddenIframe) {
+      hiddenIframe.src = finalUrl;
+    }
 
     setTimeout(() => {
+      showToast(env === 'test' ? "🧪 テスト保存完了！" : "✅ 本番保存完了！", true, env === 'prod');
       setIsSubmitting(false);
-    }, 2000);
+    }, 2500); // 2.5秒でローディング状態を解除
   };
 
   const copyPlain = async (text: string, successMsg: string) => {
@@ -598,7 +588,6 @@ export default function BulkRegister() {
                   </div>
                 </div>
 
-                {/* 🧊 ガス専用ボックス */}
                 <div className="special-box theme-blue">
                   <div className="special-title">🧊 ガス</div>
                   <div className="form-grid-3">
@@ -613,7 +602,6 @@ export default function BulkRegister() {
                   </div>
                 </div>
 
-                {/* 💎 ネットトス専用ボックス */}
                 <div className="special-box theme-pink">
                   <div className="special-title">💎 ネットトス</div>
                   <div className="form-grid-3">
@@ -639,7 +627,6 @@ export default function BulkRegister() {
                   </div>
                 </div>
 
-                {/* 🌟 対応依頼内容専用ボックス */}
                 <div className="special-box theme-purple">
                   <div className="special-title">🌟 対応依頼内容</div>
                   
@@ -669,7 +656,7 @@ export default function BulkRegister() {
           </div>
         </div>
 
-        {/* 固定フッター */}
+        {/* 固定フッター（アクションボタン） */}
         <div className="save-footer">
           <button className="btn-footer btn-footer-oct" onClick={copyForOctopus}>🐙 OBJ用にコピー</button>
           <button className="btn-footer btn-footer-save" onClick={saveToSheet} disabled={isSubmitting}>
@@ -680,6 +667,7 @@ export default function BulkRegister() {
         {/* トースト通知 */}
         <div id="toast" className={toast.show ? "show" : ""} style={{ background: toast.isProd ? "var(--error-border)" : "#0284c7" }}>{toast.msg}</div>
 
+        {/* 🥷 最強のシームレス通信：透明なIframeで裏側から静かに書き込む！ */}
         <iframe id="hidden_warp_iframe" style={{ display: "none" }} title="hidden-warp"></iframe>
       </main>
     </>
