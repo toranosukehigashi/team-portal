@@ -225,7 +225,7 @@ export default function BulkRegister() {
   };
 
   // 💡 別タブ（ポップアップ）を完全廃止し、透明なIframeで裏側通信する最強のUX
-  // 💡 最終奥義：法人セキュリティとサードパーティCookieブロックを回避する「Form偽装別タブ送信」！
+  // 💡 真の最終形態：別タブで送信し、アプリ側から強制的にタブを抹消する！
   const saveToSheet = () => {
     if (isSubmitting) return;
     const gasUrl = process.env.NEXT_PUBLIC_GAS_URL;
@@ -246,33 +246,20 @@ export default function BulkRegister() {
       form.colAQ, form.colAR
     ];
 
-    // 💥 ブラウザのセキュリティ（Iframe拒否）を突破するため、Formを作って別タブで送信！
-    const submitForm = document.createElement('form');
-    submitForm.action = gasUrl;
-    submitForm.method = 'GET';
-    submitForm.target = '_blank'; // 👈 ここが超重要！絶対に別タブで開く！
+    const encodedData = encodeURIComponent(JSON.stringify(dataArray));
+    const finalUrl = `${gasUrl}?env=${env}&data=${encodedData}`;
 
-    const inputEnv = document.createElement('input');
-    inputEnv.type = 'hidden';
-    inputEnv.name = 'env';
-    inputEnv.value = env;
-    submitForm.appendChild(inputEnv);
+    // 💥 別タブを開き、そのタブの「操作権限（リモコン）」を newWindow として握っておく！
+    const newWindow = window.open(finalUrl, "_blank");
 
-    const inputData = document.createElement('input');
-    inputData.type = 'hidden';
-    inputData.name = 'data';
-    inputData.value = JSON.stringify(dataArray);
-    submitForm.appendChild(inputData);
-
-    // 画面の裏側に一瞬だけフォームを設置して、送信ボタンを押したことにする！
-    document.body.appendChild(submitForm);
-    submitForm.submit(); 
-    document.body.removeChild(submitForm);
-
+    // 💡 GASの処理が終わる頃（2.5秒後）に、アプリ側からリモコンの「消去ボタン」を押す！
     setTimeout(() => {
+      if (newWindow) {
+        newWindow.close(); // 檻の外から強制的にタブを消滅させる！
+      }
       showToast(env === 'test' ? "🧪 テスト送信完了！" : "✅ 本番送信完了！", true, env === 'prod');
       setIsSubmitting(false);
-    }, 2000);
+    }, 2500); 
   };
 
   const copyPlain = async (text: string, successMsg: string) => {
