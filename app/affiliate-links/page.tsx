@@ -199,7 +199,7 @@ export default function AffiliateLinks() {
           /* メインレイアウト */
           .main-container { max-width: 1300px; margin: 0 auto; }
           
-          /* 検索パネル - よりコンパクトに */
+          /* 検索パネル */
           .control-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 16px; padding: 16px; box-shadow: var(--card-shadow); margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
           .search-input { width: 100%; padding: 12px 16px; font-size: 14px; border: 2px solid var(--input-border); border-radius: 12px; background: var(--input-bg); color: var(--text-main); font-weight: 700; outline: none; transition: 0.3s; }
           .search-input:focus { border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2); }
@@ -215,12 +215,17 @@ export default function AffiliateLinks() {
           .filter-checkbox { display: flex; align-items: center; gap: 4px; cursor: pointer; font-weight: 800; font-size: 12px; color: var(--text-sub); }
           .filter-checkbox input { width: 14px; height: 14px; accent-color: var(--accent-color); cursor: pointer; }
 
-          /* グループセクション */
+          /* 💡 グループセクション（ここに重説リンクを移動！） */
           .group-section { margin-bottom: 30px; }
-          .group-section-title { font-size: 16px; font-weight: 900; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: var(--title-color); padding-bottom: 6px; border-bottom: 1px dashed var(--card-border); }
+          .group-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px dashed var(--card-border); padding-bottom: 8px; flex-wrap: wrap; gap: 10px; }
+          .group-section-title { font-size: 16px; font-weight: 900; display: flex; align-items: center; gap: 8px; color: var(--title-color); margin: 0; }
           .group-color-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px currentColor; }
+          
+          /* グループ共通の重説リンクボタン（開く） */
+          .group-terms-btn { background: linear-gradient(135deg, #10b981, #059669); color: #fff; text-decoration: none; padding: 8px 16px; border-radius: 12px; font-weight: 900; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); transition: 0.2s; }
+          .group-terms-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.5); }
 
-          /* 💡 カードグリッド - 限界まで詰め込んでスクロールをなくす！ */
+          /* カードグリッド */
           .links-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
           
           .agency-card { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 10px; transition: 0.2s; }
@@ -231,7 +236,6 @@ export default function AffiliateLinks() {
 
           .area-badge { font-size: 10px; font-weight: 800; background: var(--card-hover-bg); color: var(--accent-color); padding: 2px 8px; border-radius: 12px; border: 1px solid var(--card-hover-border); display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
 
-          /* 💡 詳細情報の美しいグリッド（極限圧縮版） */
           .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 2px 0; background: rgba(0,0,0,0.02); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--input-border); }
           .theme-dark .details-grid { background: rgba(255,255,255,0.03); }
           
@@ -240,20 +244,13 @@ export default function AffiliateLinks() {
           .detail-value { font-weight: 900; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
           .detail-value.none { color: var(--text-sub); opacity: 0.4; font-weight: 600; text-decoration: line-through; }
 
-          /* アクションボタン - 細く押しやすく！ */
-          .action-area { margin-top: auto; padding-top: 10px; border-top: 1px dashed var(--input-border); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-          
-          .copy-btn { border: none; border-radius: 8px; padding: 8px; font-weight: 900; font-size: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+          /* アクションボタン - OBJリンクを全幅に！ */
+          .action-area { margin-top: auto; padding-top: 10px; border-top: 1px dashed var(--input-border); }
+          .copy-btn { width: 100%; border: none; border-radius: 8px; padding: 10px; font-weight: 900; font-size: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
           .copy-btn:hover { transform: translateY(-1px); }
-          
           .btn-obj { background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #fff; }
           .btn-obj:hover { box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4); }
           
-          .btn-terms { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
-          .btn-terms:hover { box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); }
-          
-          .btn-full { grid-column: 1 / -1; }
-
           .empty-state { grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--text-sub); font-size: 14px; font-weight: 800; background: var(--card-bg); border-radius: 16px; border: 2px dashed var(--card-border); }
 
           #toast { visibility: hidden; min-width: 250px; background: #10b981; color: #fff; text-align: center; border-radius: 10px; padding: 12px 20px; position: fixed; z-index: 100; right: 24px; bottom: 30px; font-size: 13px; font-weight: bold; transition: 0.3s; box-shadow: 0 8px 20px rgba(0,0,0,0.2); opacity: 0; transform: translateY(20px); }
@@ -339,10 +336,24 @@ export default function AffiliateLinks() {
 
             return (
               <div key={group.id} className="group-section">
-                <h2 className="group-section-title fade-up-element">
-                  <span className="group-color-dot" style={{ color: group.themeColor, backgroundColor: group.themeColor }}></span>
-                  {group.name}
-                </h2>
+                
+                {/* 💡 グループタイトルの横に「共通重説フォーム」を開くリンクを配置！ */}
+                <div className="group-header-row fade-up-element">
+                  <h2 className="group-section-title">
+                    <span className="group-color-dot" style={{ color: group.themeColor, backgroundColor: group.themeColor }}></span>
+                    {group.name}
+                  </h2>
+                  {group.explanationLink && (
+                    <a 
+                      href={group.explanationLink} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="group-terms-btn"
+                    >
+                      🚨 共通重説フォームを開く
+                    </a>
+                  )}
+                </div>
                 
                 <div className="links-grid">
                   {groupAgencies.map((agency, index) => (
@@ -375,22 +386,21 @@ export default function AffiliateLinks() {
                         </div>
                       </div>
 
+                      {agency.note && (
+                        <div className="info-row">
+                          <span className="info-label">📝 備考</span>
+                          <span className="info-value">{agency.note}</span>
+                        </div>
+                      )}
+
+                      {/* 💡 ボタンは「OBJリンク」専用になり、超押しやすい全幅サイズに！ */}
                       <div className="action-area">
                         <button 
-                          className={`copy-btn btn-obj ${!group.explanationLink ? "btn-full" : ""}`} 
+                          className="copy-btn btn-obj" 
                           onClick={() => copyToClipboard(agency.url, `${agency.name}のOBJリンク`)}
                         >
-                          🐙 OBJリンク
+                          📋 OBJリンクをコピー
                         </button>
-                        
-                        {group.explanationLink && (
-                          <button 
-                            className="copy-btn btn-terms" 
-                            onClick={() => copyToClipboard(group.explanationLink, `${group.name}の重説リンク`)}
-                          >
-                            🚨 重説リンク
-                          </button>
-                        )}
                       </div>
                     </div>
                   ))}
