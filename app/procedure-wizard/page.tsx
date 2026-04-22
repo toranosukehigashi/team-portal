@@ -23,7 +23,7 @@ const KrakenAuroraBackground = () => (
 );
 
 // ==========================================
-// 💡 TypeScriptの型定義（サブタブ分岐を追加！）
+// 💡 TypeScriptの型定義（権限管理を追加！）
 // ==========================================
 type StepData = {
   step: number;
@@ -53,7 +53,8 @@ type ManualData = {
   desc: string;
   badge?: string;
   steps?: StepData[]; 
-  tabs?: ManualTab[]; 
+  tabs?: ManualTab[];
+  allowedUsers?: string[]; // 💡 追加：閲覧を許可するユーザーIDのリスト！
 };
 
 // ==========================================
@@ -107,10 +108,26 @@ const MANUAL_DATA: ManualData[] = [
     id: "inv-address",
     icon: "❌",
     title: "無効なアドレス対処法",
-    desc: "送信エラー（バウンス）になったメールアドレスの修正手順です。",
-    steps: [
-      { step: 1, title: "エラーログの確認", content: "バウンスログから「無効なアドレス」であることを確認します。", imgUrl: "", aiImgDesc: "エラーログ詳細画面。" },
-      { step: 2, title: "お客様への連絡と修正", content: "お客様に確認し、正しいアドレスに修正してシステムを上書きします。", imgUrl: "", aiImgDesc: "アドレス修正画面。" }
+    badge: "極秘", // 💡 分かりやすいようにバッジをつけました
+    desc: "OBJでメアドエラーになったときの対処法です。この方法はOBJ時点では違うアドレスで一旦登録してしまうので自己責任でw",
+    allowedUsers: ["admin_higashi", "master_user"], // 💡 ここが魔法の鍵！このIDの人にしかメニューが表示されなくなります！
+    tabs: [
+      {
+        id: "has-other",
+        label: "✅ 別のメアドあり",
+        steps: [
+          { step: 1, title: "ダミー登録", content: "まずは用意した別のメールアドレスで一旦OBJを完了させます。", imgUrl: "" },
+          { step: 2, title: "アドレスの修正", content: "完了後、正しいアドレスにシステム上で上書き修正します。", imgUrl: "" }
+        ]
+      },
+      {
+        id: "no-other",
+        label: "❌ 別のメアドなし",
+        steps: [
+          { step: 1, title: "架空アドレスの生成", content: "一時的な対応として、存在しない架空のアドレスを入力します。（自己責任！）", imgUrl: "" },
+          { step: 2, title: "エラー回避処理", content: "バウンスエラーが出る前に、システム上で正しい状態にリカバリーします。", imgUrl: "" }
+        ]
+      }
     ]
   },
   {
@@ -159,23 +176,31 @@ const MANUAL_DATA: ManualData[] = [
 export default function ProcedureWizard() {
   const router = useRouter();
 
+  // 💡 【重要】現在のログインユーザーID（※実際のアプリではログイン情報から取得します！）
+  // ここを "guest" などにすると、「無効なアドレス対処法」が完全に消滅します！
+  const CURRENT_USER_ID = "admin_higashi"; 
+
+  // 💡 ユーザーの権限に合わせて、メニューに表示するマニュアルを絞り込む！
+  const visibleManuals = MANUAL_DATA.filter(manual => {
+    if (!manual.allowedUsers) return true; // 制限が書いてなければ誰でも見れる
+    return manual.allowedUsers.includes(CURRENT_USER_ID); // 制限がある場合はIDが一致する人のみ！
+  });
+
   const [isReady, setIsReady] = useState(false);
-  const [activeManualId, setActiveManualId] = useState(MANUAL_DATA[0].id);
+  const [activeManualId, setActiveManualId] = useState(visibleManuals[0]?.id || "");
   const [expandedSteps, setExpandedSteps] = useState<number[]>([1]); 
   
   const [activeTabId, setActiveTabId] = useState<string>("");
-  // 💡 不足していた「サブタブ用」のステートを追加！
   const [activeSubTabId, setActiveSubTabId] = useState<string>(""); 
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [toast, setToast] = useState({ show: false, msg: "", type: "success" });
 
-  const activeManual = MANUAL_DATA.find(m => m.id === activeManualId) || MANUAL_DATA[0];
+  const activeManual = MANUAL_DATA.find(m => m.id === activeManualId) || visibleManuals[0];
 
-  // 💡 マニュアルが切り替わった時に「サブタブ」も初期化する！
   useEffect(() => {
-    if (activeManual.tabs && activeManual.tabs.length > 0) {
+    if (activeManual?.tabs && activeManual.tabs.length > 0) {
       const firstTab = activeManual.tabs[0];
       setActiveTabId(firstTab.id);
       if(firstTab.subTabs && firstTab.subTabs.length > 0) {
@@ -190,11 +215,10 @@ export default function ProcedureWizard() {
     setExpandedSteps([1]);
   }, [activeManualId, activeManual]);
 
-  // 💡 今表示すべきSTEPを「サブタブの中」からも探し出せるように修正！
-  const currentTab = activeManual.tabs?.find(t => t.id === activeTabId);
+  const currentTab = activeManual?.tabs?.find(t => t.id === activeTabId);
   const currentSteps = currentTab?.subTabs
     ? currentTab.subTabs.find(st => st.id === activeSubTabId)?.steps || []
-    : currentTab?.steps || activeManual.steps || [];
+    : currentTab?.steps || activeManual?.steps || [];
 
   useEffect(() => {
     setIsReady(true);
@@ -210,7 +234,7 @@ export default function ProcedureWizard() {
       clearTimeout(timeoutId);
       observer.disconnect();
     };
-  }, [activeManualId, activeTabId, activeSubTabId]); // アニメーション監視対象にサブタブも追加
+  }, [activeManualId, activeTabId, activeSubTabId]);
 
   const toggleStep = (stepNumber: number) => {
     setExpandedSteps(prev => 
@@ -227,6 +251,8 @@ export default function ProcedureWizard() {
     setToast({ show: true, msg, type });
     setTimeout(() => setToast({ show: false, msg: "", type: "success" }), 3000);
   };
+
+  if (!activeManual) return <div style={{color: "white", padding: "50px"}}>表示できるマニュアルがありません。</div>;
 
   return (
     <div className={`procedure-wrapper ${isDarkMode ? "theme-dark" : "theme-light"}`} style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", color: "var(--text-main)", zIndex: 9999, overflowX: "hidden", overflowY: "auto", margin: 0, padding: 0, fontFamily: "'Inter', 'Noto Sans JP', sans-serif" }}>
@@ -316,13 +342,11 @@ export default function ProcedureWizard() {
         .m-title { font-size: 28px; font-weight: 900; color: var(--title-color); margin: 0 0 10px 0; display: flex; align-items: center; gap: 12px; }
         .m-desc { color: var(--text-sub); font-size: 14px; font-weight: 700; line-height: 1.6; margin: 0; white-space: pre-wrap; }
 
-        /* 💡 メインタブ切り替えボタン */
         .tab-switcher { display: flex; gap: 10px; background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); padding: 8px; border-radius: 16px; box-shadow: var(--card-shadow); margin-bottom: 5px; }
         .tab-btn { flex: 1; padding: 14px; border-radius: 12px; border: none; background: transparent; color: var(--text-sub); font-weight: 900; font-size: 15px; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px; }
         .tab-btn:hover { background: rgba(255,255,255,0.05); color: var(--accent-color); }
         .tab-btn.active { background: var(--accent-color); color: #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.2); pointer-events: none; }
 
-        /* 💡 不足していた「サブタブ用」のデザインCSSを追加！ */
         .sub-tab-switcher { display: flex; gap: 10px; margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 6px; border-radius: 12px; }
         .theme-light .sub-tab-switcher { background: rgba(0,0,0,0.05); }
         .sub-tab-btn { flex: 1; padding: 10px; border-radius: 8px; border: none; background: transparent; color: var(--text-sub); font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.3s; text-align: center; }
@@ -358,17 +382,14 @@ export default function ProcedureWizard() {
         .fade-up-element.visible { opacity: 1; transform: translateY(0); }
       `}} />
 
-      {/* 🍔 ハンバーガーボタン */}
       <div className={`hamburger-btn ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
         <div className="hamburger-line line1"></div>
         <div className="hamburger-line line2"></div>
         <div className="hamburger-line line3"></div>
       </div>
 
-      {/* 🌌 メニュー展開時の背景オーバーレイ */}
       <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
 
-      {/* 🗄️ サイドメニュー */}
       <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
         <div className="menu-title-sidebar">🧭 TOOL MENU</div>
         <a href="/kpi-detail" className="side-link">📊 獲得進捗・KPI</a>
@@ -384,7 +405,6 @@ export default function ProcedureWizard() {
 
       <main className={`app-wrapper ${isReady ? "ready" : ""}`}>
         
-        {/* 🎈 ナビゲーション & テーマ切り替え */}
         <div className="glass-nav-wrapper fade-up-element">
           <div className="glass-nav">
             <div className="nav-left">
@@ -399,10 +419,10 @@ export default function ProcedureWizard() {
 
         <div className="layout-grid">
           
-          {/* 左側：カテゴリーメニュー */}
+          {/* 💡 カテゴリー一覧を「制限突破したマニュアル（visibleManuals）」だけで作る！ */}
           <div className="categories-menu fade-up-element" style={{ transitionDelay: "0.1s" }}>
             <h3 style={{fontSize:"11px", color:"var(--text-sub)", fontWeight:900, letterSpacing:"2px", margin:"0 0 10px 10px"}}>CATEGORIES</h3>
-            {MANUAL_DATA.map(manual => (
+            {visibleManuals.map(manual => (
               <div 
                 key={manual.id} 
                 className={`menu-item ${activeManualId === manual.id ? "active" : ""}`}
@@ -415,14 +435,12 @@ export default function ProcedureWizard() {
             ))}
           </div>
 
-          {/* 右側：マニュアルコンテンツ */}
           <div className="content-panel">
             <div className="manual-header fade-up-element" style={{ transitionDelay: "0.2s" }}>
               <h2 className="m-title"><span style={{fontSize: "32px"}}>{activeManual.icon}</span> {activeManual.title}</h2>
               <p className="m-desc">{activeManual.desc}</p>
             </div>
 
-            {/* 💡 メインタブが存在する場合は表示 */}
             {activeManual.tabs && (
               <div className="tab-switcher fade-up-element" style={{ transitionDelay: "0.25s" }}>
                 {activeManual.tabs.map(tab => (
@@ -445,7 +463,6 @@ export default function ProcedureWizard() {
               </div>
             )}
 
-            {/* 💡 不足していた「サブタブのボタン」を表示する仕組みを追加！ */}
             {currentTab?.subTabs && (
               <div className="sub-tab-switcher fade-up-element" style={{ transitionDelay: "0.28s" }}>
                 {currentTab.subTabs.map(subTab => (
@@ -460,7 +477,6 @@ export default function ProcedureWizard() {
               </div>
             )}
 
-            {/* 💡 選択中のSTEPリストを展開 */}
             {currentSteps.map((step, index) => {
               const isOpen = expandedSteps.includes(step.step);
               return (
