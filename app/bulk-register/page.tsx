@@ -217,16 +217,17 @@ export default function BulkRegister() {
     }
   };
 
-  // 💡 原因特定のための「強制デバッグ版」saveToSheet
   const saveToSheet = async () => {
     if (isSubmitting) return;
     const gasUrl = process.env.NEXT_PUBLIC_GAS_URL;
-    if (!gasUrl || gasUrl === "undefined") {
-      return alert("⚠️ Vercelの環境変数(NEXT_PUBLIC_GAS_URL)が空っぽです！！設定を確認してください！");
-    }
+    if (!gasUrl) return alert("⚠️ GASのURLが設定されていません！");
 
+    setIsSubmitting(true);
+    showToast("⏳ 書き込み中...", true);
+
+    // 💡 悪さの元凶だった先頭の "" を削除し、colB(0番目) からスタートするように戻しました！
     const dataArray = [
-      "", form.colB, form.colC, form.colD, form.colE, form.colF, form.colG, form.colH, form.colI,
+      form.colB, form.colC, form.colD, form.colE, form.colF, form.colG, form.colH, form.colI,
       form.colJ, form.colK, form.colL, form.colM, form.colN, form.colO, form.colP,
       form.colQ, form.colR, "", "", form.colU ? "TRUE" : "", form.colV ? "TRUE" : "", form.colW ? "TRUE" : "", form.colX ? "TRUE" : "", form.colY ? "TRUE" : "",
       form.colZ, form.colAA, form.colAB, form.colAC, form.colAD, form.colAE, form.colAF, form.colAG,
@@ -234,11 +235,19 @@ export default function BulkRegister() {
       form.colAQ, form.colAR
     ];
 
-    const encodedData = encodeURIComponent(JSON.stringify(dataArray));
-    const finalUrl = `${gasUrl}?env=${env}&data=${encodedData}`;
+    try {
+      const encodedData = encodeURIComponent(JSON.stringify(dataArray));
+      const finalUrl = `${gasUrl}?env=${env}&data=${encodedData}`;
 
-    // 💥 魔法発動：裏で通信するのではなく、ブラウザの「別タブ」で直接GASを開いてエラーを見る！！
-    window.open(finalUrl, "_blank");
+      // 💡 エラーを出さずに美しい裏側通信（fetch）を実行！
+      await fetch(finalUrl, { mode: 'no-cors' });
+
+      showToast(env === 'test' ? "🧪 テスト保存完了！" : "✅ 本番保存完了！", true, env === 'prod');
+    } catch (err) {
+      alert("❌ 送信に失敗しました。");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const copyPlain = async (text: string, successMsg: string) => {
