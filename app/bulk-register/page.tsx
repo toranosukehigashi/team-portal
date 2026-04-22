@@ -225,13 +225,17 @@ export default function BulkRegister() {
   };
 
   // 💡 別タブ（ポップアップ）を完全廃止し、透明なIframeで裏側通信する最強のUX
-  const saveToSheet = async () => {
+  // 💡 最終奥義：法人セキュリティとサードパーティCookieブロックを回避する「Form偽装別タブ送信」！
+  const saveToSheet = () => {
     if (isSubmitting) return;
     const gasUrl = process.env.NEXT_PUBLIC_GAS_URL;
-    if (!gasUrl) return alert("⚠️ GASのURLが設定されていません！");
+    if (!gasUrl) {
+      alert("⚠️ Vercelの環境変数(NEXT_PUBLIC_GAS_URL)が設定されていません！");
+      return;
+    }
 
     setIsSubmitting(true);
-    showToast("⏳ スプレッドシートへ送信中...", true);
+    showToast("⏳ GASへ送信中...", true);
 
     const dataArray = [
       form.colB, form.colC, form.colD, form.colE, form.colF, form.colG, form.colH, form.colI,
@@ -242,19 +246,33 @@ export default function BulkRegister() {
       form.colAQ, form.colAR
     ];
 
-    const encodedData = encodeURIComponent(JSON.stringify(dataArray));
-    const finalUrl = `${gasUrl}?env=${env}&data=${encodedData}`;
+    // 💥 ブラウザのセキュリティ（Iframe拒否）を突破するため、Formを作って別タブで送信！
+    const submitForm = document.createElement('form');
+    submitForm.action = gasUrl;
+    submitForm.method = 'GET';
+    submitForm.target = '_blank'; // 👈 ここが超重要！絶対に別タブで開く！
 
-    // 画面の一番下にある透明な iframe にURLを渡し、ユーザーに見えない裏側で静かにGASを叩く！
-    const hiddenIframe = document.getElementById("hidden_warp_iframe") as HTMLIFrameElement;
-    if (hiddenIframe) {
-      hiddenIframe.src = finalUrl;
-    }
+    const inputEnv = document.createElement('input');
+    inputEnv.type = 'hidden';
+    inputEnv.name = 'env';
+    inputEnv.value = env;
+    submitForm.appendChild(inputEnv);
+
+    const inputData = document.createElement('input');
+    inputData.type = 'hidden';
+    inputData.name = 'data';
+    inputData.value = JSON.stringify(dataArray);
+    submitForm.appendChild(inputData);
+
+    // 画面の裏側に一瞬だけフォームを設置して、送信ボタンを押したことにする！
+    document.body.appendChild(submitForm);
+    submitForm.submit(); 
+    document.body.removeChild(submitForm);
 
     setTimeout(() => {
-      showToast(env === 'test' ? "🧪 テスト保存完了！" : "✅ 本番保存完了！", true, env === 'prod');
+      showToast(env === 'test' ? "🧪 テスト送信完了！" : "✅ 本番送信完了！", true, env === 'prod');
       setIsSubmitting(false);
-    }, 2500); // 2.5秒でローディング状態を解除
+    }, 2000);
   };
 
   const copyPlain = async (text: string, successMsg: string) => {
