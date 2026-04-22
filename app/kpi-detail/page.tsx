@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import SideMenu from "@/app/components/SideMenu"; // 💡 共通メニューを呼び出し！
 
 // ✨ 背景の光の粒
 const PixieDust = () => {
@@ -62,7 +63,7 @@ export default function KpiDetailDashboard() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const [toast, setToast] = useState({ show: false, msg: "" });
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // 💡 isMenuOpen は SideMenu 側に移動したので削除しました！
   const [isDarkMode, setIsDarkMode] = useState(true);
 
   const GAS_API_URL = "https://script.google.com/a/macros/octopusenergy.co.jp/s/AKfycbxT82SG21OPZUdP2Ix7RG4PYi9qv3KCJNJ81hF3DgFRZATdkp7EpcxpkRBajGJ7RrJBsw/exec";
@@ -191,22 +192,7 @@ export default function KpiDetailDashboard() {
           .star { position: absolute; border-radius: 50%; background: var(--star-color); box-shadow: 0 0 10px var(--star-color); animation: twinkle 4s infinite ease-in-out; }
           @keyframes twinkle { 0% { opacity: 0.1; transform: scale(0.5) translateY(0); } 50% { opacity: 1; transform: scale(1.2) translateY(-20px); } 100% { opacity: 0.1; transform: scale(0.5) translateY(0); } }
 
-          /* ナビ＆メニュー */
-          .hamburger-btn { position: fixed; top: 15px; left: 15px; z-index: 1001; background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--card-border); border-radius: 8px; padding: 8px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; box-shadow: var(--card-shadow); transition: 0.3s; }
-          .hamburger-btn:hover { background: var(--card-hover-bg); transform: scale(1.05); }
-          .hamburger-line { width: 18px; height: 2px; background: var(--text-sub); border-radius: 2px; transition: 0.4s; }
-          .hamburger-btn.open .line1 { transform: translateY(6px) rotate(45deg); background: var(--nav-accent); }
-          .hamburger-btn.open .line2 { opacity: 0; }
-          .hamburger-btn.open .line3 { transform: translateY(-6px) rotate(-45deg); background: var(--nav-accent); }
-          
-          .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
-          .menu-overlay.open { opacity: 1; pointer-events: auto; }
-          
-          .side-menu { position: fixed; top: 0; left: -280px; width: 260px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s; padding: 70px 16px 20px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; }
-          .side-menu.open { left: 0; }
-          .menu-title { font-size: 11px; font-weight: 900; color: var(--text-sub); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed var(--card-border); letter-spacing: 1px; }
-          .side-link { text-decoration: none; padding: 10px 14px; border-radius: 8px; background: var(--input-bg); color: var(--text-main); font-weight: 800; border: 1px solid var(--card-border); transition: 0.2s; display: flex; align-items: center; gap: 8px; font-size: 12px;}
-          .side-link.current-page { background: var(--prog-grad); color: #fff; border: none; pointer-events: none; }
+          /* 💡 古いハンバーガーメニューのCSS残骸をここから完全に削除しました！ */
           
           .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 30px; }
           .glass-nav { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 10px 16px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 20px; box-shadow: var(--card-shadow); max-width: 900px; width: 100%; }
@@ -235,9 +221,8 @@ export default function KpiDetailDashboard() {
           .dashboard-grid { display: grid; grid-template-columns: 350px 1fr; gap: 30px; }
           @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
-          /* 💡 進捗リング（上から時計回りに変更！） */
+          /* 進捗リング */
           .ring-container { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 20px; position: relative; }
-          /* transform: rotate(-90deg); を削除し、正しい描画方向に！ */
           .ring-svg { width: 200px; height: 200px; }
           .ring-bg { fill: none; stroke: var(--input-bg); stroke-width: 4; }
           .ring-fill { fill: none; stroke: var(--accent-color); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: ${100 - progressPercent}; transition: 1.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
@@ -278,21 +263,8 @@ export default function KpiDetailDashboard() {
           .fade-up-element.visible { opacity: 1; transform: translateY(0); }
         `}} />
 
-        <div className={`hamburger-btn ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
-          <div className="hamburger-line line1"></div><div className="hamburger-line line2"></div><div className="hamburger-line line3"></div>
-        </div>
-        <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
-        
-        <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
-          <div className="menu-title">🧭 TOOL MENU</div>
-          <a href="/kpi-detail" className="side-link current-page">📊 獲得進捗・KPI</a>
-          <a href="/bulk-register" className="side-link">📦 データ一括登録</a>
-          <a href="/net-toss" className="side-link">🌐 ネットトス連携</a>
-          <a href="/self-close" className="side-link">🤝 自己クロ連携</a>
-          <a href="/sms-kraken" className="side-link">📱 SMS送信</a>
-          <a href="/procedure-wizard" className="side-link">🗺️ 手順辞書</a>
-          <a href="/affiliate-links" className="side-link">🔗 OBJリンクポータル</a>
-        </div>
+        {/* 💡 ここに共通化されたメニューコンポーネントをポンと置くだけ！！！ */}
+        <SideMenu />
 
         <div className="glass-nav-wrapper fade-up-element">
           <div className="glass-nav">

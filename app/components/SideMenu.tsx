@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 // 💡 ここを編集するだけで、全ページのメニューが一撃で切り替わります！！
 const MENU_ITEMS = [
   { href: "/", icon: "🏠", label: "司令室 (HOME)" },
-  { href: "/affiliate-links", icon: "🔗", label: "OBJリンクポータル" },
+  { href: "/affiliate-links", icon: "🔗", label: "アフィリエイトリンク" },
   { href: "/kpi-detail", icon: "📊", label: "獲得進捗・KPI" },
   { href: "/bulk-register", icon: "📦", label: "データ一括登録" },
   { href: "/net-toss", icon: "🌐", label: "ネットトス連携" },
