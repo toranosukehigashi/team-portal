@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import AuthGuard from "./AuthGuard"; // 🛡️ 先ほど作った鉄壁の門番を呼び出す！
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,7 +21,12 @@ export default function RootLayout({
     <html lang="ja">
       <body className={inter.className}>
         {/* ✨ 激重だったカスタムカーソルを完全に消し去りました！これで動作は超サクサクです！ */}
-        {children}
+        
+        {/* 🛡️ アプリのすべてを門番で包み込む！これで全ページに一撃で鍵がかかる！ */}
+        <AuthGuard>
+          {children}
+        </AuthGuard>
+        
       </body>
     </html>
   );
