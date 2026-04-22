@@ -34,13 +34,13 @@ const AGENCY_GROUPS: AgencyGroup[] = [
   { 
     id: "nagoya", 
     name: "名古屋案件", 
-    themeColor: "#0ea5e9", // 鮮やかなブルー
+    themeColor: "#9333ea", // 鮮やかなパープル（紫）
     explanationLink: "https://forms.gle/hEiC6B61ctNy7F3U6" 
   },
   { 
     id: "vacant", 
     name: "空室通電", 
-    themeColor: "#10b981", // エメラルドグリーン
+    themeColor: "#14b8a6", // ミントグリーン（Teal系）
     explanationLink: "https://docs.google.com/forms/d/1i7OHDzZxShImK9E3TnjjAs5yIciWk8pZbc5YOjPSY1k/viewform?edit_requested=true" 
   }
 ];
@@ -62,7 +62,7 @@ type AgencyLink = {
 };
 
 const AGENCY_DATA: AgencyLink[] = [
-  // 🟦 名古屋案件 (1~15)
+  // 🟪 名古屋案件 (1~15)
   { id: "1", groupId: "nagoya", name: "My賃貸", url: "https://octopusenergy.co.jp/affiliate/05-ryosukehirokawa", gas: "TOKAI", water: "名古屋市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
   { id: "2", groupId: "nagoya", name: "春風不動産", url: "https://octopusenergy.co.jp/affiliate/03-ryosukehirokawa", gas: "東 邦", water: "名古屋市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
   { id: "3", groupId: "nagoya", name: "エステートプラス", url: "https://octopusenergy.co.jp/affiliate/04-ryosukehirokawa", gas: "TOKAI", water: "名古屋市水道局", net: "Wiz", ws: "プレミアムウォーター", area: "中部電力", note: "" },
@@ -105,19 +105,13 @@ export default function AffiliateLinks() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // 絞り込みフィルター用
-  const [filterGas, setFilterGas] = useState(false);
-  const [filterWater, setFilterWater] = useState(false);
-  const [filterNet, setFilterNet] = useState(false);
-  const [filterWs, setFilterWs] = useState(false);
-
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("visible"); });
     }, { threshold: 0.1 });
     document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, [searchTerm, filterGas, filterWater, filterNet, filterWs, activeGroupFilter]);
+  }, [searchTerm, activeGroupFilter]);
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
@@ -142,7 +136,7 @@ export default function AffiliateLinks() {
     return val === "なし" || val === "ー" || val === "NO" || val === "";
   };
 
-  // 高度な絞り込みロジック
+  // 高度な絞り込みロジック（チェックボックス分を削除しスッキリ！）
   const filteredData = AGENCY_DATA.filter(item => {
     const searchLower = searchTerm.toLowerCase();
     const matchSearch = item.name.toLowerCase().includes(searchLower) || 
@@ -152,12 +146,7 @@ export default function AffiliateLinks() {
     
     const matchGroup = activeGroupFilter === "all" || item.groupId === activeGroupFilter;
 
-    const matchGas = filterGas ? !isNone(item.gas) : true;
-    const matchWater = filterWater ? !isNone(item.water) : true;
-    const matchNet = filterNet ? !isNone(item.net) : true;
-    const matchWs = filterWs ? !isNone(item.ws) : true;
-
-    return matchSearch && matchGroup && matchGas && matchWater && matchNet && matchWs;
+    return matchSearch && matchGroup;
   });
 
   return (
@@ -167,9 +156,32 @@ export default function AffiliateLinks() {
       <main className={`app-wrapper ${isDarkMode ? "theme-dark" : "theme-light"}`}>
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
-          .theme-light { --bg-gradient: linear-gradient(180deg, #7dd3fc 0%, #e0f2fe 100%); --text-main: #1e293b; --text-sub: #475569; --card-bg: rgba(255, 255, 255, 0.7); --card-border: rgba(255, 255, 255, 1); --card-hover-border: #38bdf8; --card-hover-bg: rgba(255, 255, 255, 0.95); --card-shadow: 0 10px 30px rgba(0,0,0,0.05); --title-color: #0369a1; --accent-color: #0ea5e9; --input-bg: rgba(255, 255, 255, 0.9); --input-border: rgba(203, 213, 225, 0.8); --star-color: #f59e0b; }
-          .theme-dark { --bg-gradient: radial-gradient(ellipse at bottom, #1e1b4b 0%, #020617 100%); --text-main: #f8fafc; --text-sub: #cbd5e1; --card-bg: rgba(15, 23, 42, 0.7); --card-border: rgba(255, 255, 255, 0.15); --card-hover-border: #38bdf8; --card-hover-bg: rgba(30, 41, 59, 0.9); --card-shadow: 0 20px 50px rgba(0,0,0,0.8); --title-color: #fde047; --accent-color: #38bdf8; --input-bg: rgba(0, 0, 0, 0.4); --input-border: rgba(255, 255, 255, 0.2); --star-color: #fef08a; }
-          .app-wrapper { min-height: 100vh; padding: 20px 20px 80px 20px; font-family: 'Inter', sans-serif; color: var(--text-main); font-size: 13px; position: relative; }
+          
+          /* 💡 背景色を「パープル〜ミント」の美しいグラデーションへ変更！ */
+          .theme-light { 
+            --bg-gradient: linear-gradient(135deg, #f4f4f9 0%, #e9d5ff 50%, #ccfbf1 100%); 
+            --text-main: #1e293b; --text-sub: #475569; 
+            --card-bg: rgba(255, 255, 255, 0.75); --card-border: rgba(255, 255, 255, 1); 
+            --card-hover-border: #a855f7; --card-hover-bg: rgba(255, 255, 255, 0.95); 
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+            --title-color: #4c1d95; --accent-color: #9333ea; 
+            --input-bg: rgba(255, 255, 255, 0.9); --input-border: rgba(203, 213, 225, 0.8); 
+            --star-color: #f59e0b; 
+          }
+          
+          .theme-dark { 
+            --bg-gradient: radial-gradient(ellipse at bottom, #2e1065 0%, #042f2e 100%); 
+            --text-main: #f8fafc; --text-sub: #cbd5e1; 
+            --card-bg: rgba(15, 23, 42, 0.7); --card-border: rgba(255, 255, 255, 0.15); 
+            --card-hover-border: #c084fc; --card-hover-bg: rgba(30, 41, 59, 0.9); 
+            --card-shadow: 0 20px 50px rgba(0,0,0,0.8); 
+            --title-color: #e9d5ff; --accent-color: #c084fc; 
+            --input-bg: rgba(0, 0, 0, 0.4); --input-border: rgba(255, 255, 255, 0.2); 
+            --star-color: #fef08a; 
+          }
+
+          /* 💡 上部の余白を増やし、左上のメニューボタンと被らないように調整！ */
+          .app-wrapper { min-height: 100vh; padding: 70px 20px 80px 20px; font-family: 'Inter', sans-serif; color: var(--text-main); font-size: 13px; position: relative; }
           .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; background: var(--bg-gradient); transition: 0.5s; }
           .particles-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
           .star { position: absolute; border-radius: 50%; background: var(--star-color); box-shadow: 0 0 10px var(--star-color); animation: twinkle 4s infinite ease-in-out; }
@@ -188,55 +200,52 @@ export default function AffiliateLinks() {
           .side-menu.open { left: 0; }
           .menu-title { font-size: 11px; font-weight: 900; color: var(--text-sub); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed var(--card-border); letter-spacing: 1px; }
           .side-link { text-decoration: none; padding: 10px 14px; border-radius: 8px; background: var(--input-bg); color: var(--text-main); font-weight: 800; border: 1px solid var(--card-border); transition: 0.2s; display: flex; align-items: center; gap: 8px; font-size: 12px;}
-          .side-link.current-page { background: linear-gradient(135deg, #0ea5e9, #4f46e5); color: #fff; border: none; pointer-events: none; }
-          .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 16px; }
-          .glass-nav { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 50px; box-shadow: var(--card-shadow); max-width: 800px; width: 100%; }
-          .glass-nav-link { text-decoration: none; padding: 6px 12px; border-radius: 20px; font-weight: 800; background: var(--input-bg); color: var(--text-sub); border: 1px solid var(--card-border); font-size: 12px; transition: 0.2s; }
+          .side-link.current-page { background: linear-gradient(135deg, #9333ea, #a855f7); color: #fff; border: none; pointer-events: none; }
+          
+          /* 💡 ヘッダー（HOMEボタンとページ名）の被り防止調整！ */
+          .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 20px; }
+          .glass-nav { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 10px 16px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 20px; box-shadow: var(--card-shadow); max-width: 800px; width: 100%; }
+          .nav-left { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+          .glass-nav-link { text-decoration: none; padding: 6px 12px; border-radius: 12px; font-weight: 800; background: var(--input-bg); color: var(--text-sub); border: 1px solid var(--card-border); font-size: 12px; transition: 0.2s; white-space: nowrap; }
           .glass-nav-link:hover { color: var(--accent-color); border-color: var(--card-hover-border); }
-          .glass-nav-active { padding: 6px 12px; border-radius: 20px; font-weight: 900; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); font-size: 12px; }
-          .theme-toggle-btn { background: var(--input-bg); border: 1px solid var(--card-border); padding: 6px 12px; border-radius: 20px; cursor: pointer; font-weight: 800; font-size: 12px; color: var(--text-main); transition: 0.3s; }
+          .glass-nav-active { padding: 6px 12px; border-radius: 12px; font-weight: 900; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); font-size: 12px; white-space: nowrap; }
+          .theme-toggle-btn { background: var(--input-bg); border: 1px solid var(--card-border); padding: 6px 12px; border-radius: 12px; cursor: pointer; font-weight: 800; font-size: 12px; color: var(--text-main); transition: 0.3s; white-space: nowrap; }
 
           /* メインレイアウト */
           .main-container { max-width: 1400px; margin: 0 auto; }
           
-          /* 検索パネル - さらにスリム化！ */
-          .control-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; box-shadow: var(--card-shadow); margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px; }
-          .search-input { width: 100%; padding: 10px 14px; font-size: 13px; border: 2px solid var(--input-border); border-radius: 10px; background: var(--input-bg); color: var(--text-main); font-weight: 700; outline: none; transition: 0.3s; }
-          .search-input:focus { border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2); }
+          /* 検索パネル - よりシンプルに！ */
+          .control-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 16px; padding: 16px; box-shadow: var(--card-shadow); margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
+          .search-input { width: 100%; padding: 12px 16px; font-size: 14px; border: 2px solid var(--input-border); border-radius: 12px; background: var(--input-bg); color: var(--text-main); font-weight: 700; outline: none; transition: 0.3s; }
+          .search-input:focus { border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.2); }
           
           .controls-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
-          .group-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
-          .group-tab-btn { padding: 6px 12px; border-radius: 16px; font-weight: 800; font-size: 11px; cursor: pointer; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-sub); transition: 0.3s; }
+          .group-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+          .group-tab-btn { padding: 8px 16px; border-radius: 20px; font-weight: 800; font-size: 12px; cursor: pointer; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-sub); transition: 0.3s; }
           .group-tab-btn:hover { border-color: var(--accent-color); color: var(--accent-color); transform: translateY(-1px); }
-          .group-tab-btn.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3); pointer-events: none; }
-          
-          .filter-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: var(--input-bg); padding: 6px 12px; border-radius: 16px; border: 1px dashed var(--input-border); }
-          .filter-label { font-weight: 900; color: var(--text-sub); margin-right: 2px; font-size: 11px; }
-          .filter-checkbox { display: flex; align-items: center; gap: 4px; cursor: pointer; font-weight: 800; font-size: 11px; color: var(--text-sub); }
-          .filter-checkbox input { width: 12px; height: 12px; accent-color: var(--accent-color); cursor: pointer; margin: 0; }
+          .group-tab-btn.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); box-shadow: 0 4px 10px rgba(147, 51, 234, 0.3); pointer-events: none; }
 
           /* グループセクション */
-          .group-section { margin-bottom: 24px; }
+          .group-section { margin-bottom: 30px; }
           .group-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed var(--card-border); padding-bottom: 6px; flex-wrap: wrap; gap: 8px; }
-          .group-section-title { font-size: 15px; font-weight: 900; display: flex; align-items: center; gap: 6px; color: var(--title-color); margin: 0; }
-          .group-color-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; box-shadow: 0 0 6px currentColor; }
+          .group-section-title { font-size: 16px; font-weight: 900; display: flex; align-items: center; gap: 6px; color: var(--title-color); margin: 0; }
+          .group-color-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; box-shadow: 0 0 6px currentColor; }
           
-          .group-terms-btn { background: linear-gradient(135deg, #10b981, #059669); color: #fff; text-decoration: none; padding: 6px 12px; border-radius: 10px; font-weight: 900; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3); transition: 0.2s; }
-          .group-terms-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(16, 185, 129, 0.5); }
+          /* 💡 重説リンクの色を各グループのテーマカラーに合わせる（インラインスタイルで後述） */
+          .group-terms-btn { color: #fff; text-decoration: none; padding: 6px 12px; border-radius: 10px; font-weight: 900; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); transition: 0.2s; }
+          .group-terms-btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
 
-          /* 💡 カードグリッド - 横幅の最小値を220pxまで極限圧縮！ */
+          /* カードグリッド */
           .links-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
           
-          /* 💡 カード本体 - 余白(padding)と隙間(gap)をミリ単位で削る！ */
           .agency-card { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 6px; transition: 0.2s; }
           .agency-card:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.08); border-color: var(--card-hover-border); z-index: 10; }
           
           .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
           .agency-name { font-size: 13px; font-weight: 900; color: var(--title-color); margin: 0; line-height: 1.2; word-break: break-all; }
 
-          .area-badge { font-size: 9px; font-weight: 800; background: var(--card-hover-bg); color: var(--accent-color); padding: 2px 6px; border-radius: 10px; border: 1px solid var(--card-hover-border); display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
+          .area-badge { font-size: 9px; font-weight: 800; background: var(--card-hover-bg); color: var(--text-sub); padding: 2px 6px; border-radius: 10px; border: 1px solid var(--input-border); display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
 
-          /* 💡 詳細情報のグリッド - 限界まで縮小 */
           .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 0; background: rgba(0,0,0,0.02); padding: 6px 8px; border-radius: 6px; border: 1px solid var(--input-border); }
           .theme-dark .details-grid { background: rgba(255,255,255,0.03); }
           
@@ -245,14 +254,15 @@ export default function AffiliateLinks() {
           .detail-value { font-weight: 900; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
           .detail-value.none { color: var(--text-sub); opacity: 0.4; font-weight: 600; text-decoration: line-through; }
 
-          /* 💡 アクションボタン - 右寄せの小さなボタンに！ */
           .action-area { margin-top: auto; padding-top: 6px; border-top: 1px dashed var(--input-border); display: flex; justify-content: flex-end; }
-          .copy-btn { border: none; border-radius: 6px; padding: 6px 10px; font-weight: 900; font-size: 10px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #fff; }
-          .copy-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(14, 165, 233, 0.3); }
+          
+          /* 💡 コピーボタンの色も動的に変えるのでベースCSSを調整 */
+          .copy-btn { border: none; border-radius: 6px; padding: 6px 10px; font-weight: 900; font-size: 10px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); color: #fff; }
+          .copy-btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
 
-          .empty-state { grid-column: 1 / -1; text-align: center; padding: 30px 10px; color: var(--text-sub); font-size: 13px; font-weight: 800; background: var(--card-bg); border-radius: 12px; border: 2px dashed var(--card-border); }
+          .empty-state { grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--text-sub); font-size: 14px; font-weight: 800; background: var(--card-bg); border-radius: 16px; border: 2px dashed var(--card-border); }
 
-          #toast { visibility: hidden; min-width: 200px; background: #10b981; color: #fff; text-align: center; border-radius: 8px; padding: 10px 16px; position: fixed; z-index: 100; right: 20px; bottom: 20px; font-size: 12px; font-weight: bold; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2); opacity: 0; transform: translateY(20px); }
+          #toast { visibility: hidden; min-width: 200px; background: #9333ea; color: #fff; text-align: center; border-radius: 8px; padding: 10px 16px; position: fixed; z-index: 100; right: 20px; bottom: 20px; font-size: 12px; font-weight: bold; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2); opacity: 0; transform: translateY(20px); }
           #toast.show { visibility: visible; opacity: 1; transform: translateY(0); }
 
           .fade-up-element { opacity: 0; transform: translateY(15px); transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
@@ -275,6 +285,7 @@ export default function AffiliateLinks() {
           <a href="/affiliate-links" className="side-link current-page">🔗 OBJリンクポータル</a>
         </div>
 
+        {/* 💡 ヘッダー部分。被らないように調整済み！ */}
         <div className="glass-nav-wrapper fade-up-element">
           <div className="glass-nav">
             <div className="nav-left">
@@ -311,18 +322,11 @@ export default function AffiliateLinks() {
                     key={group.id}
                     className={`group-tab-btn ${activeGroupFilter === group.id ? "active" : ""}`}
                     onClick={() => setActiveGroupFilter(group.id)}
+                    style={activeGroupFilter === group.id ? { backgroundColor: group.themeColor, borderColor: group.themeColor } : {}}
                   >
                     {group.name}
                   </button>
                 ))}
-              </div>
-
-              <div className="filter-group">
-                <div className="filter-label">💡 取扱いありで絞る：</div>
-                <label className="filter-checkbox"><input type="checkbox" checked={filterGas} onChange={(e)=>setFilterGas(e.target.checked)} /> ガス</label>
-                <label className="filter-checkbox"><input type="checkbox" checked={filterWater} onChange={(e)=>setFilterWater(e.target.checked)} /> 水道</label>
-                <label className="filter-checkbox"><input type="checkbox" checked={filterNet} onChange={(e)=>setFilterNet(e.target.checked)} /> ネット</label>
-                <label className="filter-checkbox"><input type="checkbox" checked={filterWs} onChange={(e)=>setFilterWs(e.target.checked)} /> WS</label>
               </div>
             </div>
           </div>
@@ -339,7 +343,7 @@ export default function AffiliateLinks() {
                 <div className="group-header-row fade-up-element">
                   <h2 className="group-section-title">
                     <span className="group-color-dot" style={{ color: group.themeColor, backgroundColor: group.themeColor }}></span>
-                    {group.name}
+                    <span style={{ color: group.themeColor }}>{group.name}</span>
                   </h2>
                   {group.explanationLink && (
                     <a 
@@ -347,6 +351,7 @@ export default function AffiliateLinks() {
                       target="_blank" 
                       rel="noopener noreferrer" 
                       className="group-terms-btn"
+                      style={{ backgroundColor: group.themeColor }} // 💡 ボタンの色もテーマカラーに統一！
                     >
                       🚨 共通重説フォームを開く
                     </a>
@@ -384,10 +389,10 @@ export default function AffiliateLinks() {
                         </div>
                       </div>
 
-                      {/* 💡 コピーボタンを右下に小さく配置！ */}
                       <div className="action-area">
                         <button 
                           className="copy-btn" 
+                          style={{ backgroundColor: group.themeColor }} // 💡 OBJリンクボタンもグループカラーに統一！
                           onClick={() => copyToClipboard(agency.url, `${agency.name}のOBJリンク`)}
                         >
                           📋 OBJコピー
