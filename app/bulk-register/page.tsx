@@ -391,7 +391,7 @@ export default function BulkRegister() {
           .main-layout { display: grid; grid-template-columns: 320px 1fr; gap: 30px; max-width: 1200px; margin: 0 auto 50px auto; }
           @media (max-width: 950px) { .main-layout { grid-template-columns: 1fr; } }
 
-          .info-sidebar { display: flex; flex-direction: column; gap: 20px; }
+          .info-sidebar { display: flex; flex-direction: column; gap: 5px; }
           .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow); }
           .info-title { font-size: 15px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
           .info-list { padding-left: 20px; margin: 0; color: var(--text-main); font-size: 13px; line-height: 1.8; }
