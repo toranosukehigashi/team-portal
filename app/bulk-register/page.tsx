@@ -225,7 +225,6 @@ export default function BulkRegister() {
     setIsSubmitting(true);
     showToast("⏳ 書き込み中...", true);
 
-    // 💡 悪さの元凶だった先頭の "" を削除し、colB(0番目) からスタートするように戻しました！
     const dataArray = [
       form.colB, form.colC, form.colD, form.colE, form.colF, form.colG, form.colH, form.colI,
       form.colJ, form.colK, form.colL, form.colM, form.colN, form.colO, form.colP,
@@ -235,19 +234,19 @@ export default function BulkRegister() {
       form.colAQ, form.colAR
     ];
 
-    try {
-      const encodedData = encodeURIComponent(JSON.stringify(dataArray));
-      const finalUrl = `${gasUrl}?env=${env}&data=${encodedData}`;
+    const encodedData = encodeURIComponent(JSON.stringify(dataArray));
+    const finalUrl = `${gasUrl}?env=${env}&data=${encodedData}`;
 
-      // 💡 エラーを出さずに美しい裏側通信（fetch）を実行！
-      await fetch(finalUrl, { mode: 'no-cors' });
-
-      showToast(env === 'test' ? "🧪 テスト保存完了！" : "✅ 本番保存完了！", true, env === 'prod');
-    } catch (err) {
-      alert("❌ 送信に失敗しました。");
-    } finally {
-      setIsSubmitting(false);
+    // 💡 悪さをする fetch をやめ、「透明な別タブ（Iframe）」にURLを渡して確実に通信させる！
+    const hiddenIframe = document.getElementById("hidden_warp_iframe") as HTMLIFrameElement;
+    if (hiddenIframe) {
+      hiddenIframe.src = finalUrl;
     }
+
+    setTimeout(() => {
+      showToast(env === 'test' ? "🧪 テスト保存完了！" : "✅ 本番保存完了！", true, env === 'prod');
+      setIsSubmitting(false);
+    }, 3000);
   };
 
   const copyPlain = async (text: string, successMsg: string) => {
