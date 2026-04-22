@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import SideMenu from "@/app/components/SideMenu"; // 💡 共通メニューを呼び出し！
 
 // ✨ 背景の光の粒（静寂なカームデザイン）
 const PixieDust = () => {
@@ -28,13 +29,12 @@ const PixieDust = () => {
 export default function BulkRegister() {
   const router = useRouter();
 
-  // 🌟 状態管理
+  // 🌟 状態管理（isMenuOpen は SideMenu に移動したので消去済み！）
   const [rawText, setRawText] = useState("");
   const [env, setEnv] = useState("test");
   const [toast, setToast] = useState({ show: false, msg: "", isSuccess: true, isProd: false });
   const [errors, setErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // 💡 フォームデータ
@@ -353,25 +353,7 @@ export default function BulkRegister() {
           .magic-path { fill: none; stroke: var(--svg-color); stroke-width: 3; stroke-dasharray: 3000; stroke-dashoffset: 3000; animation: drawMagic 10s ease-in-out infinite alternate; transition: stroke 0.5s; }
           @keyframes drawMagic { 0% { stroke-dashoffset: 3000; } 100% { stroke-dashoffset: 0; } }
 
-          .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 1001; background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; box-shadow: var(--card-shadow); transition: 0.3s; }
-          .hamburger-btn:hover { background: var(--card-hover-bg); transform: scale(1.05); }
-          .hamburger-line { width: 22px; height: 3px; background: var(--text-sub); border-radius: 3px; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
-          .hamburger-btn.open .line1 { transform: translateY(8px) rotate(45deg); background: var(--accent-color); }
-          .hamburger-btn.open .line2 { opacity: 0; transform: translateX(-10px); }
-          .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: var(--accent-color); }
-
-          .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
-          .menu-overlay.open { opacity: 1; pointer-events: auto; }
-
-          .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
-          .side-menu.open { left: 0; }
-          .menu-title { font-size: 13px; font-weight: 900; color: var(--text-sub); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--card-border); letter-spacing: 1px; }
-
-          .side-link { text-decoration: none; padding: 14px 20px; border-radius: 14px; background: var(--input-bg); color: var(--text-main); font-weight: 800; font-size: 14px; border: 1px solid var(--card-border); transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
-          .side-link:hover { border-color: var(--card-hover-border); transform: translateX(8px); }
-          .side-link.current-page { background: linear-gradient(135deg, #0284c7, #38bdf8); color: #fff; border: none; box-shadow: 0 6px 15px rgba(2, 132, 199, 0.3); pointer-events: none; }
-
-          .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 30px; }
+          .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 30px; margin-top: 20px; }
           .glass-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 50px; box-shadow: var(--card-shadow); max-width: 800px; width: 100%; }
           
           .nav-left { display: flex; gap: 12px; align-items: center; }
@@ -379,7 +361,6 @@ export default function BulkRegister() {
           .glass-nav-link:hover { color: var(--accent-color); border-color: var(--card-hover-border); }
           .glass-nav-active { padding: 10px 20px; border-radius: 30px; font-weight: 900; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); font-size: 14px; }
           
-          /* 💡 ここが修正の肝！ env-toggle-container を Grid（1fr 1fr）にして均等に広げる！！ */
           .env-toggle-container { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; border-radius: 12px; padding: 4px; background: var(--input-bg); border: 1px solid var(--card-border); width: 100%; }
           .env-label { padding: 12px 0; font-size: 13px; font-weight: 900; border-radius: 8px; cursor: pointer; color: var(--text-sub); transition: 0.3s; text-align: center; width: 100%; display: flex; justify-content: center; align-items: center; }
           input[name="environment"]:checked + .test-label { background: var(--card-hover-bg); color: #0ea5e9; border: 1px solid #38bdf8; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.2); }
@@ -450,7 +431,6 @@ export default function BulkRegister() {
           summary { font-weight: 800; cursor: pointer; padding: 16px; background: var(--card-bg); border-radius: 12px; border-left: 4px solid var(--accent-color); list-style: none; transition: 0.3s; border: 1px solid var(--card-border); }
           summary:hover { border-color: var(--card-hover-border); }
 
-          /* 💡 エラー修正で追記した必須アニメーション */
           .fade-up-element { opacity: 0; transform: translateY(40px); transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
           .fade-up-element.visible { opacity: 1; transform: translateY(0); }
         `}} />
@@ -461,33 +441,8 @@ export default function BulkRegister() {
           <path className="magic-path" d="M -10,70 Q 40,20 70,60 T 110,80" style={{animationDelay: "4s", opacity: 0.5}} />
         </svg>
 
-        {/* 🍔 ハンバーガーボタン */}
-        <div className={`hamburger-btn ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
-          <div className="hamburger-line line1"></div>
-          <div className="hamburger-line line2"></div>
-          <div className="hamburger-line line3"></div>
-        </div>
-
-        {/* 🌌 メニュー展開時の背景オーバーレイ */}
-        <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
-
-        {/* 🗄️ サイドメニュー */}
-        <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
-          <div className="menu-title">🧭 TOOL MENU</div>
-          <a href="/kpi-detail" className="side-link">📊 獲得進捗・KPI</a>
-          <a href="/bulk-register" className="side-link current-page">📦 データ一括登録</a>
-          <a href="/net-toss" className="side-link">🌐 ネットトス連携</a>
-          <a href="/self-close" className="side-link">🤝 自己クロ連携</a>
-          <a href="/sms-kraken" className="side-link">📱 SMS (Kraken)送信</a>
-          <a href="/email-template" className="side-link">✉️ メールテンプレート</a>
-          <a href="/procedure-wizard" className="side-link">🗺️ Kraken マニュアル</a>
-          <a href="/simulator" className="side-link">🆚 料金シミュレーター</a>
-          <a href="/trouble-nav" className="side-link">⚡ トラブル解決ナビ</a>
-          
-          <div className="side-link" style={{ opacity: 0.5, cursor: "not-allowed", background: "transparent", border: "1px dashed var(--card-border)", color: "var(--text-sub)", marginTop: "10px" }}>
-            🔒 新ツール（開発中...）
-          </div>
-        </div>
+        {/* 💡 ここに共通化されたメニューコンポーネントをポンと置くだけ！！！ */}
+        <SideMenu />
 
         {/* 🎈 ナビゲーション & テーマ切り替え */}
         <div className="glass-nav-wrapper fade-up-element" style={{ "--delay": "0s" } as any}>
@@ -510,7 +465,6 @@ export default function BulkRegister() {
             <div className="info-panel fade-up-element" style={{ padding: "20px", textAlign: "center", borderTop: env === "prod" ? "4px solid #e11d48" : "4px solid #38bdf8", display: "flex", flexDirection: "column", justifyContent: "center" }}>
               <div style={{ fontSize: "14px", fontWeight: 900, marginBottom: "12px", color: "var(--title-color)", letterSpacing: "1px" }}>🚀 送信先環境の選択</div>
               
-              {/* 💡 ここが修正の核心！Gridレイアウトを適用して左右均等にピタッと広げました！ */}
               <div className="env-toggle-container">
                 <input type="radio" id="envTest" name="environment" value="test" checked={env === "test"} onChange={(e) => setEnv(e.target.value)} hidden />
                 <label htmlFor="envTest" className="env-label test-label">🧪Test</label>
