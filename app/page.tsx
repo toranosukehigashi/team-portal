@@ -693,13 +693,13 @@ export default function ThemeParkEntrance() {
                 </div>
               </MagicCard>
 
-              <MagicCard delay={animDelayOffset + 0.6} attraction="BULK REGISTER" title="📦 データ一括登録" desc="顧客データを高速でDBへ転送します。" liveData="Ready" onClick={(e: any) => { e.stopPropagation(); router.push("/bulk-register"); }} />
-              <MagicCard delay={animDelayOffset + 0.7} attraction="NET TOSS" title="🌐 ネットトス連携" desc="回線のトスアップデータを指定シートへ送信。" onClick={(e: any) => { e.stopPropagation(); router.push("/net-toss"); }} />
-              <MagicCard delay={animDelayOffset + 0.8} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="成約情報を専用フォームからシームレスに連携。" onClick={(e: any) => { e.stopPropagation(); router.push("/self-close"); }} />
+              <MagicCard delay={animDelayOffset + 0.6} attraction="BULK REGISTER" title="📦 データ一括登録" desc="成約後シートに自動で書き込みます。" liveData="Ready" onClick={(e: any) => { e.stopPropagation(); router.push("/bulk-register"); }} />
+              <MagicCard delay={animDelayOffset + 0.7} attraction="NET TOSS" title="🌐 ネットトス連携" desc="ネットトスFMTを作成します。" onClick={(e: any) => { e.stopPropagation(); router.push("/net-toss"); }} />
+              <MagicCard delay={animDelayOffset + 0.8} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="自己クロFMTを作成します。" onClick={(e: any) => { e.stopPropagation(); router.push("/self-close"); }} />
               <MagicCard delay={animDelayOffset + 0.9} attraction="SMS KRAKEN" title="📱 SMS 送信" desc="Krakenを用いたSMS送信とテンプレート展開。" liveData="System Active" onClick={(e: any) => { e.stopPropagation(); router.push("/sms-kraken"); }} />
               <MagicCard delay={animDelayOffset + 1.0} attraction="EMAIL TEMPLATE" title="✉️ メールテンプレ" desc="用途に応じたメール文面を素早く作成。" onClick={(e: any) => { e.stopPropagation(); router.push("/email-template"); }} />
-              <MagicCard delay={animDelayOffset + 1.1} attraction="KRAKEN MANUAL" title="🐙 Kraken マニュアル" badge="NEW" desc="手続きに必要な情報を入力しフォーマット生成。" onClick={(e: any) => { e.stopPropagation(); router.push("/procedure-wizard"); }} />
-              <MagicCard delay={animDelayOffset + 1.2} attraction="COST SIMULATOR" title="🆚 料金シミュレーター" badge="NEW" desc="利用状況から乗り換え節約額を即座に算出します。" liveData="Avg. ¥4,200/mo" onClick={(e: any) => { e.stopPropagation(); router.push("/simulator"); }} />
+              <MagicCard delay={animDelayOffset + 1.1} attraction="KRAKEN MANUAL" title="🐙 Kraken マニュアル" badge="NEW" desc="様々なイレギュラーに対応できます。" onClick={(e: any) => { e.stopPropagation(); router.push("/procedure-wizard"); }} />
+              <MagicCard delay={animDelayOffset + 1.2} attraction="COST SIMULATOR" title="🆚 料金シミュレーター" badge="NEW" desc="利用状況などをもとに、回線を提案します。" liveData="Avg. ¥4,200/mo" onClick={(e: any) => { e.stopPropagation(); router.push("/simulator"); }} />
 
               <MagicCard delay={animDelayOffset + 1.3} attraction="QUICK MEMO" title="🍯 クイックメモ" desc="通話中などの一時的な情報を置いておくメモパッド。" onClick={(e: any) => { e.stopPropagation(); setIsMemoOpen(true); }}>
                 {memoText ? (
