@@ -700,8 +700,6 @@ export default function ThemeParkEntrance() {
             )}
 
             <div className="attraction-grid">
-              <MagicCard delay={animDelayOffset + 0.5} attraction="AFFILIATE LINKS" badge="NEW" title="🔗 OBJリンクポータル" desc="各不動産会社のOBJリンクと共通重説フォームを素早くコピー。" onClick={(e: any) => { e.stopPropagation(); router.push("/affiliate-links"); }} />
-
               {/* 💡 ここでローカルストレージと連動する kpiData を利用して進捗バーを描画！ */}
               <MagicCard delay={animDelayOffset + 0.6} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="本日の目標まであと何件か、リアルタイムで確認。" liveData={`${progressPercent}%`} sparkline={true} onClick={(e: any) => { e.stopPropagation(); router.push("/kpi-detail"); }}>
                 <div className="kpi-widget">
@@ -709,7 +707,7 @@ export default function ThemeParkEntrance() {
                   <div className="kpi-bar-bg"><div className="kpi-bar-fill" style={{ width: `${progressPercent}%` }}></div></div>
                 </div>
               </MagicCard>
-
+               <MagicCard delay={animDelayOffset + 0.5} attraction="AFFILIATE LINKS" badge="NEW" title="🔗 OBJリンクポータル" desc="各不動産会社のOBJリンクと共通重説フォームを素早くコピー。" onClick={(e: any) => { e.stopPropagation(); router.push("/affiliate-links"); }} />
               <MagicCard delay={animDelayOffset + 0.7} attraction="BULK REGISTER" title="📦 データ一括登録" desc="成約後シートに自動で書き込みます。" liveData="Ready" onClick={(e: any) => { e.stopPropagation(); router.push("/bulk-register"); }} />
               <MagicCard delay={animDelayOffset + 0.8} attraction="NET TOSS" title="🌐 ネットトス連携" desc="ネットトスFMTを作成します。" onClick={(e: any) => { e.stopPropagation(); router.push("/net-toss"); }} />
               <MagicCard delay={animDelayOffset + 0.9} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="自己クロFMTを作成します。" onClick={(e: any) => { e.stopPropagation(); router.push("/self-close"); }} />
