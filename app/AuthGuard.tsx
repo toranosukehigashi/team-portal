@@ -6,38 +6,40 @@ import { useRouter, usePathname } from "next/navigation";
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [isChecking, setIsChecking] = useState(true); // 💡 「チェック中」という状態を追加！
 
   useEffect(() => {
-    // 💡 ログイン画面だけは誰でも見れないと困るのでパス（通過）させる！
+    // ログイン画面はスルー
     if (pathname === "/login") {
       setIsAuthorized(true);
+      setIsChecking(false);
       return;
     }
 
-    // 💡 ブラウザの記憶（ローカルストレージ）からログイン証をチェック！
+    // ブラウザの記憶からログイン証をチェック！
     const user = localStorage.getItem("team_portal_user");
     if (!user) {
-      // 🚨 証を持っていなければ、即座にログイン画面へ強制送還！！
-      router.replace("/login");
+      router.replace("/login"); // 持ってなければログイン画面へ
     } else {
-      // ✅ 持っていれば閲覧許可！
-      setIsAuthorized(true);
+      setIsAuthorized(true); // 持ってればOK
     }
+    
+    setIsChecking(false); // 💡 0.01秒のチェック完了！
   }, [pathname, router]);
 
-  // 💥 認証が完了するまでは、画面を「真っ黒（虚無）」にして1ミリも情報を覗かせない！
-  if (!isAuthorized && pathname !== "/login") {
-    return (
-      <div style={{ width: "100vw", height: "100vh", backgroundColor: "#020617", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ color: "#38bdf8", fontWeight: "900", letterSpacing: "2px", fontSize: "14px", animation: "pulse 1.5s infinite" }}>
-          <style>{`@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }`}</style>
-          🔐 セキュリティ認証を確認中...
-        </div>
-      </div>
-    );
+  // 💥 ここが最大のポイント！
+  // チェック中の 0.01秒間 は、黒い画面を出すのではなく「null（透明・無）」を返す！
+  // これにより、更新しても一切画面がチラつかず、シームレスにページが表示されます！！
+  if (isChecking) {
+    return null; 
   }
 
-  // 認証OKなら、要求されたページ（children）を表示する
+  // 弾き飛ばされる際も無表示にする
+  if (!isAuthorized && pathname !== "/login") {
+    return null;
+  }
+
   return <>{children}</>;
 }
