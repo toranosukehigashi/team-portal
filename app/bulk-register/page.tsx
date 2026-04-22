@@ -39,14 +39,14 @@ export default function BulkRegister() {
   // ☀️ テーマ管理
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // フォームデータ
+  // 💡 フォームデータ（ご主人様のGASコードに完全一致させました！）
   const [form, setForm] = useState({
     colB: "", colC: "", colD: "", colE: "", colF: "", colG: "", colH: "", colI: "",
     colJ: "", colK: "", colL: "", colM: "", colN: "", colO: "", colP: "",
     tempPropertyType: "", tempEmail: "", 
     colQ: "", colR: "",
     colU: false, colV: false, colW: false, colX: false, colY: false,
-    colZ: "", colAA: "", colAB: "", colAB_2: "", colAC: "", colAD: "", colAE: "", colAF: "", colAG: "",
+    colZ: "", colAA: "", colAB: "", colAC: "", colAD: "", colAE: "", colAF: "", colAG: "",
     colAH: "", colAI: "", colAJ: false, colAK: false, colAL: false,
     colAN: "", colAP: "", colAQ: "", colAR: ""
   });
@@ -81,6 +81,16 @@ export default function BulkRegister() {
     if (type !== "checkbox" && value.trim() !== "") {
       setErrors(prevErrors => prevErrors.filter(err => err !== targetId));
     }
+  };
+
+  // 💡 クイックタグ（ワンクリック入力）の機能を追加！
+  const addPhrase = (targetId: string, text: string) => {
+    setForm(prev => {
+      const currentValue = prev[targetId as keyof typeof prev] as string;
+      const newValue = currentValue ? currentValue + "\n" + text : text;
+      return { ...prev, [targetId]: newValue };
+    });
+    showToast("📝 フレーズを追加しました！", true);
   };
 
   const showToast = (msg: string, isSuccess: boolean, isProd = false) => {
@@ -190,7 +200,7 @@ export default function BulkRegister() {
         colB: "", colC: "", colD: `${d.getMonth() + 1}/${d.getDate()}`, colE: "", colF: "", colG: "", colH: "", colI: "",
         colJ: "", colK: "", colL: "", colM: "", colN: "", colO: "", colP: "", tempPropertyType: "", tempEmail: "",
         colQ: "", colR: "", colU: false, colV: false, colW: false, colX: false, colY: false,
-        colZ: "", colAA: "", colAB: "", colAB_2: "", colAC: "", colAD: "", colAE: "", colAF: "", colAG: "",
+        colZ: "", colAA: "", colAB: "", colAC: "", colAD: "", colAE: "", colAF: "", colAG: "",
         colAH: "", colAI: "", colAJ: false, colAK: false, colAL: false, colAN: "", colAP: "", colAQ: "", colAR: ""
       });
       setRawText(""); setErrors([]);
@@ -205,7 +215,7 @@ export default function BulkRegister() {
     setIsSubmitting(true);
     showToast("⏳ スプレッドシートへ送信中...", true);
 
-    // 💡 欠落していた Q(15列目)とR(16列目)、および各種オプション列を完璧にマッピングしました！！
+    // 💡 S, T, AM, AO は空文字として送る（ご主人様の配列インデックスと完全合致！）
     const dataArray = [
       form.colB, form.colC, form.colD, form.colE, form.colF, form.colG, form.colH, form.colI, // 0~7
       form.colJ, form.colK, form.colL, form.colM, form.colN, form.colO, form.colP, // 8~14
@@ -265,7 +275,6 @@ export default function BulkRegister() {
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
 
-          /* 🎨 HOME画面と完全一致するテーマ変数 */
           .theme-light {
             --bg-gradient: linear-gradient(180deg, #7dd3fc 0%, #e0f2fe 100%);
             --text-main: #1e293b;
@@ -304,17 +313,10 @@ export default function BulkRegister() {
             --error-border: #fb7185;
           }
 
-          .app-wrapper { 
-            min-height: 100vh; padding: 20px 40px 100px 40px; 
-            font-family: 'Inter', 'Noto Sans JP', sans-serif; 
-            color: var(--text-main); font-size: 13px; 
-            transition: color 0.5s; overflow-x: hidden; position: relative;
-          }
-
+          .app-wrapper { min-height: 100vh; padding: 20px 40px 100px 40px; font-family: 'Inter', 'Noto Sans JP', sans-serif; color: var(--text-main); font-size: 13px; transition: color 0.5s; overflow-x: hidden; position: relative; }
           .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; transition: background 0.8s ease; }
           .entrance-bg.theme-light { background: var(--bg-gradient); }
           .entrance-bg.theme-dark { background: var(--bg-gradient); }
-
           .particles-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
           .star { position: absolute; border-radius: 50%; background: var(--star-color); box-shadow: 0 0 10px var(--star-color); animation: twinkle 4s infinite ease-in-out; transition: background 0.5s, box-shadow 0.5s; }
           @keyframes twinkle { 0% { opacity: 0.1; transform: scale(0.5) translateY(0); } 50% { opacity: 1; transform: scale(1.2) translateY(-20px); } 100% { opacity: 0.1; transform: scale(0.5) translateY(0); } }
@@ -382,10 +384,22 @@ export default function BulkRegister() {
           .input-control option { background: #0f172a; color: #fff; }
           .theme-light .input-control option { background: #fff; color: #1e293b; }
 
-          /* 💡 チェックボックスを綺麗に並べる魔法を追加！ */
+          /* 💡 チェックボックスを綺麗に並べる魔法 */
           .checkbox-group { display: flex; gap: 15px; flex-wrap: wrap; padding: 12px; background: var(--input-bg); border-radius: 10px; border: 1px solid var(--input-border); }
           .checkbox-group label { display: flex; align-items: center; gap: 6px; margin: 0; border: none; padding: 0; font-size: 13px; font-weight: 700; color: var(--text-main); cursor: pointer; }
           .checkbox-group input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent-color); cursor: pointer; }
+
+          /* 💡 専用ボックス（ガス、ネットトスなど）のスタイリング */
+          .special-box { background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.02); }
+          .special-box.theme-pink { border-top: 4px solid #f43f5e; background: rgba(244, 63, 94, 0.05); }
+          .special-box.theme-blue { border-top: 4px solid #0ea5e9; background: rgba(14, 165, 233, 0.05); }
+          .special-box.theme-purple { border-top: 4px solid #8b5cf6; background: rgba(139, 92, 246, 0.05); }
+          .special-title { font-weight: 900; font-size: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; color: var(--title-color); }
+
+          /* 💡 クイックタグボタンのスタイリング */
+          .quick-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+          .tag-btn { background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 6px 14px; font-size: 12px; color: var(--text-main); cursor: pointer; font-weight: 800; transition: 0.2s; }
+          .tag-btn:hover { border-color: var(--card-hover-border); color: var(--accent-color); transform: translateY(-1px); }
 
           .paste-area { width: 100%; height: 100px; padding: 14px; border: 2px dashed var(--card-hover-border); border-radius: 12px; background: var(--input-bg); color: var(--text-main); margin-bottom: 16px; outline: none; transition: 0.3s; font-family: monospace; resize: vertical; }
           .paste-area:focus { background: var(--card-hover-bg); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
@@ -402,9 +416,6 @@ export default function BulkRegister() {
 
           #toast { visibility: hidden; min-width: 250px; color: #fff; text-align: center; border-radius: 12px; padding: 16px 24px; position: fixed; z-index: 100; right: 24px; bottom: -80px; font-weight: bold; transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
           #toast.show { visibility: visible; bottom: 100px; opacity: 1; }
-          
-          .tag-btn { background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 6px 14px; font-size: 12px; color: var(--text-main); cursor: pointer; font-weight: 800; transition: 0.2s; }
-          .tag-btn:hover { border-color: var(--card-hover-border); color: var(--accent-color); }
           
           summary { font-weight: 800; cursor: pointer; padding: 16px; background: var(--card-bg); border-radius: 12px; border-left: 4px solid var(--accent-color); list-style: none; transition: 0.3s; border: 1px solid var(--card-border); }
           summary:hover { border-color: var(--card-hover-border); }
@@ -482,7 +493,7 @@ export default function BulkRegister() {
               <h3 className="info-title">📌 入力時の注意事項</h3>
               <ul className="info-list">
                 <li>「WarpID」が含まれたテキストをコピーすると、この画面を開いた瞬間に<b>自動でデータが反映</b>されます。</li>
-                <li>郵便番号を入力すると、ハイフンなしでも自動で住所が検索・補完されます。</li>
+                <li>郵便番号を入力すると、自動で住所が検索・補完されます。</li>
                 <li>お名前（漢字）を入力すると、自動でカナが推測入力されます。</li>
               </ul>
             </div>
@@ -540,63 +551,93 @@ export default function BulkRegister() {
               </div>
             </section>
 
-            {/* 💡 ここが消滅していた「追加情報（Q列以降）」の完全復活部分です！！ */}
+            {/* 💡 完全復活！追加情報・オプション展開エリア */}
             <details className="fade-up-element">
-              <summary>➕ 追加情報・オプションを展開（Q列〜AR列）</summary>
+              <summary>➕ 追加情報・オプションを展開</summary>
               <section className="glass-panel" style={{ marginTop: "15px" }}>
                 
                 <div className="form-grid-3">
-                  <div className="input-group"><label>Q: メールアドレス</label><input className="input-control" type="email" name="colQ" value={form.colQ} onChange={handleChange} /></div>
-                  <div className="input-group"><label>R: 予備電話番号</label><input className="input-control" type="text" name="colR" value={form.colR} onChange={handleChange} /></div>
+                  <div className="input-group"><label>Q: 郵送名義</label><input className="input-control" type="text" name="colQ" value={form.colQ} onChange={handleChange} /></div>
+                  <div className="input-group"><label>R: 連絡先番号</label><input className="input-control" type="text" name="colR" value={form.colR} onChange={handleChange} /></div>
                 </div>
                 
-                <div className="input-group" style={{ marginTop: "20px" }}>
-                  <label>📦 獲得オプション（U〜Y列）</label>
+                <div style={{ background: "rgba(229,0,126,0.05)", border: "1px dashed rgba(229,0,126,0.4)", padding: "12px", borderRadius: "12px", marginTop: "15px", marginBottom: "20px" }}>
+                  <label style={{ color: "#e5007e", fontSize: "13px", fontWeight: 900, borderLeft: "4px solid #e5007e", paddingLeft: "8px", marginBottom: "10px", display: "block" }}>🚨 ガス・ネット関連（※チェック漏れ注意！）</label>
                   <div className="checkbox-group">
-                    <label><input type="checkbox" name="colU" checked={form.colU} onChange={handleChange} /> ガス</label>
-                    <label><input type="checkbox" name="colV" checked={form.colV} onChange={handleChange} /> ウォーター</label>
-                    <label><input type="checkbox" name="colW" checked={form.colW} onChange={handleChange} /> ネット</label>
-                    <label><input type="checkbox" name="colX" checked={form.colX} onChange={handleChange} /> その他</label>
-                    <label><input type="checkbox" name="colY" checked={form.colY} onChange={handleChange} /> 引越侍レ点</label>
+                    <label><input type="checkbox" name="colU" checked={form.colU} onChange={handleChange} /> ネット</label>
+                    <label><input type="checkbox" name="colV" checked={form.colV} onChange={handleChange} /> TOKAI</label>
+                    <label><input type="checkbox" name="colW" checked={form.colW} onChange={handleChange} /> セット</label>
+                    <label><input type="checkbox" name="colX" checked={form.colX} onChange={handleChange} /> 東邦</label>
+                    <label><input type="checkbox" name="colY" checked={form.colY} onChange={handleChange} /> 西部</label>
                   </div>
                 </div>
 
-                <div className="form-grid-3" style={{ marginTop: "20px" }}>
-                  <div className="input-group"><label>Z: 現在の電力会社</label><input className="input-control" type="text" name="colZ" value={form.colZ} onChange={handleChange} /></div>
-                  <div className="input-group"><label>AA: お客様番号</label><input className="input-control" type="text" name="colAA" value={form.colAA} onChange={handleChange} /></div>
-                  <div className="input-group"><label>AB: 供給地点特定番号</label><input className="input-control" type="text" name="colAB" value={form.colAB} onChange={handleChange} /></div>
-                  <div className="input-group"><label>AC: 契約アンペア</label><input className="input-control" type="text" name="colAC" value={form.colAC} onChange={handleChange} /></div>
-                  <div className="input-group"><label>AD: 支払方法</label><select className="input-control" name="colAD" value={form.colAD} onChange={handleChange}><option value="">選択</option><option value="クレジットカード">クレジットカード</option><option value="口座振替">口座振替</option><option value="コンビニ払込票">コンビニ払込票</option></select></div>
-                  <div className="input-group"><label>AE: キャンペーン</label><input className="input-control" type="text" name="colAE" value={form.colAE} onChange={handleChange} /></div>
-                  <div className="input-group"><label>AF: キャンペーンコード</label><input className="input-control" type="text" name="colAF" value={form.colAF} onChange={handleChange} /></div>
-                  <div className="input-group"><label>AG: 備考</label><input className="input-control" type="text" name="colAG" value={form.colAG} onChange={handleChange} /></div>
+                {/* 🧊 ガス専用ボックス */}
+                <div className="special-box theme-blue">
+                  <div className="special-title">🧊 ガス</div>
+                  <div className="form-grid-3">
+                    <div className="input-group"><label>Z: ガス立会日</label><input className="input-control" type="text" name="colZ" value={form.colZ} onChange={handleChange} /></div>
+                    <div className="input-group"><label>AA: 希望時間帯</label><select className="input-control" name="colAA" value={form.colAA} onChange={handleChange}><option value="">選択</option><option value="1.午前中(9-12)">午前中(9-12)</option><option value="3.13-15">13-15</option><option value="5.15-17">15-17</option><option value="7.17-19(平日)">17-19(平日)</option></select></div>
+                    <div className="input-group"><label>AB: 立会者</label><input className="input-control" type="text" name="colAB" value={form.colAB} onChange={handleChange} /></div>
+                    <div className="input-group"><label>AC: 開栓場所（〒は入れない）</label><input className="input-control" type="text" name="colAC" value={form.colAC} onChange={handleChange} /></div>
+                    <div className="input-group"><label>AD: 建物区分</label><select className="input-control" name="colAD" value={form.colAD} onChange={handleChange}><option value="">選択</option><option value="戸建て（持家）">戸建て（持家）</option><option value="戸建て（賃貸）">戸建て（賃貸）</option><option value="集合住宅（持家）">集合住宅（持家）</option><option value="集合住宅（賃貸）">集合住宅（賃貸）</option></select></div>
+                    <div className="input-group"><label>AE: 新築既設</label><select className="input-control" name="colAE" value={form.colAE} onChange={handleChange}><option value="">選択</option><option value="新築">新築</option><option value="既設">既設</option></select></div>
+                    <div className="input-group"><label>AF: 支払い方法</label><select className="input-control" name="colAF" value={form.colAF} onChange={handleChange}><option value="">選択</option><option value="コンビニ">コンビニ</option><option value="口座">口座</option><option value="クレカ">クレカ</option></select></div>
+                    <div className="input-group" style={{ gridColumn: "1 / -1" }}><label>AG: 不都合時間等</label><textarea className="input-control" rows={2} name="colAG" value={form.colAG} onChange={handleChange} /></div>
+                  </div>
+                </div>
+
+                {/* 💎 ネットトス専用ボックス */}
+                <div className="special-box theme-pink">
+                  <div className="special-title">💎 ネットトス</div>
+                  <div className="form-grid-3">
+                    <div className="input-group"><label>AH: 獲得日</label><input className="input-control" type="text" name="colAH" value={form.colAH} onChange={handleChange} /></div>
+                    <div className="input-group"><label>AI: 対応者</label><input className="input-control" type="text" name="colAI" value={form.colAI} onChange={handleChange} /></div>
+                    <div className="input-group">
+                      <label>AN: 商材</label>
+                      <select className="input-control" name="colAN" value={form.colAN} onChange={handleChange}>
+                        <option value="">選択</option>
+                        <option value="フレッツ光">フレッツ光</option><option value="ドコモ光">ドコモ光</option><option value="Softbank光">Softbank光</option>
+                        <option value="auひかり">auひかり</option><option value="NURO光">NURO光</option><option value="Softbank Air">Softbank Air</option>
+                        <option value="トス">トス</option><option value="その他">その他</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div style={{ marginTop: "15px" }}>
+                    <label style={{ color: "#f43f5e", fontSize: "12px", fontWeight: 900, borderLeft: "3px solid #f43f5e", paddingLeft: "6px", marginBottom: "8px", display: "block" }}>確認フラグ</label>
+                    <div className="checkbox-group">
+                      <label><input type="checkbox" name="colAJ" checked={form.colAJ} onChange={handleChange} /> ネットOK</label>
+                      <label><input type="checkbox" name="colAK" checked={form.colAK} onChange={handleChange} /> 前確OK</label>
+                      <label><input type="checkbox" name="colAL" checked={form.colAL} onChange={handleChange} /> 後確OK</label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 🌟 対応依頼内容専用ボックス（クイックタグ完全復元！） */}
+                <div className="special-box theme-purple">
+                  <div className="special-title">🌟 対応依頼内容</div>
                   
-                  <div className="input-group"><label>AH: 獲得日</label><input className="input-control" type="text" name="colAH" value={form.colAH} onChange={handleChange} /></div>
-                  <div className="input-group"><label>AI: 対応者</label><input className="input-control" type="text" name="colAI" value={form.colAI} onChange={handleChange} /></div>
-                  <div className="input-group"><label>AN: 商材</label><input className="input-control" type="text" name="colAN" value={form.colAN} onChange={handleChange} /></div>
-                </div>
+                  <div className="input-group">
+                    <label>AP: 対応依頼内容</label>
+                    {/* 💡 クイックタグボタン！ */}
+                    <div className="quick-tags">
+                      <button type="button" className="tag-btn" onClick={() => addPhrase('colAP', 'ガス手配お願いします')}>➕ ガス手配</button>
+                      <button type="button" className="tag-btn" onClick={() => addPhrase('colAP', '水道手配お願いします')}>➕ 水道手配</button>
+                      <button type="button" className="tag-btn" onClick={() => addPhrase('colAP', 'ガス水道手配お願いします')}>➕ 両方手配</button>
+                      <button type="button" className="tag-btn" onClick={() => addPhrase('colAP', 'ガスセット')}>➕ ガスセット</button>
+                      <button type="button" className="tag-btn" onClick={() => addPhrase('colAP', '5営業日以内再点です\nSPIN：')}>➕ 5営業日以内</button>
+                      <button type="button" className="tag-btn" onClick={() => addPhrase('colAP', 'ダミー再点です\nSPIN：')}>➕ ダミー再点</button>
+                      <button type="button" className="tag-btn" onClick={() => addPhrase('colAP', '完了後SMS希望')}>➕ 完了後SMS</button>
+                    </div>
+                    <textarea className="input-control" style={{ minHeight: "80px", resize: "vertical" }} name="colAP" value={form.colAP} onChange={handleChange} />
+                  </div>
 
-                <div className="input-group" style={{ marginTop: "20px" }}>
-                  <label>✅ 確認・対応フラグ（AJ〜AL列）</label>
-                  <div className="checkbox-group">
-                    <label><input type="checkbox" name="colAJ" checked={form.colAJ} onChange={handleChange} /> 確認待ち</label>
-                    <label><input type="checkbox" name="colAK" checked={form.colAK} onChange={handleChange} /> 対応完了</label>
-                    <label><input type="checkbox" name="colAL" checked={form.colAL} onChange={handleChange} /> キャンセル</label>
+                  <div className="form-grid-3" style={{ marginTop: "15px" }}>
+                    <div className="input-group"><label>AQ: 開始/最終利用日</label><input className="input-control" type="text" name="colAQ" value={form.colAQ} onChange={handleChange} /></div>
+                    <div className="input-group"><label>AR: 都道府県</label><input className="input-control" type="text" name="colAR" value={form.colAR} onChange={handleChange} /></div>
                   </div>
                 </div>
 
-                <div className="input-group" style={{ marginTop: "20px" }}>
-                  <label>AP: 対応依頼内容</label>
-                  <textarea className="input-control" style={{ minHeight: "80px", resize: "vertical" }} name="colAP" value={form.colAP} onChange={handleChange} />
-                </div>
-                <div className="input-group" style={{ marginTop: "10px" }}>
-                  <label>AQ: メモ1</label>
-                  <textarea className="input-control" style={{ minHeight: "60px", resize: "vertical" }} name="colAQ" value={form.colAQ} onChange={handleChange} />
-                </div>
-                <div className="input-group" style={{ marginTop: "10px" }}>
-                  <label>AR: メモ2</label>
-                  <textarea className="input-control" style={{ minHeight: "60px", resize: "vertical" }} name="colAR" value={form.colAR} onChange={handleChange} />
-                </div>
               </section>
             </details>
             
