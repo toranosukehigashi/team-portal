@@ -480,7 +480,7 @@ export default function BulkRegister() {
           <a href="/self-close" className="side-link">🤝 自己クロ連携</a>
           <a href="/sms-kraken" className="side-link">📱 SMS (Kraken)送信</a>
           <a href="/email-template" className="side-link">✉️ メールテンプレート</a>
-          <a href="/procedure-wizard" className="side-link">🗺️ Kraken 手順辞書</a>
+          <a href="/procedure-wizard" className="side-link">🗺️ Kraken マニュアル</a>
           <a href="/simulator" className="side-link">🆚 料金シミュレーター</a>
           <a href="/trouble-nav" className="side-link">⚡ トラブル解決ナビ</a>
           
@@ -511,12 +511,12 @@ export default function BulkRegister() {
               <div style={{ fontSize: "13px", fontWeight: 900, marginBottom: "10px", color: "var(--title-color)" }}>🚀 送信先環境の選択</div>
               <div className="env-toggle-container">
                 <input type="radio" id="envTest" name="environment" value="test" checked={env === "test"} onChange={(e) => setEnv(e.target.value)} hidden />
-                <label htmlFor="envTest" className="env-label test-label">🧪 練習用 (Test)</label>
+                <label htmlFor="envTest" className="env-label test-label">🧪Test</label>
                 <input type="radio" id="envProd" name="environment" value="prod" checked={env === "prod"} onChange={(e) => setEnv(e.target.value)} hidden />
-                <label htmlFor="envProd" className="env-label prod-label">🚨 本番用 (Prod)</label>
+                <label htmlFor="envProd" className="env-label prod-label">🚨Production</label>
               </div>
               {env === "prod" && (
-                <div style={{ marginTop: "10px", fontSize: "12px", color: "#e11d48", fontWeight: 800 }}>※本番シートへ直接書き込まれます。ご注意ください。</div>
+                <div style={{ marginTop: "10px", fontSize: "12px", color: "#e11d48", fontWeight: 800 }}>※成約後シートへ直接書き込まれます。ご注意ください。</div>
               )}
             </div>
 
