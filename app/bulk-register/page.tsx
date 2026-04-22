@@ -217,33 +217,28 @@ export default function BulkRegister() {
     }
   };
 
+  // 💡 原因特定のための「強制デバッグ版」saveToSheet
   const saveToSheet = async () => {
     if (isSubmitting) return;
     const gasUrl = process.env.NEXT_PUBLIC_GAS_URL;
-    if (!gasUrl || gasUrl === "undefined") return alert("⚠️ GASのURLが設定されていません！");
-
-    setIsSubmitting(true);
-    showToast("⏳ スプレッドシートへ送信中...", true);
+    if (!gasUrl || gasUrl === "undefined") {
+      return alert("⚠️ Vercelの環境変数(NEXT_PUBLIC_GAS_URL)が空っぽです！！設定を確認してください！");
+    }
 
     const dataArray = [
-      form.colB, form.colC, form.colD, form.colE, form.colF, form.colG, form.colH, form.colI,
+      "", form.colB, form.colC, form.colD, form.colE, form.colF, form.colG, form.colH, form.colI,
       form.colJ, form.colK, form.colL, form.colM, form.colN, form.colO, form.colP,
-      form.colQ, form.colR, "", "", form.colU, form.colV, form.colW, form.colX, form.colY,
+      form.colQ, form.colR, "", "", form.colU ? "TRUE" : "", form.colV ? "TRUE" : "", form.colW ? "TRUE" : "", form.colX ? "TRUE" : "", form.colY ? "TRUE" : "",
       form.colZ, form.colAA, form.colAB, form.colAC, form.colAD, form.colAE, form.colAF, form.colAG,
-      form.colAH, form.colAI, form.colAJ, form.colAK, form.colAL, "", form.colAN, "", form.colAP,
+      form.colAH, form.colAI, form.colAJ ? "TRUE" : "", form.colAK ? "TRUE" : "", form.colAL ? "TRUE" : "", "", form.colAN, "", form.colAP,
       form.colAQ, form.colAR
     ];
 
     const encodedData = encodeURIComponent(JSON.stringify(dataArray));
-    const warpUrl = `${gasUrl}?env=${env}&data=${encodedData}`;
+    const finalUrl = `${gasUrl}?env=${env}&data=${encodedData}`;
 
-    const hiddenIframe = document.getElementById("hidden_warp_iframe") as HTMLIFrameElement;
-    if (hiddenIframe) hiddenIframe.src = warpUrl;
-
-    setTimeout(() => {
-      showToast(env === 'test' ? "🧪 テスト環境への保存を完了しました！" : "✅ 本番環境への保存を完了しました！", true, env === 'prod');
-      setIsSubmitting(false);
-    }, 3000);
+    // 💥 魔法発動：裏で通信するのではなく、ブラウザの「別タブ」で直接GASを開いてエラーを見る！！
+    window.open(finalUrl, "_blank");
   };
 
   const copyPlain = async (text: string, successMsg: string) => {
