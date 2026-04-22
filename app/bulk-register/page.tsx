@@ -39,7 +39,7 @@ export default function BulkRegister() {
   // ☀️ テーマ管理
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // 💡 フォームデータ（ご主人様のGASコードに完全一致させました！）
+  // 💡 フォームデータ
   const [form, setForm] = useState({
     colB: "", colC: "", colD: "", colE: "", colF: "", colG: "", colH: "", colI: "",
     colJ: "", colK: "", colL: "", colM: "", colN: "", colO: "", colP: "",
@@ -73,10 +73,20 @@ export default function BulkRegister() {
     const { id, value, type, name, checked } = target;
     const targetId = id || name;
     
-    setForm(prev => ({ 
-      ...prev, 
-      [targetId]: type === "checkbox" ? checked : value 
-    }));
+    setForm(prev => {
+      const nextForm = { 
+        ...prev, 
+        [targetId]: type === "checkbox" ? checked : value 
+      };
+
+      // 💡 ネット（colU）にチェックを入れた瞬間、AH列（獲得日）に今日の日付を自動入力！
+      if (targetId === "colU" && type === "checkbox" && checked) {
+        const d = new Date();
+        nextForm.colAH = `${d.getMonth() + 1}/${d.getDate()}`;
+      }
+
+      return nextForm;
+    });
 
     if (type !== "checkbox" && value.trim() !== "") {
       setErrors(prevErrors => prevErrors.filter(err => err !== targetId));
@@ -215,14 +225,13 @@ export default function BulkRegister() {
     setIsSubmitting(true);
     showToast("⏳ スプレッドシートへ送信中...", true);
 
-    // 💡 S, T, AM, AO は空文字として送る（ご主人様の配列インデックスと完全合致！）
     const dataArray = [
-      form.colB, form.colC, form.colD, form.colE, form.colF, form.colG, form.colH, form.colI, // 0~7
-      form.colJ, form.colK, form.colL, form.colM, form.colN, form.colO, form.colP, // 8~14
-      form.colQ, form.colR, "", "", form.colU, form.colV, form.colW, form.colX, form.colY, // 15~23 (Q, R, S, T, U, V, W, X, Y)
-      form.colZ, form.colAA, form.colAB, form.colAC, form.colAD, form.colAE, form.colAF, form.colAG, // 24~31 (Z~AG)
-      form.colAH, form.colAI, form.colAJ, form.colAK, form.colAL, "", form.colAN, "", form.colAP, // 32~40 (AH~AP)
-      form.colAQ, form.colAR // 41~42 (AQ, AR)
+      form.colB, form.colC, form.colD, form.colE, form.colF, form.colG, form.colH, form.colI,
+      form.colJ, form.colK, form.colL, form.colM, form.colN, form.colO, form.colP,
+      form.colQ, form.colR, "", "", form.colU, form.colV, form.colW, form.colX, form.colY,
+      form.colZ, form.colAA, form.colAB, form.colAC, form.colAD, form.colAE, form.colAF, form.colAG,
+      form.colAH, form.colAI, form.colAJ, form.colAK, form.colAL, "", form.colAN, "", form.colAP,
+      form.colAQ, form.colAR
     ];
 
     const encodedData = encodeURIComponent(JSON.stringify(dataArray));
@@ -384,19 +393,16 @@ export default function BulkRegister() {
           .input-control option { background: #0f172a; color: #fff; }
           .theme-light .input-control option { background: #fff; color: #1e293b; }
 
-          /* 💡 チェックボックスを綺麗に並べる魔法 */
           .checkbox-group { display: flex; gap: 15px; flex-wrap: wrap; padding: 12px; background: var(--input-bg); border-radius: 10px; border: 1px solid var(--input-border); }
           .checkbox-group label { display: flex; align-items: center; gap: 6px; margin: 0; border: none; padding: 0; font-size: 13px; font-weight: 700; color: var(--text-main); cursor: pointer; }
           .checkbox-group input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent-color); cursor: pointer; }
 
-          /* 💡 専用ボックス（ガス、ネットトスなど）のスタイリング */
           .special-box { background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.02); }
           .special-box.theme-pink { border-top: 4px solid #f43f5e; background: rgba(244, 63, 94, 0.05); }
           .special-box.theme-blue { border-top: 4px solid #0ea5e9; background: rgba(14, 165, 233, 0.05); }
           .special-box.theme-purple { border-top: 4px solid #8b5cf6; background: rgba(139, 92, 246, 0.05); }
           .special-title { font-weight: 900; font-size: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; color: var(--title-color); }
 
-          /* 💡 クイックタグボタンのスタイリング */
           .quick-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
           .tag-btn { background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 6px 14px; font-size: 12px; color: var(--text-main); cursor: pointer; font-weight: 800; transition: 0.2s; }
           .tag-btn:hover { border-color: var(--card-hover-border); color: var(--accent-color); transform: translateY(-1px); }
@@ -551,7 +557,6 @@ export default function BulkRegister() {
               </div>
             </section>
 
-            {/* 💡 完全復活！追加情報・オプション展開エリア */}
             <details className="fade-up-element">
               <summary>➕ 追加情報・オプションを展開</summary>
               <section className="glass-panel" style={{ marginTop: "15px" }}>
@@ -613,13 +618,12 @@ export default function BulkRegister() {
                   </div>
                 </div>
 
-                {/* 🌟 対応依頼内容専用ボックス（クイックタグ完全復元！） */}
+                {/* 🌟 対応依頼内容専用ボックス */}
                 <div className="special-box theme-purple">
                   <div className="special-title">🌟 対応依頼内容</div>
                   
                   <div className="input-group">
                     <label>AP: 対応依頼内容</label>
-                    {/* 💡 クイックタグボタン！ */}
                     <div className="quick-tags">
                       <button type="button" className="tag-btn" onClick={() => addPhrase('colAP', 'ガス手配お願いします')}>➕ ガス手配</button>
                       <button type="button" className="tag-btn" onClick={() => addPhrase('colAP', '水道手配お願いします')}>➕ 水道手配</button>
@@ -644,7 +648,7 @@ export default function BulkRegister() {
           </div>
         </div>
 
-        {/* 固定フッター（アクションボタン） */}
+        {/* 固定フッター */}
         <div className="save-footer">
           <button className="btn-footer btn-footer-oct" onClick={copyForOctopus}>🐙 OBJ用にコピー</button>
           <button className="btn-footer btn-footer-save" onClick={saveToSheet} disabled={isSubmitting}>
@@ -655,7 +659,6 @@ export default function BulkRegister() {
         {/* トースト通知 */}
         <div id="toast" className={toast.show ? "show" : ""} style={{ background: toast.isProd ? "var(--error-border)" : "#0284c7" }}>{toast.msg}</div>
 
-        {/* 🥷 隠しマント（透明なIframe） */}
         <iframe id="hidden_warp_iframe" style={{ display: "none" }} title="hidden-warp"></iframe>
       </main>
     </>
