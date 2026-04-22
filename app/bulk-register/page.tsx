@@ -43,7 +43,8 @@ export default function BulkRegister() {
   const [form, setForm] = useState({
     colB: "", colC: "", colD: "", colE: "", colF: "", colG: "", colH: "", colI: "",
     colJ: "", colK: "", colL: "", colM: "", colN: "", colO: "", colP: "",
-    tempPropertyType: "", tempEmail: "", colQ: "", colR: "",
+    tempPropertyType: "", tempEmail: "", 
+    colQ: "", colR: "",
     colU: false, colV: false, colW: false, colX: false, colY: false,
     colZ: "", colAA: "", colAB: "", colAB_2: "", colAC: "", colAD: "", colAE: "", colAF: "", colAG: "",
     colAH: "", colAI: "", colAJ: false, colAK: false, colAL: false,
@@ -55,7 +56,6 @@ export default function BulkRegister() {
     const todayStr = `${d.getMonth() + 1}/${d.getDate()}`;
     setForm(prev => ({ ...prev, colD: todayStr }));
 
-    // スクロール連動トリガー
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("visible"); });
     }, { threshold: 0.1 });
@@ -205,13 +205,14 @@ export default function BulkRegister() {
     setIsSubmitting(true);
     showToast("⏳ スプレッドシートへ送信中...", true);
 
+    // 💡 欠落していた Q(15列目)とR(16列目)、および各種オプション列を完璧にマッピングしました！！
     const dataArray = [
-      form.colB, form.colC, form.colD, form.colE, form.colF, form.colG, form.colH, form.colI,
-      form.colJ, form.colK, form.colL, form.colM, form.colN, form.colO, form.colP,
-      "", "", "", "", form.colU, form.colV, form.colW, form.colX, form.colY,
-      form.colZ, form.colAA, form.colAB, form.colAC, form.colAD, form.colAE, form.colAF, form.colAG,
-      form.colAH, form.colAI, form.colAJ, form.colAK, form.colAL, "", form.colAN, "", form.colAP,
-      form.colAQ, form.colAR
+      form.colB, form.colC, form.colD, form.colE, form.colF, form.colG, form.colH, form.colI, // 0~7
+      form.colJ, form.colK, form.colL, form.colM, form.colN, form.colO, form.colP, // 8~14
+      form.colQ, form.colR, "", "", form.colU, form.colV, form.colW, form.colX, form.colY, // 15~23 (Q, R, S, T, U, V, W, X, Y)
+      form.colZ, form.colAA, form.colAB, form.colAC, form.colAD, form.colAE, form.colAF, form.colAG, // 24~31 (Z~AG)
+      form.colAH, form.colAI, form.colAJ, form.colAK, form.colAL, "", form.colAN, "", form.colAP, // 32~40 (AH~AP)
+      form.colAQ, form.colAR // 41~42 (AQ, AR)
     ];
 
     const encodedData = encodeURIComponent(JSON.stringify(dataArray));
@@ -318,12 +319,10 @@ export default function BulkRegister() {
           .star { position: absolute; border-radius: 50%; background: var(--star-color); box-shadow: 0 0 10px var(--star-color); animation: twinkle 4s infinite ease-in-out; transition: background 0.5s, box-shadow 0.5s; }
           @keyframes twinkle { 0% { opacity: 0.1; transform: scale(0.5) translateY(0); } 50% { opacity: 1; transform: scale(1.2) translateY(-20px); } 100% { opacity: 0.1; transform: scale(0.5) translateY(0); } }
 
-          /* 🌟 SVGアニメーション背景 */
           .magic-svg-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.7; }
           .magic-path { fill: none; stroke: var(--svg-color); stroke-width: 3; stroke-dasharray: 3000; stroke-dashoffset: 3000; animation: drawMagic 10s ease-in-out infinite alternate; transition: stroke 0.5s; }
           @keyframes drawMagic { 0% { stroke-dashoffset: 3000; } 100% { stroke-dashoffset: 0; } }
 
-          /* ハンバーガーボタン */
           .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 1001; background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; box-shadow: var(--card-shadow); transition: 0.3s; }
           .hamburger-btn:hover { background: var(--card-hover-bg); transform: scale(1.05); }
           .hamburger-line { width: 22px; height: 3px; background: var(--text-sub); border-radius: 3px; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
@@ -331,11 +330,9 @@ export default function BulkRegister() {
           .hamburger-btn.open .line2 { opacity: 0; transform: translateX(-10px); }
           .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: var(--accent-color); }
 
-          /* メニューオーバーレイ */
           .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
           .menu-overlay.open { opacity: 1; pointer-events: auto; }
 
-          /* 🗄️ サイドメニュー（ここに全項目を完全網羅！） */
           .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
           .side-menu.open { left: 0; }
           .menu-title { font-size: 13px; font-weight: 900; color: var(--text-sub); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--card-border); letter-spacing: 1px; }
@@ -344,7 +341,6 @@ export default function BulkRegister() {
           .side-link:hover { border-color: var(--card-hover-border); transform: translateX(8px); }
           .side-link.current-page { background: linear-gradient(135deg, #0284c7, #38bdf8); color: #fff; border: none; box-shadow: 0 6px 15px rgba(2, 132, 199, 0.3); pointer-events: none; }
 
-          /* 🎈 トップナビゲーション（中央配置に修正） */
           .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 30px; }
           .glass-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 50px; box-shadow: var(--card-shadow); max-width: 800px; width: 100%; }
           
@@ -353,49 +349,25 @@ export default function BulkRegister() {
           .glass-nav-link:hover { color: var(--accent-color); border-color: var(--card-hover-border); }
           .glass-nav-active { padding: 10px 20px; border-radius: 30px; font-weight: 900; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); font-size: 14px; }
           
-          /* 🔧 環境トグル (Test / Prod) - 超・明確化 */
           .env-toggle-container { display: flex; border-radius: 30px; padding: 4px; background: var(--input-bg); border: 1px solid var(--card-border); }
           .env-label { padding: 10px 20px; font-size: 13px; font-weight: 900; border-radius: 26px; cursor: pointer; color: var(--text-sub); transition: 0.3s; text-align: center; }
-          
-          /* Test 選択時 */
           input[name="environment"]:checked + .test-label { background: var(--card-hover-bg); color: #0ea5e9; border: 1px solid #38bdf8; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.2); }
-          
-          /* Prod 選択時 (警告の赤) */
           input[name="environment"]:checked + .prod-label { background: #fee2e2; color: #e11d48; border: 1px solid #f43f5e; box-shadow: 0 4px 10px rgba(225, 29, 72, 0.3); }
 
-          /* テーマ切り替えボタン */
           .theme-toggle-btn { background: var(--input-bg); border: 1px solid var(--card-border); padding: 10px 20px; border-radius: 30px; cursor: pointer; transition: 0.3s; font-size: 14px; color: var(--text-main); font-weight: 800; }
           .theme-toggle-btn:hover { border-color: var(--card-hover-border); transform: scale(1.05); }
 
-          /* 🌟 レイアウト：左の注意事項 ＋ 右の入力フォーム */
-          .main-layout {
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 30px;
-            max-width: 1200px;
-            margin: 0 auto 50px auto;
-          }
+          .main-layout { display: grid; grid-template-columns: 320px 1fr; gap: 30px; max-width: 1200px; margin: 0 auto 50px auto; }
           @media (max-width: 950px) { .main-layout { grid-template-columns: 1fr; } }
 
-          /* ℹ️ 左側：注意事項パネル */
           .info-sidebar { display: flex; flex-direction: column; gap: 20px; }
-          .info-panel {
-            background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border);
-            border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow);
-          }
+          .info-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow); }
           .info-title { font-size: 15px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
           .info-list { padding-left: 20px; margin: 0; color: var(--text-main); font-size: 13px; line-height: 1.8; }
           .info-list li { margin-bottom: 8px; }
 
-          /* 📝 右側：メインフォームエリア */
           .form-main-area { display: flex; flex-direction: column; gap: 24px; }
-
-          /* パネルとBento UI（傾き廃止） */
-          .glass-panel { 
-            background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); 
-            border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow); 
-            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s; 
-          }
+          .glass-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; padding: 24px; box-shadow: var(--card-shadow); transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s; }
           .glass-panel:hover { border-color: var(--card-hover-border); transform: translateY(-2px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
 
           .form-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px 20px; }
@@ -409,6 +381,11 @@ export default function BulkRegister() {
           .input-control:focus { border-color: var(--card-hover-border); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); background: var(--card-hover-bg); }
           .input-control option { background: #0f172a; color: #fff; }
           .theme-light .input-control option { background: #fff; color: #1e293b; }
+
+          /* 💡 チェックボックスを綺麗に並べる魔法を追加！ */
+          .checkbox-group { display: flex; gap: 15px; flex-wrap: wrap; padding: 12px; background: var(--input-bg); border-radius: 10px; border: 1px solid var(--input-border); }
+          .checkbox-group label { display: flex; align-items: center; gap: 6px; margin: 0; border: none; padding: 0; font-size: 13px; font-weight: 700; color: var(--text-main); cursor: pointer; }
+          .checkbox-group input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent-color); cursor: pointer; }
 
           .paste-area { width: 100%; height: 100px; padding: 14px; border: 2px dashed var(--card-hover-border); border-radius: 12px; background: var(--input-bg); color: var(--text-main); margin-bottom: 16px; outline: none; transition: 0.3s; font-family: monospace; resize: vertical; }
           .paste-area:focus { background: var(--card-hover-bg); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
@@ -432,7 +409,6 @@ export default function BulkRegister() {
           summary { font-weight: 800; cursor: pointer; padding: 16px; background: var(--card-bg); border-radius: 12px; border-left: 4px solid var(--accent-color); list-style: none; transition: 0.3s; border: 1px solid var(--card-border); }
           summary:hover { border-color: var(--card-hover-border); }
 
-          /* 🪄 スクロール連動（フワッと浮かび上がる） */
           .fade-up-element { opacity: 0; transform: translateY(40px); transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
           .fade-up-element.visible { opacity: 1; transform: translateY(0); }
         `}} />
@@ -453,7 +429,7 @@ export default function BulkRegister() {
         {/* 🌌 メニュー展開時の背景オーバーレイ */}
         <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
 
-        {/* 🗄️ サイドメニュー（全項目を完全網羅！） */}
+        {/* 🗄️ サイドメニュー */}
         <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
           <div className="menu-title">🧭 TOOL MENU</div>
           <a href="/kpi-detail" className="side-link">📊 獲得進捗・KPI</a>
@@ -471,41 +447,34 @@ export default function BulkRegister() {
           </div>
         </div>
 
-        {/* 🎈 ナビゲーション & テーマ切り替え（中央配置） */}
+        {/* 🎈 ナビゲーション & テーマ切り替え */}
         <div className="glass-nav-wrapper fade-up-element" style={{ "--delay": "0s" } as any}>
           <div className="glass-nav">
             <div className="nav-left">
               <a href="/" className="glass-nav-link">← 司令室に戻る</a>
               <div className="glass-nav-active">📦 データ一括登録</div>
             </div>
-            
-            {/* ☀️/🌙 テーマ切り替えボタン */}
             <button className="theme-toggle-btn" onClick={toggleTheme}>
               {isDarkMode ? "🎇 NIGHT" : "☀️ DAY"}
             </button>
           </div>
         </div>
 
-        {/* 🌟 メインレイアウト（左：注意事項 / 右：入力フォーム） */}
+        {/* 🌟 メインレイアウト */}
         <div className="main-layout">
           
-          {/* ℹ️ 左カラム：注意事項・備考パネル */}
+          {/* ℹ️ 左カラム：注意事項 */}
           <aside className="info-sidebar">
-            
-            {/* 🔧 環境トグル (Test / Prod) - 目立つように改善 */}
             <div className="info-panel fade-up-element" style={{ padding: "16px", textAlign: "center", borderTop: env === "prod" ? "4px solid #e11d48" : "4px solid #38bdf8" }}>
               <div style={{ fontSize: "13px", fontWeight: 900, marginBottom: "10px", color: "var(--title-color)" }}>🚀 送信先環境の選択</div>
               <div className="env-toggle-container">
                 <input type="radio" id="envTest" name="environment" value="test" checked={env === "test"} onChange={(e) => setEnv(e.target.value)} hidden />
                 <label htmlFor="envTest" className="env-label test-label">🧪 練習用 (Test)</label>
-                
                 <input type="radio" id="envProd" name="environment" value="prod" checked={env === "prod"} onChange={(e) => setEnv(e.target.value)} hidden />
                 <label htmlFor="envProd" className="env-label prod-label">🚨 本番用 (Prod)</label>
               </div>
               {env === "prod" && (
-                <div style={{ marginTop: "10px", fontSize: "12px", color: "#e11d48", fontWeight: 800 }}>
-                  ※本番シートへ直接書き込まれます。ご注意ください。
-                </div>
+                <div style={{ marginTop: "10px", fontSize: "12px", color: "#e11d48", fontWeight: 800 }}>※本番シートへ直接書き込まれます。ご注意ください。</div>
               )}
             </div>
 
@@ -514,8 +483,7 @@ export default function BulkRegister() {
               <ul className="info-list">
                 <li>「WarpID」が含まれたテキストをコピーすると、この画面を開いた瞬間に<b>自動でデータが反映</b>されます。</li>
                 <li>郵便番号を入力すると、ハイフンなしでも自動で住所が検索・補完されます。</li>
-                <li>お名前（漢字）を入力すると、自動でカナが推測入力されますが、念のため確認してください。</li>
-                <li>赤枠でハイライトされた項目は必須入力です。</li>
+                <li>お名前（漢字）を入力すると、自動でカナが推測入力されます。</li>
               </ul>
             </div>
             
@@ -529,7 +497,7 @@ export default function BulkRegister() {
             </div>
           </aside>
 
-          {/* 📝 右カラム：メインフォームエリア */}
+          {/* 📝 右カラム：メインフォーム */}
           <div className="form-main-area">
             
             <section className="glass-panel fade-up-element">
@@ -572,17 +540,62 @@ export default function BulkRegister() {
               </div>
             </section>
 
+            {/* 💡 ここが消滅していた「追加情報（Q列以降）」の完全復活部分です！！ */}
             <details className="fade-up-element">
-              <summary>➕ 追加情報・オプションを展開</summary>
+              <summary>➕ 追加情報・オプションを展開（Q列〜AR列）</summary>
               <section className="glass-panel" style={{ marginTop: "15px" }}>
+                
                 <div className="form-grid-3">
-                   <div className="input-group"><label>AH: 獲得日</label><input className="input-control" type="text" name="colAH" value={form.colAH} onChange={handleChange} /></div>
-                   <div className="input-group"><label>AI: 対応者</label><input className="input-control" type="text" name="colAI" value={form.colAI} onChange={handleChange} /></div>
-                   <div className="input-group"><label>AN: 商材</label><input className="input-control" type="text" name="colAN" value={form.colAN} onChange={handleChange} /></div>
+                  <div className="input-group"><label>Q: メールアドレス</label><input className="input-control" type="email" name="colQ" value={form.colQ} onChange={handleChange} /></div>
+                  <div className="input-group"><label>R: 予備電話番号</label><input className="input-control" type="text" name="colR" value={form.colR} onChange={handleChange} /></div>
                 </div>
+                
+                <div className="input-group" style={{ marginTop: "20px" }}>
+                  <label>📦 獲得オプション（U〜Y列）</label>
+                  <div className="checkbox-group">
+                    <label><input type="checkbox" name="colU" checked={form.colU} onChange={handleChange} /> ガス</label>
+                    <label><input type="checkbox" name="colV" checked={form.colV} onChange={handleChange} /> ウォーター</label>
+                    <label><input type="checkbox" name="colW" checked={form.colW} onChange={handleChange} /> ネット</label>
+                    <label><input type="checkbox" name="colX" checked={form.colX} onChange={handleChange} /> その他</label>
+                    <label><input type="checkbox" name="colY" checked={form.colY} onChange={handleChange} /> 引越侍レ点</label>
+                  </div>
+                </div>
+
+                <div className="form-grid-3" style={{ marginTop: "20px" }}>
+                  <div className="input-group"><label>Z: 現在の電力会社</label><input className="input-control" type="text" name="colZ" value={form.colZ} onChange={handleChange} /></div>
+                  <div className="input-group"><label>AA: お客様番号</label><input className="input-control" type="text" name="colAA" value={form.colAA} onChange={handleChange} /></div>
+                  <div className="input-group"><label>AB: 供給地点特定番号</label><input className="input-control" type="text" name="colAB" value={form.colAB} onChange={handleChange} /></div>
+                  <div className="input-group"><label>AC: 契約アンペア</label><input className="input-control" type="text" name="colAC" value={form.colAC} onChange={handleChange} /></div>
+                  <div className="input-group"><label>AD: 支払方法</label><select className="input-control" name="colAD" value={form.colAD} onChange={handleChange}><option value="">選択</option><option value="クレジットカード">クレジットカード</option><option value="口座振替">口座振替</option><option value="コンビニ払込票">コンビニ払込票</option></select></div>
+                  <div className="input-group"><label>AE: キャンペーン</label><input className="input-control" type="text" name="colAE" value={form.colAE} onChange={handleChange} /></div>
+                  <div className="input-group"><label>AF: キャンペーンコード</label><input className="input-control" type="text" name="colAF" value={form.colAF} onChange={handleChange} /></div>
+                  <div className="input-group"><label>AG: 備考</label><input className="input-control" type="text" name="colAG" value={form.colAG} onChange={handleChange} /></div>
+                  
+                  <div className="input-group"><label>AH: 獲得日</label><input className="input-control" type="text" name="colAH" value={form.colAH} onChange={handleChange} /></div>
+                  <div className="input-group"><label>AI: 対応者</label><input className="input-control" type="text" name="colAI" value={form.colAI} onChange={handleChange} /></div>
+                  <div className="input-group"><label>AN: 商材</label><input className="input-control" type="text" name="colAN" value={form.colAN} onChange={handleChange} /></div>
+                </div>
+
+                <div className="input-group" style={{ marginTop: "20px" }}>
+                  <label>✅ 確認・対応フラグ（AJ〜AL列）</label>
+                  <div className="checkbox-group">
+                    <label><input type="checkbox" name="colAJ" checked={form.colAJ} onChange={handleChange} /> 確認待ち</label>
+                    <label><input type="checkbox" name="colAK" checked={form.colAK} onChange={handleChange} /> 対応完了</label>
+                    <label><input type="checkbox" name="colAL" checked={form.colAL} onChange={handleChange} /> キャンセル</label>
+                  </div>
+                </div>
+
                 <div className="input-group" style={{ marginTop: "20px" }}>
                   <label>AP: 対応依頼内容</label>
                   <textarea className="input-control" style={{ minHeight: "80px", resize: "vertical" }} name="colAP" value={form.colAP} onChange={handleChange} />
+                </div>
+                <div className="input-group" style={{ marginTop: "10px" }}>
+                  <label>AQ: メモ1</label>
+                  <textarea className="input-control" style={{ minHeight: "60px", resize: "vertical" }} name="colAQ" value={form.colAQ} onChange={handleChange} />
+                </div>
+                <div className="input-group" style={{ marginTop: "10px" }}>
+                  <label>AR: メモ2</label>
+                  <textarea className="input-control" style={{ minHeight: "60px", resize: "vertical" }} name="colAR" value={form.colAR} onChange={handleChange} />
                 </div>
               </section>
             </details>
