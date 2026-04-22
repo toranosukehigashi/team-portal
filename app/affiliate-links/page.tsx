@@ -105,8 +105,9 @@ export default function AffiliateLinks() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   
-  // 💡 料金表モーダルの表示ステートを追加！
+  // モーダル用のステート
   const [isRatesModalOpen, setIsRatesModalOpen] = useState(false);
+  const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false); // 💡 新しい案内用モーダルステート！
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -231,9 +232,12 @@ export default function AffiliateLinks() {
           .group-tab-btn:hover { border-color: var(--accent-color); color: var(--accent-color); transform: translateY(-1px); }
           .group-tab-btn.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); box-shadow: 0 4px 10px rgba(147, 51, 234, 0.3); pointer-events: none; }
 
-          /* 💡 料金単価早見表ボタン */
-          .rate-btn { padding: 8px 16px; border-radius: 20px; font-weight: 900; font-size: 12px; cursor: pointer; border: none; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #fff; transition: 0.3s; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3); display: flex; align-items: center; gap: 6px; margin-left: auto; }
+          /* 💡 ヘルプボタンたち（料金表 ＆ 必須案内） */
+          .help-actions { display: flex; gap: 10px; margin-left: auto; flex-wrap: wrap; }
+          .rate-btn { padding: 8px 16px; border-radius: 20px; font-weight: 900; font-size: 12px; cursor: pointer; border: none; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #fff; transition: 0.3s; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3); display: flex; align-items: center; gap: 6px; }
           .rate-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(245, 158, 11, 0.5); }
+          .notice-btn { padding: 8px 16px; border-radius: 20px; font-weight: 900; font-size: 12px; cursor: pointer; border: none; background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; transition: 0.3s; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); display: flex; align-items: center; gap: 6px; }
+          .notice-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(239, 68, 68, 0.5); }
 
           /* グループセクション */
           .group-section { margin-bottom: 30px; }
@@ -270,7 +274,7 @@ export default function AffiliateLinks() {
 
           .empty-state { grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--text-sub); font-size: 14px; font-weight: 800; background: var(--card-bg); border-radius: 16px; border: 2px dashed var(--card-border); }
 
-          /* 💡 料金表モーダル用のCSS */
+          /* 💡 モーダル群のCSS */
           .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px); z-index: 2000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; }
           .modal-overlay.open { opacity: 1; pointer-events: auto; }
           
@@ -288,8 +292,13 @@ export default function AffiliateLinks() {
           .rate-label { color: var(--text-sub); font-weight: 800; }
           .rate-value { color: var(--text-main); font-weight: 900; }
           
-          .close-modal-btn { width: 100%; margin-top: 10px; padding: 12px; background: var(--nav-bg-hover); color: var(--nav-accent); border: none; border-radius: 12px; font-weight: 900; cursor: pointer; transition: 0.2s; font-size: 14px; letter-spacing: 1px; }
-          .close-modal-btn:hover { background: var(--nav-accent); color: #fff; }
+          /* 💡 必須案内の美しいリストデザイン */
+          .notice-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; }
+          .notice-icon { font-size: 18px; line-height: 1; }
+          .notice-text { font-size: 14px; font-weight: 800; color: var(--text-main); line-height: 1.4; }
+
+          .close-modal-btn { width: 100%; margin-top: 10px; padding: 12px; background: var(--nav-bg-hover); color: var(--text-main); border: 1px solid var(--card-border); border-radius: 12px; font-weight: 900; cursor: pointer; transition: 0.2s; font-size: 14px; letter-spacing: 1px; }
+          .close-modal-btn:hover { background: var(--nav-accent); color: #fff; border-color: transparent; }
 
           #toast { visibility: hidden; min-width: 200px; background: var(--nav-accent); color: #fff; text-align: center; border-radius: 8px; padding: 10px 16px; position: fixed; z-index: 9999; right: 20px; bottom: 20px; font-size: 12px; font-weight: bold; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2); opacity: 0; transform: translateY(20px); }
           #toast.show { visibility: visible; opacity: 1; transform: translateY(0); }
@@ -357,10 +366,15 @@ export default function AffiliateLinks() {
                 ))}
               </div>
 
-              {/* 💡 ここに「料金単価早見表」ボタンを追加！ */}
-              <button className="rate-btn" onClick={() => setIsRatesModalOpen(true)}>
-                💡 料金単価早見表
-              </button>
+              {/* 💡 ヘルプボタンたち（料金表＆必須案内） */}
+              <div className="help-actions">
+                <button className="rate-btn" onClick={() => setIsRatesModalOpen(true)}>
+                  💡 料金単価
+                </button>
+                <button className="notice-btn" onClick={() => setIsNoticeModalOpen(true)}>
+                  🚨 必須案内
+                </button>
+              </div>
             </div>
           </div>
 
@@ -472,6 +486,40 @@ export default function AffiliateLinks() {
             </div>
 
             <button className="close-modal-btn" onClick={() => setIsRatesModalOpen(false)}>閉じる</button>
+          </div>
+        </div>
+
+        {/* 💡 必須案内モーダル */}
+        <div className={`modal-overlay ${isNoticeModalOpen ? "open" : ""}`} onClick={() => setIsNoticeModalOpen(false)}>
+          <div className="rate-modal" onClick={(e) => e.stopPropagation()}>
+            <h3 className="rate-modal-title" style={{ color: "#ef4444", borderColor: "rgba(239, 68, 68, 0.3)" }}>
+              🚨 お客様への必須案内事項
+            </h3>
+            
+            <div className="rate-area-card" style={{ gap: "10px" }}>
+              <div className="notice-item">
+                <span className="notice-icon">💳</span>
+                <span className="notice-text">お支払い方法の登録について</span>
+              </div>
+              <div className="notice-item">
+                <span className="notice-icon">🔄</span>
+                <span className="notice-text">クーリングオフに関する説明</span>
+              </div>
+              <div className="notice-item">
+                <span className="notice-icon">📅</span>
+                <span className="notice-text">変更・キャンセルは1週間前までに連絡</span>
+              </div>
+              <div className="notice-item">
+                <span className="notice-icon">🏠</span>
+                <span className="notice-text">現住所のライフラインはお客様自身で解約</span>
+              </div>
+              <div className="notice-item">
+                <span className="notice-icon">✉️</span>
+                <span className="notice-text">担当窓口から案内メールが届くこと</span>
+              </div>
+            </div>
+
+            <button className="close-modal-btn" onClick={() => setIsNoticeModalOpen(false)}>確認しました</button>
           </div>
         </div>
 
