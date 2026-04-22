@@ -169,94 +169,93 @@ export default function AffiliateLinks() {
           .app-wrapper * { box-sizing: border-box; }
           .theme-light { --bg-gradient: linear-gradient(180deg, #7dd3fc 0%, #e0f2fe 100%); --text-main: #1e293b; --text-sub: #475569; --card-bg: rgba(255, 255, 255, 0.7); --card-border: rgba(255, 255, 255, 1); --card-hover-border: #38bdf8; --card-hover-bg: rgba(255, 255, 255, 0.95); --card-shadow: 0 10px 30px rgba(0,0,0,0.05); --title-color: #0369a1; --accent-color: #0ea5e9; --input-bg: rgba(255, 255, 255, 0.9); --input-border: rgba(203, 213, 225, 0.8); --star-color: #f59e0b; }
           .theme-dark { --bg-gradient: radial-gradient(ellipse at bottom, #1e1b4b 0%, #020617 100%); --text-main: #f8fafc; --text-sub: #cbd5e1; --card-bg: rgba(15, 23, 42, 0.7); --card-border: rgba(255, 255, 255, 0.15); --card-hover-border: #38bdf8; --card-hover-bg: rgba(30, 41, 59, 0.9); --card-shadow: 0 20px 50px rgba(0,0,0,0.8); --title-color: #fde047; --accent-color: #38bdf8; --input-bg: rgba(0, 0, 0, 0.4); --input-border: rgba(255, 255, 255, 0.2); --star-color: #fef08a; }
-          .app-wrapper { min-height: 100vh; padding: 20px 30px 80px 30px; font-family: 'Inter', sans-serif; color: var(--text-main); font-size: 13px; position: relative; }
+          .app-wrapper { min-height: 100vh; padding: 20px 20px 80px 20px; font-family: 'Inter', sans-serif; color: var(--text-main); font-size: 13px; position: relative; }
           .entrance-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; background: var(--bg-gradient); transition: 0.5s; }
           .particles-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
           .star { position: absolute; border-radius: 50%; background: var(--star-color); box-shadow: 0 0 10px var(--star-color); animation: twinkle 4s infinite ease-in-out; }
           @keyframes twinkle { 0% { opacity: 0.1; transform: scale(0.5) translateY(0); } 50% { opacity: 1; transform: scale(1.2) translateY(-20px); } 100% { opacity: 0.1; transform: scale(0.5) translateY(0); } }
 
           /* ナビ＆メニュー */
-          .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 1001; background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; box-shadow: var(--card-shadow); transition: 0.3s; }
+          .hamburger-btn { position: fixed; top: 15px; left: 15px; z-index: 1001; background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--card-border); border-radius: 8px; padding: 8px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; box-shadow: var(--card-shadow); transition: 0.3s; }
           .hamburger-btn:hover { background: var(--card-hover-bg); transform: scale(1.05); }
-          .hamburger-line { width: 20px; height: 2px; background: var(--text-sub); border-radius: 2px; transition: 0.4s; }
+          .hamburger-line { width: 18px; height: 2px; background: var(--text-sub); border-radius: 2px; transition: 0.4s; }
           .hamburger-btn.open .line1 { transform: translateY(6px) rotate(45deg); background: var(--accent-color); }
           .hamburger-btn.open .line2 { opacity: 0; }
           .hamburger-btn.open .line3 { transform: translateY(-6px) rotate(-45deg); background: var(--accent-color); }
           .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
           .menu-overlay.open { opacity: 1; pointer-events: auto; }
-          .side-menu { position: fixed; top: 0; left: -300px; width: 280px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s; padding: 80px 20px 30px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+          .side-menu { position: fixed; top: 0; left: -280px; width: 260px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s; padding: 70px 16px 20px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; }
           .side-menu.open { left: 0; }
-          .menu-title { font-size: 12px; font-weight: 900; color: var(--text-sub); margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed var(--card-border); letter-spacing: 1px; }
-          .side-link { text-decoration: none; padding: 12px 16px; border-radius: 10px; background: var(--input-bg); color: var(--text-main); font-weight: 800; border: 1px solid var(--card-border); transition: 0.2s; display: flex; align-items: center; gap: 10px; font-size: 13px;}
+          .menu-title { font-size: 11px; font-weight: 900; color: var(--text-sub); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed var(--card-border); letter-spacing: 1px; }
+          .side-link { text-decoration: none; padding: 10px 14px; border-radius: 8px; background: var(--input-bg); color: var(--text-main); font-weight: 800; border: 1px solid var(--card-border); transition: 0.2s; display: flex; align-items: center; gap: 8px; font-size: 12px;}
           .side-link.current-page { background: linear-gradient(135deg, #0ea5e9, #4f46e5); color: #fff; border: none; pointer-events: none; }
-          .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 20px; }
-          .glass-nav { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 50px; box-shadow: var(--card-shadow); max-width: 800px; width: 100%; }
-          .glass-nav-link { text-decoration: none; padding: 8px 16px; border-radius: 30px; font-weight: 800; background: var(--input-bg); color: var(--text-sub); border: 1px solid var(--card-border); font-size: 13px; transition: 0.2s; }
+          .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 16px; }
+          .glass-nav { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 50px; box-shadow: var(--card-shadow); max-width: 800px; width: 100%; }
+          .glass-nav-link { text-decoration: none; padding: 6px 12px; border-radius: 20px; font-weight: 800; background: var(--input-bg); color: var(--text-sub); border: 1px solid var(--card-border); font-size: 12px; transition: 0.2s; }
           .glass-nav-link:hover { color: var(--accent-color); border-color: var(--card-hover-border); }
-          .glass-nav-active { padding: 8px 16px; border-radius: 30px; font-weight: 900; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); font-size: 13px; }
-          .theme-toggle-btn { background: var(--input-bg); border: 1px solid var(--card-border); padding: 8px 16px; border-radius: 30px; cursor: pointer; font-weight: 800; font-size: 13px; color: var(--text-main); transition: 0.3s; }
+          .glass-nav-active { padding: 6px 12px; border-radius: 20px; font-weight: 900; background: var(--card-hover-bg); color: var(--accent-color); border: 1px solid var(--card-hover-border); font-size: 12px; }
+          .theme-toggle-btn { background: var(--input-bg); border: 1px solid var(--card-border); padding: 6px 12px; border-radius: 20px; cursor: pointer; font-weight: 800; font-size: 12px; color: var(--text-main); transition: 0.3s; }
 
           /* メインレイアウト */
-          .main-container { max-width: 1300px; margin: 0 auto; }
+          .main-container { max-width: 1400px; margin: 0 auto; }
           
-          /* 検索パネル */
-          .control-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 16px; padding: 16px; box-shadow: var(--card-shadow); margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
-          .search-input { width: 100%; padding: 12px 16px; font-size: 14px; border: 2px solid var(--input-border); border-radius: 12px; background: var(--input-bg); color: var(--text-main); font-weight: 700; outline: none; transition: 0.3s; }
+          /* 検索パネル - さらにスリム化！ */
+          .control-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; box-shadow: var(--card-shadow); margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px; }
+          .search-input { width: 100%; padding: 10px 14px; font-size: 13px; border: 2px solid var(--input-border); border-radius: 10px; background: var(--input-bg); color: var(--text-main); font-weight: 700; outline: none; transition: 0.3s; }
           .search-input:focus { border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2); }
           
-          .controls-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-          .group-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
-          .group-tab-btn { padding: 8px 16px; border-radius: 20px; font-weight: 800; font-size: 12px; cursor: pointer; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-sub); transition: 0.3s; }
+          .controls-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+          .group-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+          .group-tab-btn { padding: 6px 12px; border-radius: 16px; font-weight: 800; font-size: 11px; cursor: pointer; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-sub); transition: 0.3s; }
           .group-tab-btn:hover { border-color: var(--accent-color); color: var(--accent-color); transform: translateY(-1px); }
-          .group-tab-btn.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); box-shadow: 0 4px 10px rgba(14, 165, 233, 0.3); pointer-events: none; }
+          .group-tab-btn.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3); pointer-events: none; }
           
-          .filter-group { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; background: var(--input-bg); padding: 8px 16px; border-radius: 20px; border: 1px dashed var(--input-border); }
-          .filter-label { font-weight: 900; color: var(--text-sub); margin-right: 2px; font-size: 12px; }
-          .filter-checkbox { display: flex; align-items: center; gap: 4px; cursor: pointer; font-weight: 800; font-size: 12px; color: var(--text-sub); }
-          .filter-checkbox input { width: 14px; height: 14px; accent-color: var(--accent-color); cursor: pointer; }
+          .filter-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: var(--input-bg); padding: 6px 12px; border-radius: 16px; border: 1px dashed var(--input-border); }
+          .filter-label { font-weight: 900; color: var(--text-sub); margin-right: 2px; font-size: 11px; }
+          .filter-checkbox { display: flex; align-items: center; gap: 4px; cursor: pointer; font-weight: 800; font-size: 11px; color: var(--text-sub); }
+          .filter-checkbox input { width: 12px; height: 12px; accent-color: var(--accent-color); cursor: pointer; margin: 0; }
 
-          /* 💡 グループセクション（ここに重説リンクを移動！） */
-          .group-section { margin-bottom: 30px; }
-          .group-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px dashed var(--card-border); padding-bottom: 8px; flex-wrap: wrap; gap: 10px; }
-          .group-section-title { font-size: 16px; font-weight: 900; display: flex; align-items: center; gap: 8px; color: var(--title-color); margin: 0; }
-          .group-color-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px currentColor; }
+          /* グループセクション */
+          .group-section { margin-bottom: 24px; }
+          .group-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed var(--card-border); padding-bottom: 6px; flex-wrap: wrap; gap: 8px; }
+          .group-section-title { font-size: 15px; font-weight: 900; display: flex; align-items: center; gap: 6px; color: var(--title-color); margin: 0; }
+          .group-color-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; box-shadow: 0 0 6px currentColor; }
           
-          /* グループ共通の重説リンクボタン（開く） */
-          .group-terms-btn { background: linear-gradient(135deg, #10b981, #059669); color: #fff; text-decoration: none; padding: 8px 16px; border-radius: 12px; font-weight: 900; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); transition: 0.2s; }
-          .group-terms-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.5); }
+          .group-terms-btn { background: linear-gradient(135deg, #10b981, #059669); color: #fff; text-decoration: none; padding: 6px 12px; border-radius: 10px; font-weight: 900; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3); transition: 0.2s; }
+          .group-terms-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(16, 185, 129, 0.5); }
 
-          /* カードグリッド */
-          .links-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+          /* 💡 カードグリッド - 横幅の最小値を220pxまで極限圧縮！ */
+          .links-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
           
-          .agency-card { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 10px; transition: 0.2s; }
-          .agency-card:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-color: var(--card-hover-border); }
+          /* 💡 カード本体 - 余白(padding)と隙間(gap)をミリ単位で削る！ */
+          .agency-card { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 6px; transition: 0.2s; }
+          .agency-card:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.08); border-color: var(--card-hover-border); z-index: 10; }
           
-          .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-          .agency-name { font-size: 15px; font-weight: 900; color: var(--title-color); margin: 0; line-height: 1.3; }
+          .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
+          .agency-name { font-size: 13px; font-weight: 900; color: var(--title-color); margin: 0; line-height: 1.2; word-break: break-all; }
 
-          .area-badge { font-size: 10px; font-weight: 800; background: var(--card-hover-bg); color: var(--accent-color); padding: 2px 8px; border-radius: 12px; border: 1px solid var(--card-hover-border); display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
+          .area-badge { font-size: 9px; font-weight: 800; background: var(--card-hover-bg); color: var(--accent-color); padding: 2px 6px; border-radius: 10px; border: 1px solid var(--card-hover-border); display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
 
-          .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 2px 0; background: rgba(0,0,0,0.02); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--input-border); }
+          /* 💡 詳細情報のグリッド - 限界まで縮小 */
+          .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 0; background: rgba(0,0,0,0.02); padding: 6px 8px; border-radius: 6px; border: 1px solid var(--input-border); }
           .theme-dark .details-grid { background: rgba(255,255,255,0.03); }
           
-          .detail-item { display: flex; align-items: center; gap: 6px; font-size: 11px; }
-          .detail-icon { font-size: 12px; opacity: 0.8; }
+          .detail-item { display: flex; align-items: center; gap: 4px; font-size: 10px; }
+          .detail-icon { font-size: 11px; opacity: 0.8; }
           .detail-value { font-weight: 900; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
           .detail-value.none { color: var(--text-sub); opacity: 0.4; font-weight: 600; text-decoration: line-through; }
 
-          /* アクションボタン - OBJリンクを全幅に！ */
-          .action-area { margin-top: auto; padding-top: 10px; border-top: 1px dashed var(--input-border); }
-          .copy-btn { width: 100%; border: none; border-radius: 8px; padding: 10px; font-weight: 900; font-size: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-          .copy-btn:hover { transform: translateY(-1px); }
-          .btn-obj { background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #fff; }
-          .btn-obj:hover { box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4); }
-          
-          .empty-state { grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--text-sub); font-size: 14px; font-weight: 800; background: var(--card-bg); border-radius: 16px; border: 2px dashed var(--card-border); }
+          /* 💡 アクションボタン - 右寄せの小さなボタンに！ */
+          .action-area { margin-top: auto; padding-top: 6px; border-top: 1px dashed var(--input-border); display: flex; justify-content: flex-end; }
+          .copy-btn { border: none; border-radius: 6px; padding: 6px 10px; font-weight: 900; font-size: 10px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #fff; }
+          .copy-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(14, 165, 233, 0.3); }
 
-          #toast { visibility: hidden; min-width: 250px; background: #10b981; color: #fff; text-align: center; border-radius: 10px; padding: 12px 20px; position: fixed; z-index: 100; right: 24px; bottom: 30px; font-size: 13px; font-weight: bold; transition: 0.3s; box-shadow: 0 8px 20px rgba(0,0,0,0.2); opacity: 0; transform: translateY(20px); }
+          .empty-state { grid-column: 1 / -1; text-align: center; padding: 30px 10px; color: var(--text-sub); font-size: 13px; font-weight: 800; background: var(--card-bg); border-radius: 12px; border: 2px dashed var(--card-border); }
+
+          #toast { visibility: hidden; min-width: 200px; background: #10b981; color: #fff; text-align: center; border-radius: 8px; padding: 10px 16px; position: fixed; z-index: 100; right: 20px; bottom: 20px; font-size: 12px; font-weight: bold; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2); opacity: 0; transform: translateY(20px); }
           #toast.show { visibility: visible; opacity: 1; transform: translateY(0); }
 
-          .fade-up-element { opacity: 0; transform: translateY(20px); transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+          .fade-up-element { opacity: 0; transform: translateY(15px); transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
           .fade-up-element.visible { opacity: 1; transform: translateY(0); }
         `}} />
 
@@ -337,7 +336,6 @@ export default function AffiliateLinks() {
             return (
               <div key={group.id} className="group-section">
                 
-                {/* 💡 グループタイトルの横に「共通重説フォーム」を開くリンクを配置！ */}
                 <div className="group-header-row fade-up-element">
                   <h2 className="group-section-title">
                     <span className="group-color-dot" style={{ color: group.themeColor, backgroundColor: group.themeColor }}></span>
@@ -360,7 +358,7 @@ export default function AffiliateLinks() {
                     <div 
                       key={agency.id} 
                       className="agency-card fade-up-element" 
-                      style={{ borderTop: `3px solid ${group.themeColor}`, transitionDelay: `${index * 0.03}s` }}
+                      style={{ borderTop: `3px solid ${group.themeColor}`, transitionDelay: `${index * 0.01}s` }}
                     >
                       <div className="card-header">
                         <h3 className="agency-name">{agency.name}</h3>
@@ -386,20 +384,13 @@ export default function AffiliateLinks() {
                         </div>
                       </div>
 
-                      {agency.note && (
-                        <div className="info-row">
-                          <span className="info-label">📝 備考</span>
-                          <span className="info-value">{agency.note}</span>
-                        </div>
-                      )}
-
-                      {/* 💡 ボタンは「OBJリンク」専用になり、超押しやすい全幅サイズに！ */}
+                      {/* 💡 コピーボタンを右下に小さく配置！ */}
                       <div className="action-area">
                         <button 
-                          className="copy-btn btn-obj" 
+                          className="copy-btn" 
                           onClick={() => copyToClipboard(agency.url, `${agency.name}のOBJリンク`)}
                         >
-                          📋 OBJリンクをコピー
+                          📋 OBJコピー
                         </button>
                       </div>
                     </div>
