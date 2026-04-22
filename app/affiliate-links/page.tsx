@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import SideMenu from "@/app/components/SideMenu"; // 💡 共通メニューを呼び出し！
 
 // ✨ 背景の光の粒
 const PixieDust = () => {
@@ -102,7 +103,7 @@ export default function AffiliateLinks() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeGroupFilter, setActiveGroupFilter] = useState<string>("all");
   const [toast, setToast] = useState({ show: false, msg: "" });
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // 💡 isMenuOpen の State は不要になったので削除しました！
   const [isDarkMode, setIsDarkMode] = useState(false);
   
   // モーダル用のステート
@@ -183,22 +184,7 @@ export default function AffiliateLinks() {
           .star { position: absolute; border-radius: 50%; background: var(--star-color); box-shadow: 0 0 10px var(--star-color); animation: twinkle 4s infinite ease-in-out; }
           @keyframes twinkle { 0% { opacity: 0.1; transform: scale(0.5) translateY(0); } 50% { opacity: 1; transform: scale(1.2) translateY(-20px); } 100% { opacity: 0.1; transform: scale(0.5) translateY(0); } }
 
-          /* ナビ＆メニュー */
-          .hamburger-btn { position: fixed; top: 15px; left: 15px; z-index: 1001; background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--card-border); border-radius: 8px; padding: 8px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; box-shadow: var(--card-shadow); transition: 0.3s; }
-          .hamburger-btn:hover { background: var(--card-hover-bg); transform: scale(1.05); }
-          .hamburger-line { width: 18px; height: 2px; background: var(--text-sub); border-radius: 2px; transition: 0.4s; }
-          .hamburger-btn.open .line1 { transform: translateY(6px) rotate(45deg); background: var(--nav-accent); }
-          .hamburger-btn.open .line2 { opacity: 0; }
-          .hamburger-btn.open .line3 { transform: translateY(-6px) rotate(-45deg); background: var(--nav-accent); }
-          
-          .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
-          .menu-overlay.open { opacity: 1; pointer-events: auto; }
-          
-          .side-menu { position: fixed; top: 0; left: -280px; width: 260px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s; padding: 70px 16px 20px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; }
-          .side-menu.open { left: 0; }
-          .menu-title { font-size: 11px; font-weight: 900; color: var(--text-sub); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed var(--card-border); letter-spacing: 1px; }
-          .side-link { text-decoration: none; padding: 10px 14px; border-radius: 8px; background: var(--input-bg); color: var(--text-main); font-weight: 800; border: 1px solid var(--card-border); transition: 0.2s; display: flex; align-items: center; gap: 8px; font-size: 12px;}
-          .side-link.current-page { background: linear-gradient(135deg, var(--nav-accent), #4f46e5); color: #fff; border: none; pointer-events: none; }
+          /* 💡 ここにあった古いハンバーガーメニューのCSS残骸を完全に削除しました！ */
           
           .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 20px; }
           .glass-nav { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 10px 16px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 20px; box-shadow: var(--card-shadow); max-width: 800px; width: 100%; }
@@ -259,7 +245,6 @@ export default function AffiliateLinks() {
 
           .action-area { margin-top: auto; padding-top: 6px; border-top: 1px dashed var(--input-border); display: flex; justify-content: flex-end; }
           
-          /* 💡 コピーボタンではなく「開く」ボタンとしてのスタイル */
           .open-link-btn { width: 100%; border: none; border-radius: 6px; padding: 6px 10px; font-weight: 900; font-size: 11px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); color: #fff; }
           .open-link-btn:hover { transform: translateY(-1px); filter: brightness(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
 
@@ -297,21 +282,8 @@ export default function AffiliateLinks() {
           .fade-up-element.visible { opacity: 1; transform: translateY(0); }
         `}} />
 
-        <div className={`hamburger-btn ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
-          <div className="hamburger-line line1"></div><div className="hamburger-line line2"></div><div className="hamburger-line line3"></div>
-        </div>
-        <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
-        
-        <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
-          <div className="menu-title">🧭 TOOL MENU</div>
-          <a href="/kpi-detail" className="side-link">📊 獲得進捗・KPI</a>
-          <a href="/bulk-register" className="side-link">📦 データ一括登録</a>
-          <a href="/net-toss" className="side-link">🌐 ネットトス連携</a>
-          <a href="/self-close" className="side-link">🤝 自己クロ連携</a>
-          <a href="/sms-kraken" className="side-link">📱 SMS送信</a>
-          <a href="/procedure-wizard" className="side-link">🗺️ 手順辞書</a>
-          <a href="/affiliate-links" className="side-link current-page">🔗 OBJリンクポータル</a>
-        </div>
+        {/* 💡 ここに共通化されたメニューコンポーネントをポンと置くだけ！！！ */}
+        <SideMenu />
 
         <div className="glass-nav-wrapper fade-up-element">
           <div className="glass-nav">
@@ -425,7 +397,6 @@ export default function AffiliateLinks() {
                         </div>
                       </div>
 
-                      {/* 💡 コピーボタンを廃止し、「新しいタブで開く」ボタンに変更！ */}
                       <div className="action-area">
                         <button 
                           className="open-link-btn" 
