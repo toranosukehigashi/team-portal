@@ -33,22 +33,19 @@ type StepData = {
   aiImgDesc?: string; 
 };
 
-// 💡 孫階層：サブタブ（これがないと怒られます！）
 type ManualSubTab = {
   id: string;
   label: string;
   steps: StepData[];
 };
 
-// 💡 子階層：メインのタブ
 type ManualTab = {
   id: string;
   label: string;
   steps?: StepData[]; 
-  subTabs?: ManualSubTab[]; // 👈 ここに「subTabs」を追加しました！
+  subTabs?: ManualSubTab[];
 };
 
-// 💡 親階層：マニュアル全体
 type ManualData = {
   id: string;
   icon: string;
@@ -125,7 +122,6 @@ const MANUAL_DATA: ManualData[] = [
       {
         id: "with-spin",
         label: "✅ SPINありの場合",
-        // 💡 「SPINあり」の中に、さらに「軽微」と「大幅」のサブタブを作る！
         subTabs: [
           {
             id: "minor",
@@ -150,7 +146,6 @@ const MANUAL_DATA: ManualData[] = [
       {
         id: "no-spin",
         label: "❌ SPINなしの場合",
-        // 💡 「SPINなし」は分岐がないので、そのまま steps を書く！
         steps: [
           { step: 1, title: "顧客情報の確認", content: "「詳細タブ」の「申請」の「ID」を押す。", imgUrl: "/no-spin1.png" },
           { step: 2, title: "再点申し込み ユーザー提供の詳細", content: "「再点処理」の「🔧」を押し、「供給地点特定番号を入力する」を押す", imgUrl: "/no-spin2.png" },
@@ -168,8 +163,9 @@ export default function ProcedureWizard() {
   const [activeManualId, setActiveManualId] = useState(MANUAL_DATA[0].id);
   const [expandedSteps, setExpandedSteps] = useState<number[]>([1]); 
   
-  // 💡 分岐（タブ）用のステートを追加
   const [activeTabId, setActiveTabId] = useState<string>("");
+  // 💡 不足していた「サブタブ用」のステートを追加！
+  const [activeSubTabId, setActiveSubTabId] = useState<string>(""); 
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -177,20 +173,28 @@ export default function ProcedureWizard() {
 
   const activeManual = MANUAL_DATA.find(m => m.id === activeManualId) || MANUAL_DATA[0];
 
-  // 💡 マニュアルが切り替わった時の処理（タブの初期化など）
+  // 💡 マニュアルが切り替わった時に「サブタブ」も初期化する！
   useEffect(() => {
     if (activeManual.tabs && activeManual.tabs.length > 0) {
-      setActiveTabId(activeManual.tabs[0].id); // タブがあれば最初のタブを選択
+      const firstTab = activeManual.tabs[0];
+      setActiveTabId(firstTab.id);
+      if(firstTab.subTabs && firstTab.subTabs.length > 0) {
+        setActiveSubTabId(firstTab.subTabs[0].id);
+      } else {
+        setActiveSubTabId("");
+      }
     } else {
-      setActiveTabId(""); // なければ空にする
+      setActiveTabId("");
+      setActiveSubTabId("");
     }
     setExpandedSteps([1]);
   }, [activeManualId, activeManual]);
 
-  // 💡 現在表示すべきSTEPのリストを決定する
-  const currentSteps = activeManual.tabs 
-    ? activeManual.tabs.find(t => t.id === activeTabId)?.steps || []
-    : activeManual.steps || [];
+  // 💡 今表示すべきSTEPを「サブタブの中」からも探し出せるように修正！
+  const currentTab = activeManual.tabs?.find(t => t.id === activeTabId);
+  const currentSteps = currentTab?.subTabs
+    ? currentTab.subTabs.find(st => st.id === activeSubTabId)?.steps || []
+    : currentTab?.steps || activeManual.steps || [];
 
   useEffect(() => {
     setIsReady(true);
@@ -206,7 +210,7 @@ export default function ProcedureWizard() {
       clearTimeout(timeoutId);
       observer.disconnect();
     };
-  }, [activeManualId, activeTabId]); // タブが切り替わった時もアニメーションを発動！
+  }, [activeManualId, activeTabId, activeSubTabId]); // アニメーション監視対象にサブタブも追加
 
   const toggleStep = (stepNumber: number) => {
     setExpandedSteps(prev => 
@@ -312,11 +316,18 @@ export default function ProcedureWizard() {
         .m-title { font-size: 28px; font-weight: 900; color: var(--title-color); margin: 0 0 10px 0; display: flex; align-items: center; gap: 12px; }
         .m-desc { color: var(--text-sub); font-size: 14px; font-weight: 700; line-height: 1.6; margin: 0; white-space: pre-wrap; }
 
-        /* 💡 タブ切り替えボタンのCSSを追加！ */
-        .tab-switcher { display: flex; gap: 10px; background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); padding: 8px; border-radius: 16px; box-shadow: var(--card-shadow); margin-bottom: 10px; }
+        /* 💡 メインタブ切り替えボタン */
+        .tab-switcher { display: flex; gap: 10px; background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); padding: 8px; border-radius: 16px; box-shadow: var(--card-shadow); margin-bottom: 5px; }
         .tab-btn { flex: 1; padding: 14px; border-radius: 12px; border: none; background: transparent; color: var(--text-sub); font-weight: 900; font-size: 15px; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px; }
         .tab-btn:hover { background: rgba(255,255,255,0.05); color: var(--accent-color); }
         .tab-btn.active { background: var(--accent-color); color: #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.2); pointer-events: none; }
+
+        /* 💡 不足していた「サブタブ用」のデザインCSSを追加！ */
+        .sub-tab-switcher { display: flex; gap: 10px; margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 6px; border-radius: 12px; }
+        .theme-light .sub-tab-switcher { background: rgba(0,0,0,0.05); }
+        .sub-tab-btn { flex: 1; padding: 10px; border-radius: 8px; border: none; background: transparent; color: var(--text-sub); font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.3s; text-align: center; }
+        .sub-tab-btn:hover { color: var(--accent-color); }
+        .sub-tab-btn.active { background: var(--card-bg); color: var(--accent-color); box-shadow: 0 2px 10px rgba(0,0,0,0.1); border: 1px solid var(--card-border); pointer-events: none; }
 
         .accordion-item { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 20px; overflow: hidden; transition: 0.3s; }
         .accordion-item.open { border-color: var(--card-hover-border); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
@@ -357,7 +368,7 @@ export default function ProcedureWizard() {
       {/* 🌌 メニュー展開時の背景オーバーレイ */}
       <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
 
-      {/* 🗄️ サイドメニュー（全項目網羅！） */}
+      {/* 🗄️ サイドメニュー */}
       <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
         <div className="menu-title-sidebar">🧭 TOOL MENU</div>
         <a href="/kpi-detail" className="side-link">📊 獲得進捗・KPI</a>
@@ -373,7 +384,7 @@ export default function ProcedureWizard() {
 
       <main className={`app-wrapper ${isReady ? "ready" : ""}`}>
         
-        {/* 🎈 ナビゲーション & テーマ切り替え（中央配置） */}
+        {/* 🎈 ナビゲーション & テーマ切り替え */}
         <div className="glass-nav-wrapper fade-up-element">
           <div className="glass-nav">
             <div className="nav-left">
@@ -411,14 +422,22 @@ export default function ProcedureWizard() {
               <p className="m-desc">{activeManual.desc}</p>
             </div>
 
-            {/* 💡 ここに新機能！タブが存在する場合は、切り替えボタンを表示する！ */}
+            {/* 💡 メインタブが存在する場合は表示 */}
             {activeManual.tabs && (
               <div className="tab-switcher fade-up-element" style={{ transitionDelay: "0.25s" }}>
                 {activeManual.tabs.map(tab => (
                   <button 
                     key={tab.id}
                     className={`tab-btn ${activeTabId === tab.id ? "active" : ""}`}
-                    onClick={() => { setActiveTabId(tab.id); setExpandedSteps([1]); }}
+                    onClick={() => { 
+                      setActiveTabId(tab.id); 
+                      if(tab.subTabs && tab.subTabs.length > 0){
+                        setActiveSubTabId(tab.subTabs[0].id);
+                      } else {
+                        setActiveSubTabId("");
+                      }
+                      setExpandedSteps([1]); 
+                    }}
                   >
                     {tab.label}
                   </button>
@@ -426,7 +445,22 @@ export default function ProcedureWizard() {
               </div>
             )}
 
-            {/* 💡 currentSteps（選択中のタブのSTEP、もしくは通常のSTEP）を展開！ */}
+            {/* 💡 不足していた「サブタブのボタン」を表示する仕組みを追加！ */}
+            {currentTab?.subTabs && (
+              <div className="sub-tab-switcher fade-up-element" style={{ transitionDelay: "0.28s" }}>
+                {currentTab.subTabs.map(subTab => (
+                  <button 
+                    key={subTab.id}
+                    className={`sub-tab-btn ${activeSubTabId === subTab.id ? "active" : ""}`}
+                    onClick={() => { setActiveSubTabId(subTab.id); setExpandedSteps([1]); }}
+                  >
+                    {subTab.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* 💡 選択中のSTEPリストを展開 */}
             {currentSteps.map((step, index) => {
               const isOpen = expandedSteps.includes(step.step);
               return (
