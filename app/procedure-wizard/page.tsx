@@ -114,19 +114,30 @@ const MANUAL_DATA: ManualData[] = [
     // 💡 ここが分岐（タブ）の書き方です！！「steps」の代わりに「tabs」を使います！
     tabs: [
       {
-        id: "with-spin",
+        id: "with-spin-minor",
+        label: "✅ SPINあり (軽微な修正)",
+        steps: [
+          { step: 1, title: "顧客情報の確認", content: "「プロパティタブ」の「使用場所情報」を押し、「🔧」の「設備情報を編集」を押す", imgUrl: "/with-spin1.png" },
+          { step: 2, title: "システムの入力欄へ", content: "「address」「building name」「郵便番号」を編集し「保存」押して終了。", imgUrl: "/with-spin2.png" }
+        ]
+      },
+      {
+        id: "with-spin-major",
         label: "✅ SPINありの場合",
         steps: [
-          { step: 1, title: "SPIN番号の確認", content: "お客様から連携された22桁のSPIN番号をコピーします。", imgUrl: "" },
-          { step: 2, title: "システムの入力欄へ", content: "指定の入力フォームにSPIN番号を貼り付けて検索を実行します。", imgUrl: "" }
+          { step: 1, title: "顧客情報の確認", content: "「プロパティタブ」の「使用場所情報」を押し、「🔧」の「設備情報を編集」を押す", imgUrl: "/with-spin1.png" },
+          { step: 2, title: "システムの入力欄へ", content: "「address」「building name」「郵便番号」を編集し「保存」押して終了。", imgUrl: "/with-spin2.png" },
+          { step: 3, title: "※大幅な住所変更の場合は以下作業も追加で必ず行ってください！（番地入力ミスでなく部屋番号ごと違うとか）", content: "「詳細タブ」の「申請」の「🔧」から「電気再点の作成」を押す。", imgUrl: "/with-spin3.png" },
+          { step: 4, title: "変更・修正", content: "正しい「供給地点特定番号」と「Product」を入力。（状況に応じて「接続供給開始年月日」まで）", imgUrl: "/with-spin4.png" }
         ]
       },
       {
         id: "no-spin",
         label: "❌ SPINなしの場合",
         steps: [
-          { step: 1, title: "住所からの検索", content: "設備情報取得ツールを開き、お客様の住所からSPIN番号を特定します。\n※番地や部屋番号の表記ゆれに注意！", imgUrl: "" },
-          { step: 2, title: "新規登録フローへ移行", content: "特定したSPINを紐付けるか、新設の場合は別のプロシージャを実行します。", imgUrl: "" }
+          { step: 1, title: "顧客情報の確認", content: "「詳細タブ」の「申請」の「ID」を押す。", imgUrl: "/no-spin1.png" },
+          { step: 2, title: "再点申し込み ユーザー提供の詳細", content: "「再点処理」の「🔧」を押し、「供給地点特定番号を入力する」を押す", imgUrl: "/no-spin2.png" },
+          { step: 3, title: "変更・修正", content: "変更したい項目を入力。（SPIN入力もここから一応できます！）", imgUrl: "/no-spin3.png" }
         ]
       }
     ]
