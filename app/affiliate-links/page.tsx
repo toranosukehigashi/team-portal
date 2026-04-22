@@ -136,7 +136,7 @@ export default function AffiliateLinks() {
     return val === "なし" || val === "ー" || val === "NO" || val === "";
   };
 
-  // 高度な絞り込みロジック
+  // 💡 ゴミ（チェックボックス関連）を完全に消し去った、無駄のない最強の絞り込みロジック！
   const filteredData = AGENCY_DATA.filter(item => {
     const searchLower = searchTerm.toLowerCase();
     const matchSearch = item.name.toLowerCase().includes(searchLower) || 
@@ -157,7 +157,6 @@ export default function AffiliateLinks() {
         <style dangerouslySetInnerHTML={{ __html: `
           .app-wrapper * { box-sizing: border-box; }
           
-          /* 💡 背景グラデーションを調整！紫とミントグリーンを均等に配合！ */
           .theme-light { 
             --bg-gradient: linear-gradient(135deg, #e9d5ff 0%, #e9d5ff 30%, #ffffff 50%, #ccfbf1 70%, #ccfbf1 100%); 
             --text-main: #1e293b; --text-sub: #475569; 
@@ -167,7 +166,6 @@ export default function AffiliateLinks() {
             --title-color: #4c1d95; --accent-color: #9333ea; 
             --input-bg: rgba(255, 255, 255, 0.9); --input-border: rgba(203, 213, 225, 0.8); 
             --star-color: #f59e0b; 
-            /* 💡 ナビゲーション用の新しいアクセントカラー（爽やかなスカイブルー） */
             --nav-accent: #0ea5e9;
             --nav-bg-hover: rgba(14, 165, 233, 0.1);
           }
@@ -181,7 +179,6 @@ export default function AffiliateLinks() {
             --title-color: #e9d5ff; --accent-color: #c084fc; 
             --input-bg: rgba(0, 0, 0, 0.4); --input-border: rgba(255, 255, 255, 0.2); 
             --star-color: #fef08a; 
-            /* 💡 ダークモード用のナビゲーションアクセントカラー */
             --nav-accent: #38bdf8;
             --nav-bg-hover: rgba(56, 189, 248, 0.2);
           }
@@ -199,19 +196,21 @@ export default function AffiliateLinks() {
           .hamburger-btn.open .line1 { transform: translateY(6px) rotate(45deg); background: var(--nav-accent); }
           .hamburger-btn.open .line2 { opacity: 0; }
           .hamburger-btn.open .line3 { transform: translateY(-6px) rotate(-45deg); background: var(--nav-accent); }
+          
           .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
           .menu-overlay.open { opacity: 1; pointer-events: auto; }
+          
           .side-menu { position: fixed; top: 0; left: -280px; width: 260px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s; padding: 70px 16px 20px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; }
           .side-menu.open { left: 0; }
           .menu-title { font-size: 11px; font-weight: 900; color: var(--text-sub); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed var(--card-border); letter-spacing: 1px; }
           .side-link { text-decoration: none; padding: 10px 14px; border-radius: 8px; background: var(--input-bg); color: var(--text-main); font-weight: 800; border: 1px solid var(--card-border); transition: 0.2s; display: flex; align-items: center; gap: 8px; font-size: 12px;}
           .side-link.current-page { background: linear-gradient(135deg, var(--nav-accent), #4f46e5); color: #fff; border: none; pointer-events: none; }
           
-          .glass-nav-wrapper { display: flex; justify(Content: center; margin-bottom: 20px; }
+          /* 💡 タイポ（justify(Content）を直して完全に復活したナビゲーション周り！ */
+          .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 20px; }
           .glass-nav { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 10px 16px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 20px; box-shadow: var(--card-shadow); max-width: 800px; width: 100%; }
           .nav-left { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
           
-          /* 💡 ナビゲーションの色を新しいアクセントカラー（ブルー）に変更！ */
           .glass-nav-link { text-decoration: none; padding: 6px 12px; border-radius: 12px; font-weight: 800; background: var(--input-bg); color: var(--text-sub); border: 1px solid var(--card-border); font-size: 12px; transition: 0.2s; white-space: nowrap; }
           .glass-nav-link:hover { color: var(--nav-accent); border-color: var(--nav-accent); }
           .glass-nav-active { padding: 6px 12px; border-radius: 12px; font-weight: 900; background: var(--nav-bg-hover); color: var(--nav-accent); border: 1px solid var(--nav-accent); font-size: 12px; white-space: nowrap; }
@@ -220,13 +219,13 @@ export default function AffiliateLinks() {
           /* メインレイアウト */
           .main-container { max-width: 1400px; margin: 0 auto; }
           
-          /* 検索パネル */
+          /* 検索パネル（無駄なチェックボックスを完全に削ぎ落とした超スマート版！） */
           .control-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 16px; padding: 16px; box-shadow: var(--card-shadow); margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
           .search-input { width: 100%; padding: 12px 16px; font-size: 14px; border: 2px solid var(--input-border); border-radius: 12px; background: var(--input-bg); color: var(--text-main); font-weight: 700; outline: none; transition: 0.3s; }
           .search-input:focus { border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.2); }
           
           .controls-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
-          .group-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+          .group-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
           .group-tab-btn { padding: 8px 16px; border-radius: 20px; font-weight: 800; font-size: 12px; cursor: pointer; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-sub); transition: 0.3s; }
           .group-tab-btn:hover { border-color: var(--accent-color); color: var(--accent-color); transform: translateY(-1px); }
           .group-tab-btn.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); box-shadow: 0 4px 10px rgba(147, 51, 234, 0.3); pointer-events: none; }
@@ -303,6 +302,7 @@ export default function AffiliateLinks() {
 
         <div className="main-container">
           
+          {/* 💡 ゴミを一切残さない超スッキリしたコントロールパネル！ */}
           <div className="control-panel fade-up-element">
             <input 
               type="text" 
