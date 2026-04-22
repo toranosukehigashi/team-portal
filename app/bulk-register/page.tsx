@@ -217,16 +217,19 @@ export default function BulkRegister() {
     }
   };
 
-  // 💡 最終形態：法人セキュリティを貫通し、列ズレも解消した最強の保存ロジック！
-  const saveToSheet = async () => {
+  // 💡 最終奥義：ポップアップブロックを確実にすり抜け、法人セキュリティも突破する最強保存ロジック！
+  const saveToSheet = () => {
     if (isSubmitting) return;
     const gasUrl = process.env.NEXT_PUBLIC_GAS_URL;
-    if (!gasUrl) return alert("⚠️ GASのURLが設定されていません！");
+    if (!gasUrl) {
+      alert("⚠️ Vercelの環境変数(NEXT_PUBLIC_GAS_URL)が読み込めていません！Redeployしてください！");
+      return;
+    }
 
     setIsSubmitting(true);
     showToast("⏳ 別タブでGASへ送信します...", true);
 
-    // 💡 エラーの原因だった先頭の "" は削除済み。B列から完璧にマッピング！
+    // 💡 列のズレは完璧に修正済み！B列からスプレッドシートに一直線にマッピング！
     const dataArray = [
       form.colB, form.colC, form.colD, form.colE, form.colF, form.colG, form.colH, form.colI,
       form.colJ, form.colK, form.colL, form.colM, form.colN, form.colO, form.colP,
@@ -236,12 +239,28 @@ export default function BulkRegister() {
       form.colAQ, form.colAR
     ];
 
-    const encodedData = encodeURIComponent(JSON.stringify(dataArray));
-    const finalUrl = `${gasUrl}?env=${env}&data=${encodedData}`;
+    // 💥 ブラウザのポップアップブロックを100%すり抜ける「透明フォーム送信魔法」！
+    const submitForm = document.createElement('form');
+    submitForm.action = gasUrl;
+    submitForm.method = 'GET';
+    submitForm.target = '_blank'; // 絶対に別タブで開く！
 
-    // 💥 ブラウザのCookie没収を回避するため、堂々と「別タブ」で送信！
-    // 成功すれば、GAS側の `window.close()` 魔法で自動的にタブが消滅します！
-    window.open(finalUrl, "_blank");
+    const inputEnv = document.createElement('input');
+    inputEnv.type = 'hidden';
+    inputEnv.name = 'env';
+    inputEnv.value = env;
+    submitForm.appendChild(inputEnv);
+
+    const inputData = document.createElement('input');
+    inputData.type = 'hidden';
+    inputData.name = 'data';
+    inputData.value = JSON.stringify(dataArray); // URIエンコードはブラウザが自動でやってくれる！
+    submitForm.appendChild(inputData);
+
+    // 画面の裏側に一瞬だけフォームを設置して、即座に送信ボタンを「押したこと」にする！
+    document.body.appendChild(submitForm);
+    submitForm.submit(); 
+    document.body.removeChild(submitForm);
 
     setTimeout(() => {
       setIsSubmitting(false);
