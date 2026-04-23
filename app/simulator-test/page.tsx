@@ -184,6 +184,13 @@ export default function SimulatorTest() {
           .script-bubble { background: var(--input-bg); padding: 20px; border-radius: 16px 16px 16px 0; border: 1px solid var(--input-border); font-size: 14px; line-height: 1.8; font-weight: 700; color: var(--text-main); position: relative; margin-bottom: 15px; border-left: 4px solid var(--accent-color); }
           .script-bubble::after { content: ''; position: absolute; bottom: -10px; left: -1px; border-width: 10px 10px 0 0; border-style: solid; border-color: var(--accent-color) transparent transparent transparent; }
           .script-highlight { color: #e11d48; font-weight: 900; background: rgba(225, 29, 72, 0.08); padding: 1px 4px; border-radius: 4px; }
+          
+          /* 客、営業などセリフの出し分け用装飾 */
+          .script-guest { background: rgba(0,0,0,0.03); border-left: 4px solid #64748b; margin-left: 20px; border-radius: 16px 16px 0 16px;}
+          .script-guest::after { right: -1px; left: auto; border-width: 10px 0 0 10px; border-color: #64748b transparent transparent transparent; }
+          .script-me { background: rgba(16, 185, 129, 0.05); border-left: 4px solid #10b981; }
+          .script-me::after { border-color: #10b981 transparent transparent transparent; }
+
           .fade-up-element { opacity: 0; transform: translateY(40px); transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
           .fade-up-element.visible { opacity: 1; transform: translateY(0); }
 
@@ -371,7 +378,7 @@ export default function SimulatorTest() {
         )}
 
         {/* ======================================================== */}
-        {/* 📱 docomo光 (D to D) 画面 (維持) */}
+        {/* 📱 docomo光 (D to D) 画面 (魂のスクリプト反映版) */}
         {/* ======================================================== */}
         {activeTab === "docomo-hikari" && (
           <div className="main-layout">
@@ -411,13 +418,58 @@ export default function SimulatorTest() {
               </div>
             </section>
 
+            {/* 🔥🔥🔥 ご指定の魂のスクリプト（一言一句改変なし！） 🔥🔥🔥 */}
             <section className="glass-panel fade-up-element" style={{ transitionDelay: "0.1s" }}>
               <h2 className="section-title">💬 docomo光 (D to D) 促しトーク</h2>
-              <div className="script-bubble">ご新居先でもドコモ光をご継続いただけますが、ご自身で<span className="script-highlight">移転手続き</span>をされると、実はすごく損なんです…。</div>
-              <div className="script-bubble">移転だと、新居の工事費(2.2万)や移転手数料(2.2k)に加え、旧宅の残債(¥{docomoRemaining.toLocaleString()})も<span className="script-highlight">全額自己負担</span>になってしまい、合計で<span className="script-highlight">【¥{totalRelocationCost.toLocaleString()}】</span>ほどかかってしまいます。</div>
-              <div className="script-bubble">そこで今回、私どもで<span className="script-highlight">新規でお申し込み</span>いただく形をおすすめしています！</div>
-              <div className="script-bubble">そうすれば、新居工事費は実質無料になりますし、発生する解約金や残債なども、私どもから<span className="script-highlight" style={{fontSize:"16px"}}>全額CB（¥{finalDocomoCbTotal.toLocaleString()}）</span>で補填しますので、お客様の持ち出しは一切ございません！</div>
-              <div className="script-bubble" style={{background: "var(--card-hover-bg)"}}>むしろ新規特典がつく分、移転より圧倒的におトクに使い続けられますが、こういった進め方でお任せいただいてもよろしかったでしょうか？</div>
+              
+              <div className="script-bubble">
+                ご新居先の設備を確認いたしましたところ、問題なくドコモ光がご利用いただけますのでご安心ください！<br/>
+                ただ、継続いただく方の中で今人気でトレンドの使い方がありまして、お手続きの進め方によって、お客様の最終的なご負担額が大きく変わってしまうんです。
+              </div>
+              
+              <div className="script-bubble">
+                大きく分けて方法は2つあります。 1つ目は、お客様ご自身で**『移転（お引越し）』**の手続きをする方法。 2つ目は、今回私どもで引き続きドコモのご利用お申し込みをする方法です。
+              </div>
+              
+              <div className="script-bubble">
+                正直に申し上げますと、1つ目の『ご自身での移転』手続きは、あまりお勧めしておりません。<br/>
+                なぜなら、移転でも新規でも、新居での開通工事費は基本的には発生してしまうのですが、 ご自身で移転手続きをされると、さらに**『移転事務手数料』**などが余計にかかってしまう上に、工事費補填する特典などが一切つかないため、単純にお客様の持ち出し（ご負担）になってしまうからです。
+              </div>
+
+              <div className="script-bubble">
+                そこで、私どもでは2つ目の**『私どもの方でドコモご利用のお申し込みをする方法』**を推奨しております。（すなわち解約新規）<br/>
+                この方法ですと、まず移転事務手数料はかからずに、工事費もdポイントで全額還元されます！<br/>
+                また『現金キャッシュバック』もついてくるため、移転手続きしていただくよりもかなりお得にご継続いただけます！
+              </div>
+
+              <div className="script-bubble script-me">
+                ちなみに、今のドコモ光はどのくらいの期間ご利用されていましたでしょうか？
+              </div>
+
+              <div className="script-bubble script-guest">
+                お客様： 「えーっと、たしか〇年くらいかな…」
+              </div>
+
+              {/* 💡 期間による分岐トーク（1年未満 or 2年以上） */}
+              {docomoMonths < 12 ? (
+                <div className="script-bubble script-me">
+                  東（あなた）： 「ありがとうございます！ （1年未満の場合）あ、それでしたら一番ランクの高い補填特典が適用できます！」
+                </div>
+              ) : (
+                <div className="script-bubble script-me">
+                  東（あなた）： 「ありがとうございます！ （2年以上の場合）なるほど、長期で使っていただいているので感謝特典が適用できます！」
+                </div>
+              )}
+
+              <div className="script-bubble script-me" style={{background: "var(--card-hover-bg)", borderColor: "var(--accent-color)"}}>
+                具体的には、今回こちらで進めさせていただくことで… 今のドコモ光の解約手数料分も こちらから<span className="script-highlight" style={{fontSize:"16px"}}>現金【{finalDocomoCbTotal.toLocaleString()}円】のキャッシュバック</span>をお付けしますので、お渡しまで一度ご負担いただきますが、後で十分にお釣りがくる計算になります！
+              </div>
+
+              <div className="script-bubble">
+                もちろん、携帯料金のセット割（550円〜1,100円）も、これまで通り適用可能です。<br/>
+                今のドコモ光の解約方法なども含めて、一番スムーズな流れでサポートさせていただきますので、引越し先のドコモ光についてはこちらで進めさせていただいてよろしいでしょうか？
+              </div>
+
             </section>
           </div>
         )}
