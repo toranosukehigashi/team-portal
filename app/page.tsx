@@ -187,7 +187,7 @@ export default function ThemeParkEntrance() {
   ];
 
   const allCmdKLinks = [
-    { id: 'affiliate', name: "🔗 OBJリンクポータルを開く", desc: "各不動産会社のOBJリンク、重説フォームのコピー", url: "/affiliate-links", search: ["リンク", "アフィリエイト", "affiliate", "link", "obj", "不動産", "重説", "コピー", "ポータル", "空室", "名古屋"] },
+    { id: 'affiliate', name: "🔗 アフィリエイトリンクを開く", desc: "各不動産会社のOBJリンク、重説フォームのコピー", url: "/affiliate-links", search: ["リンク", "アフィリエイト", "affiliate", "link", "obj", "不動産", "重説", "コピー", "ポータル", "空室", "名古屋"] },
     { id: 'sim', name: "🆚 料金シミュレーターへ移動", desc: "乗り換え費用、スマホセット割、違約金の計算", url: "/simulator", search: ["sim", "シミュレーター", "料金", "cost", "見積もり", "比較", "乗り換え", "違約金", "スマホ割", "安く", "解約金", "シミュ", "計算"] },
     { id: 'toss', name: "🌐 ネットトス連携へ移動", desc: "フレッツ・光コラボ等の回線手配・情報送信", url: "/net-toss", search: ["toss", "トス", "ネット", "net", "フレッツ", "ドコモ光", "ソフトバンク光", "光コラボ", "事業者変更", "転用", "新規", "回線", "手配"] },
     { id: 'kraken', name: "🐙 Kraken マニュアルを開く", desc: "SMS送信、テンプレート、手続きの業務手順書", url: "/procedure-wizard", search: ["kraken", "マニュアル", "手順", "manual", "sms", "送信", "雛形", "テンプレ", "案内", "やり方", "ルール", "規定"] },
@@ -787,7 +787,7 @@ export default function ThemeParkEntrance() {
             )}
 
             <div className="attraction-grid">
-              <MagicCard delay={animDelayOffset + 0.5} attraction="AFFILIATE LINKS" badge="NEW" title="🔗 OBJリンクポータル" desc="各不動産会社のOBJリンクと共通重説フォームを素早くコピー。" onClick={(e: any) => { e.stopPropagation(); router.push("/affiliate-links"); }} />
+              <MagicCard delay={animDelayOffset + 0.5} attraction="AFFILIATE LINKS" badge="NEW" title="🔗 アフィリエイトリンク" desc="各不動産会社のOBJリンクと共通重説フォームを素早くコピー。" onClick={(e: any) => { e.stopPropagation(); router.push("/affiliate-links"); }} />
 
               <MagicCard delay={animDelayOffset + 0.6} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="本日の目標まであと何件か、リアルタイムで確認。" liveData={`${progressPercent}%`} sparkline={true} onClick={(e: any) => { e.stopPropagation(); router.push("/kpi-detail"); }}>
                 <div className="kpi-widget">
