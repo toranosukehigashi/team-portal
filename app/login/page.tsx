@@ -30,6 +30,8 @@ export default function Login() {
       const userName = userId.split("@")[0];
       localStorage.setItem("team_portal_user", userName);
       sessionStorage.setItem("just_logged_in", "true");
+      // ログイン成功時の処理にこれを1行追加！
+      localStorage.setItem("team_portal_login_date", new Date().toDateString());
 
       // 🪄 ワープアニメーション発動！
       setIsEntering(true);

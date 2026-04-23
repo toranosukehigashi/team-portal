@@ -200,8 +200,33 @@ export default function ThemeParkEntrance() {
   );
 
   useEffect(() => {
+    // 💡 ① 日跨ぎチェック（強制ログアウト機能）を追加！！！
+    const todayStr = new Date().toDateString(); // 今日の日付（例: "Thu Apr 23 2026"）
+    const savedLoginDate = localStorage.getItem("team_portal_login_date");
     const savedUser = localStorage.getItem("team_portal_user");
-    if (savedUser) { setUserName(savedUser); if (savedUser.toLowerCase().trim().includes("toranosuke.higashi")) setIsAdmin(true); }
+
+    // ユーザー情報がある（ログインしている）場合の処理
+    if (savedUser) {
+      if (!savedLoginDate) {
+        // まだ日付が保存されていない場合（今回のアプデ直後など）は今日をセット
+        localStorage.setItem("team_portal_login_date", todayStr);
+      } else if (savedLoginDate !== todayStr) {
+        // 🚨 ログインした日と今日の日付が違う場合 ＝ 日を跨いだ！！！
+        alert("📅 日付が変わりました。セキュリティ保護のため自動ログアウトしました！今日も一日頑張りましょう！☕️");
+        localStorage.removeItem("team_portal_user");
+        localStorage.removeItem("team_portal_login_date");
+        router.push("/login");
+        return; // これ以上下の処理を実行させない！
+      }
+
+      // 日付が一致していれば通常通り名前と権限をセット
+      setUserName(savedUser); 
+      if (savedUser.toLowerCase().trim().includes("toranosuke.higashi")) setIsAdmin(true); 
+    } else {
+      // そもそもログインしていない場合はログイン画面へ
+      router.push("/login");
+      return;
+    }
     
     const justLoggedIn = sessionStorage.getItem("just_logged_in") === "true";
     let welcomeTimeout: NodeJS.Timeout | null = null;
