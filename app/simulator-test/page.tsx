@@ -162,7 +162,7 @@ export default function SimulatorTest() {
     }, { threshold: 0.1 });
     document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, [activeTab]);
+  }, [activeTab, fletsTalkScenario]);
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
@@ -270,7 +270,6 @@ export default function SimulatorTest() {
           </div>
         </div>
 
-        {/* 🌟 メインタブ切り替え 🌟 */}
         <div className="sim-tabs-wrapper fade-up-element">
           <div className="sim-tabs">
             <button className={`sim-tab-btn ${activeTab === "sb-hikari" ? "active" : ""}`} onClick={() => setActiveTab("sb-hikari")}>🏢 SB光</button>
@@ -294,9 +293,6 @@ export default function SimulatorTest() {
                   <span className="slider-value">{hikariUsedMonths}<span style={{fontSize: "14px", color:"var(--text-sub)", marginLeft:"5px"}}>ヶ月</span></span>
                 </div>
                 <input type="range" min="1" max="48" value={hikariUsedMonths} onChange={(e) => setHikariUsedMonths(Number(e.target.value))} className="util-slider" />
-                <div style={{display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--text-sub)", fontWeight: 800, marginTop:"5px"}}>
-                  <span>1ヶ月</span><span>24ヶ月</span><span>48ヶ月</span>
-                </div>
               </div>
 
               <div className="result-grid">
@@ -345,12 +341,6 @@ export default function SimulatorTest() {
                   <div className="result-label">💰 お客様へ提示する CB Total</div>
                   <div className="result-value">¥{finalHikariCbTotal.toLocaleString()}</div>
                 </div>
-                
-                {hikariRemaining === 0 && (
-                   <div style={{fontSize: "11px", color: "#f59e0b", fontWeight: 800, textAlign: "right", marginTop: "-5px"}}>
-                     ※工事費残債がないため、CBは最低保証の4万円に調整されています。
-                   </div>
-                )}
               </div>
             </section>
 
@@ -380,9 +370,6 @@ export default function SimulatorTest() {
                   <span className="slider-value">{airUsedMonths}<span style={{fontSize: "14px", marginLeft:"5px"}}>ヶ月</span></span>
                 </div>
                 <input type="range" min="1" max="48" value={airUsedMonths} onChange={(e) => setAirUsedMonths(Number(e.target.value))} className="util-slider" />
-                <div style={{display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--text-sub)", fontWeight: 800, marginTop:"5px"}}>
-                  <span>1ヶ月</span><span>24ヶ月</span><span>48ヶ月</span>
-                </div>
               </div>
 
               <div className="result-grid">
@@ -407,12 +394,6 @@ export default function SimulatorTest() {
                   <div className="result-label">💰 お客様へ提示する CB Total</div>
                   <div className="result-value">¥{finalAirCbTotal.toLocaleString()}</div>
                 </div>
-                
-                {airUsedMonths >= 12 && (
-                   <div style={{fontSize: "11px", color: "#10b981", fontWeight: 800, textAlign: "right", marginTop: "-5px"}}>
-                     ※1年以上ご利用のため、ターミナル残債を全額CB補填可能です！
-                   </div>
-                )}
               </div>
             </section>
 
@@ -429,7 +410,7 @@ export default function SimulatorTest() {
         )}
 
         {/* ======================================================== */}
-        {/* 3. 📱 docomo光 (D to D) 画面 (魂の完全版) */}
+        {/* 3. 📱 docomo光 (D to D) 画面 */}
         {/* ======================================================== */}
         {activeTab === "docomo-hikari" && (
           <div className="main-layout">
@@ -471,43 +452,19 @@ export default function SimulatorTest() {
 
             <section className="glass-panel fade-up-element" style={{ transitionDelay: "0.1s" }}>
               <h2 className="section-title">💬 docomo光 (D to D) 促しトーク</h2>
-              
-              <div className="script-bubble">
-                ご新居先の設備を確認いたしましたところ、問題なくドコモ光がご利用いただけますのでご安心ください！<br/>
-                ただ、継続いただく方の中で今人気でトレンドの使い方がありまして、お手続きの進め方によって、お客様の最終的なご負担額が大きく変わってしまうんです。
-              </div>
-              <div className="script-bubble">
-                大きく分けて方法は2つあります。 1つ目は、お客様ご自身で**『移転（お引越し）』**の手続きをする方法。 2つ目は、今回私どもで引き続きドコモのご利用お申し込みをする方法です。
-              </div>
-              <div className="script-bubble">
-                正直に申し上げますと、1つ目の『ご自身での移転』手続きは、あまりお勧めしておりません。<br/>
-                なぜなら、移転でも新規でも、新居での開通工事費は基本的には発生してしまうのですが、 ご自身で移転手続きをされると、さらに**『移転事務手数料』**などが余計にかかってしまう上に、工事費補填する特典などが一切つかないため、単純にお客様の持ち出し（ご負担）になってしまうからです。
-              </div>
-              <div className="script-bubble">
-                そこで、私どもでは2つ目の**『私どもの方でドコモご利用のお申し込みをする方法』**を推奨しております。（すなわち解約新規）<br/>
-                この方法ですと、まず移転事務手数料はかからずに、工事費もdポイントで全額還元されます！<br/>
-                また『現金キャッシュバック』もついてくるため、移転手続きしていただくよりもかなりお得にご継続いただけます！
-              </div>
-              <div className="script-bubble script-me">
-                ちなみに、今のドコモ光はどのくらいの期間ご利用されていましたでしょうか？
-              </div>
-              <div className="script-bubble script-guest">
-                お客様： 「えーっと、たしか〇年くらいかな…」
-              </div>
-
+              <div className="script-bubble">ご新居先の設備を確認いたしましたところ、問題なくドコモ光がご利用いただけますのでご安心ください！<br/>ただ、継続いただく方の中で今人気でトレンドの使い方がありまして、お手続きの進め方によって、お客様の最終的なご負担額が大きく変わってしまうんです。</div>
+              <div className="script-bubble">大きく分けて方法は2つあります。 1つ目は、お客様ご自身で**『移転（お引越し）』**の手続きをする方法。 2つ目は、今回私どもで引き続きドコモのご利用お申し込みをする方法です。</div>
+              <div className="script-bubble">正直に申し上げますと、1つ目の『ご自身での移転』手続きは、あまりお勧めしておりません。<br/>なぜなら、移転でも新規でも、新居での開通工事費は基本的には発生してしまうのですが、 ご自身で移転手続きをされると、さらに**『移転事務手数料』**などが余計にかかってしまう上に、工事費補填する特典などが一切つかないため、単純にお客様の持ち出し（ご負担）になってしまうからです。</div>
+              <div className="script-bubble">そこで、私どもでは2つ目の**『私どもの方でドコモご利用のお申し込みをする方法』**を推奨しております。（すなわち解約新規）<br/>この方法ですと、まず移転事務手数料はかからずに、工事費もdポイントで全額還元されます！<br/>また『現金キャッシュバック』もついてくるため、移転手続きしていただくよりもかなりお得にご継続いただけます！</div>
+              <div className="script-bubble script-me">ちなみに、今のドコモ光はどのくらいの期間ご利用されていましたでしょうか？</div>
+              <div className="script-bubble script-guest">お客様： 「えーっと、たしか〇年くらいかな…」</div>
               {docomoMonths < 12 ? (
                 <div className="script-bubble script-me">東（あなた）： 「ありがとうございます！ （1年未満の場合）あ、それでしたら一番ランクの高い補填特典が適用できます！」</div>
               ) : (
                 <div className="script-bubble script-me">東（あなた）： 「ありがとうございます！ （2年以上の場合）なるほど、長期で使っていただいているので感謝特典が適用できます！」</div>
               )}
-
-              <div className="script-bubble script-me" style={{background: "var(--card-hover-bg)", borderColor: "var(--accent-color)"}}>
-                具体的には、今回こちらで進めさせていただくことで… 今のドコモ光の解約手数料分も こちらから<span className="script-highlight" style={{fontSize:"16px"}}>現金【{finalDocomoCbTotal.toLocaleString()}円】のキャッシュバック</span>をお付けしますので、お渡しまで一度ご負担いただきますが、後で十分にお釣りがくる計算になります！
-              </div>
-              <div className="script-bubble">
-                もちろん、携帯料金のセット割（550円〜1,100円）も、これまで通り適用可能です。<br/>
-                今のドコモ光の解約方法なども含めて、一番スムーズな流れでサポートさせていただきますので、引越し先のドコモ光についてはこちらで進めさせていただいてよろしいでしょうか？
-              </div>
+              <div className="script-bubble script-me" style={{background: "var(--card-hover-bg)", borderColor: "var(--accent-color)"}}>具体的には、今回こちらで進めさせていただくことで… 今のドコモ光の解約手数料分も こちらから<span className="script-highlight" style={{fontSize:"16px"}}>現金【{finalDocomoCbTotal.toLocaleString()}円】のキャッシュバック</span>をお付けしますので、お渡しまで一度ご負担いただきますが、後で十分にお釣りがくる計算になります！</div>
+              <div className="script-bubble">もちろん、携帯料金のセット割（550円〜1,100円）も、これまで通り適用可能です。<br/>今のドコモ光の解約方法なども含めて、一番スムーズな流れでサポートさせていただきますので、引越し先のドコモ光についてはこちらで進めさせていただいてよろしいでしょうか？</div>
             </section>
           </div>
         )}
@@ -570,6 +527,7 @@ export default function SimulatorTest() {
               </div>
             </section>
 
+            {/* 🔥🔥🔥 ご指定のスマートカンペUI（スクリプト完全対応版） 🔥🔥🔥 */}
             <section className="glass-panel fade-up-element" style={{ transitionDelay: "0.1s" }}>
               <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", borderBottom: "2px dashed var(--card-border)", paddingBottom: "10px", marginBottom:"5px"}}>
                 <h2 className="section-title" style={{borderBottom:"none", paddingBottom:0, marginBottom:0}}>💬 トーク切り替え</h2>
@@ -584,21 +542,58 @@ export default function SimulatorTest() {
                 <button className={`prompter-btn ${fletsTalkScenario===6 ? "active":""}`} onClick={()=>setFletsTalkScenario(6)}>⑥回線有×利用予定無</button>
               </div>
 
+              {/* シナリオ① */}
               {fletsTalkScenario === 1 && (
                 <div className="fade-up-element visible">
-                  <div className="script-bubble">通常、そのまま移転手続きをしてしまうと、移転費用かかったり『特典』が何もつかないケースがほとんどです。</div>
-                  <div className="script-bubble">まずはフレッツ光でスタートしていただくと、今なら『実質半年間無料キャンペーン』として、半年分の月額料金と工事費・旧回線解約金相当額を<span className="script-highlight">全額キャッシュバック（¥{fletsCbTotal.toLocaleString()}）</span>させていただきます。</div>
-                  <div className="script-bubble">キャッシュバックを受け取った半年後に、改めてスマホに合わせて切り替えていただくのが、一番負担が少なくお得な今のトレンドです！</div>
+                  <div className="script-bubble">ご新居先ではインターネット回線を引き続きご利用いただけますのでご安心ください。<br/>まず、こちらのご物件は管理会社様の推奨でNTTの設備が導入されています。<br/>ですので、最初は変に特定のキャリアに絞らず、『大元のフレッツ光』でスタートしていただくのが一番の正解（セオリー）のかたちになります。</div>
+                  <div className="script-bubble">（通常、そのまま移転手続きをしてしまうと、せっかくのお引越しなのに、移転費用かかったりとか<span className="script-highlight">『特典』が何もつかない</span>ケースがほとんどなんです。）</div>
+                  <div className="script-bubble">そこで、まずはフレッツ光でスタートしていただくと… 今なら<span className="script-highlight">『実質半年間無料キャンペーン』</span>として、半年分の月額料金と工事費相当額を、半年後に全額キャッシュバック（¥{fletsCbTotal.toLocaleString()}）させていただきます。</div>
+                  <div className="script-bubble">まずはこの特典で、半年間は実質タダでネットを使っていただき、 キャッシュバックを受け取った半年後に、改めてスマホに合わせてたネット回線に切り替えて（戻して）いただくこともできます。</div>
+                  <div className="script-bubble">そうすれば、半年後の切り替え時は、工事不要で簡単な手続きだけで済みますし、 その際の残債なども、乗り換え先のキャンペーン適応されて全額補填されます。</div>
+                  <div className="script-bubble" style={{background: "var(--card-hover-bg)", borderColor: "var(--accent-color)"}}>つまり、 『実質半年間はタダで使って、一番いいタイミングで携帯キャリアに合わせて乗り換えることもできる』 という、<span className="script-highlight">お客様の負担が一番少なく、かつお得になる『今人気のトレンドの使い方』</span>ができます！</div>
+                  <div className="script-bubble">基本的にはこの使い方を、多くの方がを選ばれていますが… こういった人気のご内容でしたら、まずは大元フレッツ光の方で開通部分お任せいただいても、ご迷惑無かったでしょうか？</div>
                 </div>
               )}
+
+              {/* シナリオ② */}
               {fletsTalkScenario === 2 && (
                 <div className="fade-up-element visible">
-                  <div className="script-bubble">ネット利用ご希望ですね！今なら『実質半年間無料キャンペーン』でフレッツ光を導入できます。</div>
-                  <div className="script-bubble">発生する初期費用や工事費全額、半年分の月額料金など<span className="script-highlight">全費用（¥{fletsCbTotal.toLocaleString()}）</span>を後日キャッシュバックいたします。</div>
-                  <div className="script-bubble">継続して使う場合でも今後の開通工事は不要ですし、実質無料で半年間ネットが使えて、高速回線設備までついてくる非常にオトクなご案内です！</div>
+                  <div className="script-bubble">ご新居先ではインターネット回線をご利用いただけますのでご安心ください。<br/>まず、こちらのご物件は管理会社様の推奨でNTTの設備が導入されております。<br/>ですので、最初は変に特定のキャリアに絞らず、『大元のフレッツ光』でスタートしていただくのが一番の正解（セオリー）のかたちになります。</div>
+                  <div className="script-bubble">というのも、まずはフレッツ光でスタートしていただくと… 今なら<span className="script-highlight">『実質半年間無料キャンペーン』</span>として、半年分の月額料金と工事費相当額を、半年後に全額キャッシュバック（¥{fletsCbTotal.toLocaleString()}）させていただいてます。</div>
+                  <div className="script-bubble">まずはこの特典で、半年間は実質タダでネットを使っていただき、 キャッシュバックを受け取った半年後に、改めてスマホに合わせてたネット回線に切り替えて（戻して）いただくこともできます。</div>
+                  <div className="script-bubble">そうすれば、半年後の切り替え時は、工事不要で簡単な手続きだけで済みますし、 その際の残債なども、乗り換え先のキャンペーン適応されて全額補填されます。</div>
+                  <div className="script-bubble" style={{background: "var(--card-hover-bg)", borderColor: "var(--accent-color)"}}>つまり、 『実質半年間はタダで使って、一番いいタイミングで携帯キャリアに合わせて乗り換えることもできる』 という、<span className="script-highlight">お客様の負担が一番少なく、かつお得になる『今人気のトレンドの使い方』</span>ができます！</div>
+                  <div className="script-bubble">基本的にはこの使い方を、多くの方がを選ばれていますが… こういった人気のご内容でしたら、まずは大元フレッツ光の方で開通部分お任せいただいても、ご迷惑無かったでしょうか？</div>
                 </div>
               )}
-              {(fletsTalkScenario >= 3) && (
+
+              {/* シナリオ③ */}
+              {fletsTalkScenario === 3 && (
+                <div className="fade-up-element visible">
+                  <div className="script-bubble">ご新居先では<span className="script-highlight">{fletsSelectedLine}</span>を引き続きご利用いただけますのでご安心ください。ただ、継続いただく方の中で今人気でトレンドの使い方がありまして<br/>それは、そのまま移転手続きをするのではなく、まずは一旦、こちらの物件に導入されているNTT設備である『大元のフレッツ光』でスタートしていただく、という方法です。</div>
+                  <div className="script-bubble">通常、そのまま移転手続きをしてしまうと、せっかくのお引越しなのに、移転費用かかったりとか<span className="script-highlight">『特典』が何もつかない</span>ケースがほとんどなんです。</div>
+                  <div className="script-bubble">そこで、まずはフレッツ光でスタートしていただくと… 今なら<span className="script-highlight">『実質半年間無料キャンペーン』</span>として、半年分の月額料金と工事費相当額を、半年後に全額キャッシュバック（¥{fletsCbTotal.toLocaleString()}）させていただきます。</div>
+                  <div className="script-bubble">まずはこの特典で、半年間は実質タダでネットを使っていただき、 キャッシュバックを受け取った半年後に、改めてスマホに合わせて<span className="script-highlight">{fletsSelectedLine}</span>に切り替えて（戻して）いただく。</div>
+                  <div className="script-bubble">そうすれば、半年後の切り替え時は、工事不要で簡単な手続きだけで済みますし、 その際の残債なども、乗り換え先のキャンペーン適応されて全額補填されます。</div>
+                  <div className="script-bubble" style={{background: "var(--card-hover-bg)", borderColor: "var(--accent-color)"}}>つまり、 『実質半年間はタダで使って、一番いいタイミングで携帯キャリアに合わせて乗り換える』 という、<span className="script-highlight">お客様の負担が一番少なく、かつお得になる『今人気のトレンドの使い方』</span>ができます！</div>
+                  <div className="script-bubble">この使い方を、多くの方がを選ばれていますが… こういった人気のご内容でしたら、まずは大元フレッツ光の方で開通部分お任せいただいても、ご迷惑無かったでしょうか？</div>
+                </div>
+              )}
+
+              {/* シナリオ④ */}
+              {fletsTalkScenario === 4 && (
+                <div className="fade-up-element visible">
+                  <div className="script-bubble">無料のネット回線ついているご物件に移動される方であれば、ご入居日から問題なくご利用いただけますのでご安心くださいませ。<br/>ただ、無料のネット回線は、現住所で使っているものと違い、1つの回線を他のお部屋の入居者の方と分け合う形になってしまうので、使い方や時間帯によってはご満足いただけない方が多いです。</div>
+                  <div className="script-bubble">ですので、皆様ご不便ないように、無料のネットと同時に、通常有料の光回線を半年間実質無料でお試しいただいてます！（お試しいただいた方に現金5000円プレゼント）</div>
+                  <div className="script-bubble">半年後に継続いただくか、ご解約いただいて無料ネットで進めるかどうかはご自由にお選びいただけます！その際解約金もかかりませんのでご安心ください！</div>
+                  <div className="script-bubble script-guest">『それでも無料のもので一旦進める方』</div>
+                  <div className="script-bubble script-me">こちらについては、導入日を入居日から10日以降とかで設定いただければまずは入居してから無料の回線速度を試していただけます！<br/>速ければ申し込みいいたくフレッツ光については無料でキャンセル、遅ければ工事日取得しているもので問題なく開通いただければと思います。</div>
+                  <div className="script-bubble" style={{background: "var(--card-hover-bg)", borderColor: "var(--accent-color)"}}>こちらご内容で問題なければフレッツ光で１度お試しいただければと思いますがご迷惑なかったでしょうか？？？</div>
+                </div>
+              )}
+
+              {/* シナリオ⑤・⑥ (プレースホルダー) */}
+              {(fletsTalkScenario >= 5) && (
                 <div className="fade-up-element visible">
                   <div className="script-bubble" style={{borderColor:"#f59e0b", background:"rgba(245, 158, 11, 0.05)"}}>
                     ⚠️ （プレースホルダー）<br/>
