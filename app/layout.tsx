@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import AuthGuard from "./AuthGuard"; // 🛡️ 先ほど作った鉄壁の門番を呼び出す！
+import GlobalAddressSearch from "@/app/components/GlobalAddressSearch"; // 👈 魔法の検索バーをインポート！
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,6 +26,9 @@ export default function RootLayout({
         
         {/* 🛡️ アプリのすべてを門番で包み込む！これで全ページに一撃で鍵がかかる！ */}
         <AuthGuard>
+          {/* 🌐 グローバル住所検索バー！AuthGuardの内側に置くことで、ログイン後のみ表示されます！ */}
+          <GlobalAddressSearch />
+          
           {children}
         </AuthGuard>
         
