@@ -295,8 +295,6 @@ export default function ProcedureWizard() {
         .app-wrapper { padding: 20px 40px 100px 40px; position: relative; z-index: 10; opacity: 0; transition: opacity 0.8s ease; max-width: 1400px; margin: 0 auto; }
         .app-wrapper.ready { opacity: 1; }
 
-        /* 💡 悪さをしていた古いハンバーガーメニューのCSSを完全に削除しました！！ */
-
         .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 40px; margin-top: 10px; }
         .glass-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 50px; box-shadow: var(--card-shadow); max-width: 800px; width: 100%; }
         
@@ -311,15 +309,16 @@ export default function ProcedureWizard() {
         .layout-grid { display: grid; grid-template-columns: 320px 1fr; gap: 30px; align-items: start; }
         @media (max-width: 950px) { .layout-grid { grid-template-columns: 1fr; } }
         
+        /* 💡 カテゴリ一覧のCSSを、絶対に他と被らない独自のクラス名に完全変更しました！ */
         .categories-menu { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 24px; padding: 20px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 8px; position: sticky; top: 100px; }
-        .menu-item { padding: 16px 20px; border-radius: 16px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; border: 1px solid transparent; background: var(--input-bg); color: var(--text-main); font-weight: 800; }
-        .menu-item:hover { border-color: var(--card-hover-border); transform: translateX(5px); }
-        .menu-item.active { background: var(--card-hover-bg); border-color: var(--card-hover-border); color: var(--accent-color); box-shadow: 0 0 20px rgba(56,189,248,0.1); }
-        .menu-icon { font-size: 20px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.1); border-radius: 10px; }
         
-        /* 💡 クラス名衝突を回避するため .category-title に変更！ */
-        .menu-item.active .category-title { color: var(--accent-color); font-weight: 900; }
-        .category-title { font-weight: 800; font-size: 14px; flex: 1; }
+        .cat-item { padding: 16px 20px; border-radius: 16px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; border: 1px solid transparent; background: var(--input-bg); color: var(--text-main); font-weight: 800; }
+        .cat-item:hover { border-color: var(--card-hover-border); transform: translateX(5px); }
+        .cat-item.active { background: var(--card-hover-bg); border-color: var(--card-hover-border); color: var(--accent-color); box-shadow: 0 0 20px rgba(56,189,248,0.1); }
+        
+        .cat-icon { font-size: 20px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.1); border-radius: 10px; }
+        .cat-item.active .cat-title { color: var(--accent-color); font-weight: 900; }
+        .cat-title { font-weight: 800; font-size: 14px; flex: 1; }
         
         .badge { background: #ef4444; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: 900; letter-spacing: 1px; }
 
@@ -392,12 +391,12 @@ export default function ProcedureWizard() {
             {visibleManuals.map(manual => (
               <div 
                 key={manual.id} 
-                className={`menu-item ${activeManualId === manual.id ? "active" : ""}`}
+                /* 💡 クラス名を cat-item に完全変更し、CSS競合を防ぎました！ */
+                className={`cat-item ${activeManualId === manual.id ? "active" : ""}`}
                 onClick={() => { setActiveManualId(manual.id); setExpandedSteps([1]); }}
               >
-                <div className="menu-icon">{manual.icon}</div>
-                {/* 💡 クラス名を category-title に変更し、干渉を完全に防ぎました！ */}
-                <div className="category-title">{manual.title}</div>
+                <div className="cat-icon">{manual.icon}</div>
+                <div className="cat-title">{manual.title}</div>
                 {manual.badge && <span className="badge">{manual.badge}</span>}
               </div>
             ))}
