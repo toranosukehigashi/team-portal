@@ -34,8 +34,8 @@ export default function SimulatorTest() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [toast, setToast] = useState({ show: false, msg: "", type: "success" });
   
-  // 💡 5つのタブをすべて管理！
-  const [activeTab, setActiveTab] = useState<"sb-hikari" | "sb-air" | "docomo-hikari" | "flets-hikari" | "free-half">("sb-hikari");
+  // 💡 6つのタブをすべて管理！
+  const [activeTab, setActiveTab] = useState<"sb-hikari" | "sb-air" | "docomo-hikari" | "flets-hikari" | "free-half" | "air-talk">("sb-hikari");
 
   // ==========================================
   // 🧮 1. SB光 (StoStoS) ロジック
@@ -135,7 +135,6 @@ export default function SimulatorTest() {
   const [fletsTalkScenario, setFletsTalkScenario] = useState<number>(1);
 
   const currentLineData = MASTER_DATA[fletsSelectedLine];
-  
   let oldLineRemaining = 0;
   if (fletsUsedMonths < currentLineData.split) {
     const monthlyInstallment = currentLineData.total / currentLineData.split;
@@ -143,17 +142,13 @@ export default function SimulatorTest() {
     if (oldLineRemaining < 0) oldLineRemaining = 0;
   }
   const oldLineTotalCost = oldLineRemaining + currentLineData.penalty;
-
   const selectedFlets = FLETS_PLANS[fletsPlan];
   const halfYearMonthlyCost = selectedFlets.monthly * 6;
   const fixedFletsInstallHalf = 7365; 
 
   let fletsCbTotal = 0;
-  if (hasCurrentLine) {
-    fletsCbTotal = oldLineTotalCost + selectedFlets.initial + fixedFletsInstallHalf + halfYearMonthlyCost;
-  } else {
-    fletsCbTotal = selectedFlets.initial + selectedFlets.install + selectedFlets.penalty + halfYearMonthlyCost;
-  }
+  if (hasCurrentLine) fletsCbTotal = oldLineTotalCost + selectedFlets.initial + fixedFletsInstallHalf + halfYearMonthlyCost;
+  else fletsCbTotal = selectedFlets.initial + selectedFlets.install + selectedFlets.penalty + halfYearMonthlyCost;
 
   // ==========================================
   // 🎁 5. 半年間無料案内Ver. ロジック
@@ -202,6 +197,12 @@ export default function SimulatorTest() {
   const currentFreeData = FREE_HALF_DATA[freeLine][freePlan] || FREE_HALF_DATA[freeLine]["MS"];
   const freeFinalCb = freeUseDebt ? currentFreeData.total : currentFreeData.totalNoDebt;
 
+  // ==========================================
+  // 📡 6. Air提案トーク ロジック
+  // ==========================================
+  const [airTalkType, setAirTalkType] = useState<"leo" | "norack">("leo");
+
+
   useEffect(() => {
     setIsReady(true);
     const observer = new IntersectionObserver((entries) => {
@@ -209,7 +210,7 @@ export default function SimulatorTest() {
     }, { threshold: 0.1 });
     document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, [activeTab, fletsTalkScenario, freeTalkTab]);
+  }, [activeTab, fletsTalkScenario, freeTalkTab, airTalkType]);
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
@@ -289,7 +290,6 @@ export default function SimulatorTest() {
           .fade-up-element { opacity: 0; transform: translateY(40px); transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
           .fade-up-element.visible { opacity: 1; transform: translateY(0); }
 
-          /* 💡 VS比較カード */
           .vs-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
           .vs-card { padding: 15px; border-radius: 16px; border: 1px solid var(--card-border); background: var(--input-bg); position: relative; transition: 0.3s;}
           .vs-card:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
@@ -300,17 +300,24 @@ export default function SimulatorTest() {
           .vs-detail { font-size: 10px; color: var(--text-sub); margin-top: 5px; line-height: 1.4; font-weight: 800;}
           .vs-badge { position: absolute; top: -10px; right: 10px; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 900; color: #fff;}
 
-          /* 💡 プラン・セレクトUI */
           .plan-switcher { display: flex; gap: 8px; background: var(--card-bg); padding: 4px; border-radius: 12px; border: 1px solid var(--card-border); margin-bottom: 5px; flex-wrap: wrap;}
           .plan-btn { flex: 1; padding: 10px 4px; border: none; border-radius: 8px; font-weight: 900; font-size: 11px; cursor: pointer; background: transparent; color: var(--text-sub); transition: 0.2s; text-align: center; white-space: nowrap;}
           .plan-btn.active { background: var(--accent-color); color: #fff; box-shadow: 0 2px 8px rgba(20, 184, 166, 0.3); }
           .select-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-main); font-weight: 800; outline: none; margin-bottom: 10px; appearance: none; cursor: pointer; transition: 0.3s;}
           .select-input:hover { border-color: var(--accent-color); }
           
-          /* 💡 スマートプロンプター (カンペ切り替え) */
           .prompter-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 15px; }
           .prompter-btn { padding: 8px 12px; border-radius: 8px; font-size: 11px; font-weight: 900; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-sub); cursor: pointer; transition: 0.2s; }
           .prompter-btn.active { background: var(--card-hover-bg); color: var(--accent-color); border-color: var(--accent-color); box-shadow: 0 2px 8px rgba(20, 184, 166, 0.15); }
+
+          /* 💡 Air トーク専用 おしゃれトグルUI */
+          .stylish-toggle-container { position: relative; display: flex; background: rgba(0,0,0,0.05); border-radius: 30px; padding: 4px; overflow: hidden; border: 1px solid var(--card-border); margin-bottom: 20px;}
+          .theme-dark .stylish-toggle-container { background: rgba(255,255,255,0.05); }
+          .stylish-toggle-slider { position: absolute; top: 4px; bottom: 4px; width: calc(50% - 4px); background: linear-gradient(135deg, #10b981, #14b8a6); border-radius: 26px; transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); z-index: 1;}
+          .stylish-toggle-slider.left { transform: translateX(0); }
+          .stylish-toggle-slider.right { transform: translateX(100%); }
+          .stylish-toggle-btn { flex: 1; padding: 14px 20px; font-weight: 900; font-size: 14px; text-align: center; color: var(--text-sub); background: transparent; border: none; cursor: pointer; z-index: 2; transition: color 0.4s; }
+          .stylish-toggle-btn.active { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
         `}} />
 
         <SideMenu />
@@ -333,11 +340,12 @@ export default function SimulatorTest() {
             <button className={`sim-tab-btn ${activeTab === "docomo-hikari" ? "active" : ""}`} onClick={() => setActiveTab("docomo-hikari")}>📱 docomo光</button>
             <button className={`sim-tab-btn ${activeTab === "flets-hikari" ? "active" : ""}`} onClick={() => setActiveTab("flets-hikari")}>🌐 フレッツ光</button>
             <button className={`sim-tab-btn ${activeTab === "free-half" ? "active" : ""}`} onClick={() => setActiveTab("free-half")}>🎁 半年無料CP</button>
+            <button className={`sim-tab-btn ${activeTab === "air-talk" ? "active" : ""}`} onClick={() => setActiveTab("air-talk")}>📡 Air提案トーク</button>
           </div>
         </div>
 
         {/* ======================================================== */}
-        {/* 1. 🏢 SB光 (StoStoS) 画面（完全版） */}
+        {/* 1. 🏢 SB光 (StoStoS) 画面 */}
         {/* ======================================================== */}
         {activeTab === "sb-hikari" && (
           <div className="main-layout">
@@ -423,7 +431,7 @@ export default function SimulatorTest() {
         )}
 
         {/* ======================================================== */}
-        {/* 2. 🏠 SB Air (StoStoS) 画面（完全版） */}
+        {/* 2. 🏠 SB Air (StoStoS) 画面 */}
         {/* ======================================================== */}
         {activeTab === "sb-air" && (
           <div className="main-layout">
@@ -485,7 +493,7 @@ export default function SimulatorTest() {
         )}
 
         {/* ======================================================== */}
-        {/* 3. 📱 docomo光 (D to D) 画面（魂の完全版） */}
+        {/* 3. 📱 docomo光 (D to D) 画面 */}
         {/* ======================================================== */}
         {activeTab === "docomo-hikari" && (
           <div className="main-layout">
@@ -569,7 +577,7 @@ export default function SimulatorTest() {
         )}
 
         {/* ======================================================== */}
-        {/* 🌐 4. フレッツ光（半年無料）画面（完全版） */}
+        {/* 🌐 4. フレッツ光（半年無料）画面 */}
         {/* ======================================================== */}
         {activeTab === "flets-hikari" && (
           <div className="main-layout">
@@ -819,6 +827,45 @@ export default function SimulatorTest() {
                   </div>
                 </div>
               )}
+            </section>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* 📡 6. Air提案トーク（完全新規！）画面 */}
+        {/* ======================================================== */}
+        {activeTab === "air-talk" && (
+          <div className="main-layout" style={{ gridTemplateColumns: "1fr", maxWidth: "800px" }}>
+            <section className="glass-panel highlight-panel fade-up-element">
+              <h2 className="section-title">💬 Air ぶち込み提案トーク</h2>
+
+              {/* 💡 超おしゃれ！ ヌルッと動くスライダー式トグル */}
+              <div className="stylish-toggle-container">
+                 <div className={`stylish-toggle-slider ${airTalkType === 'leo' ? 'left' : 'right'}`}></div>
+                 <button className={`stylish-toggle-btn ${airTalkType === 'leo' ? 'active' : ''}`} onClick={() => setAirTalkType('leo')}>🏢 レオパレス物件用</button>
+                 <button className={`stylish-toggle-btn ${airTalkType === 'norack' ? 'active' : ''}`} onClick={() => setAirTalkType('norack')}>❌ ラックなし物件用</button>
+              </div>
+
+              <div style={{ marginTop: "20px" }}>
+                {airTalkType === "leo" && (
+                  <div className="fade-up-element visible">
+                     <div className="script-bubble">今回レオパレス物件になると、家賃と別途でレオネットという月額3630円で使えるインターネット回線ありますのでご安心ください。</div>
+                     <div className="script-bubble">ただ1点だけ、速度部分がかなり遅いです。</div>
+                     <div className="script-bubble">ここからはご提案なんですけれど、レオネット平均速度がだいたいYoutubeで動画見ることはできるけどゲームとかするってなると難しいくらいの速度なんですね。</div>
+                     <div className="script-bubble">そこで単純に月額＋1500くらいで平均速度もゲームやリモートワークするのに問題ない速度が出るネットをご利用いただけます。</div>
+                     <div className="script-bubble script-me" style={{background: "var(--card-hover-bg)", borderColor: "var(--accent-color)"}}>今回はレオパレスに合わせたプランとしてAirをご準備させていただいてます。</div>
+                  </div>
+                )}
+                {airTalkType === "norack" && (
+                  <div className="fade-up-element visible">
+                     <div className="script-bubble">次の物件の設備確認させていただいて、物件の中にWifiの設備がないので、基本的にはお客様の方でWifiを準備していただく形になります！</div>
+                     <div className="script-bubble">導入方法２つあって、１つめが物件に大規模な工事をして入線作業をする方法です。</div>
+                     <div className="script-bubble">この方法だと、光回線とかは使えるんですけれど物件とかを傷つけちゃう可能性あるので、ネットの速度をすごい求められない限りはお勧めしません。</div>
+                     <div className="script-bubble">２つめは工事とか不要で開通できるものになります。<br/>こちらはコンセントに刺すのみになるので、物件設備を傷つけないで開通可能で、料金自体も光回線よりも月額お安いです！</div>
+                     <div className="script-bubble script-me" style={{background: "var(--card-hover-bg)", borderColor: "var(--accent-color)"}}>お客様の方で速度または料金どちらを求められますか？</div>
+                  </div>
+                )}
+              </div>
             </section>
           </div>
         )}
