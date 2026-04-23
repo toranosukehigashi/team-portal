@@ -3,6 +3,72 @@
 import React, { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
+// ⚡️ 【超高精度版】全国の電力会社マッピング（市区町村レベルで判定！）
+const getPowerCompany = (pref: string, city: string) => {
+  // --------------------------------------------------
+  // ⚠️ 厄介な境界線エリアの【市区町村】個別判定フィルター
+  // --------------------------------------------------
+  
+  // 🗻 静岡県（富士川の東西問題）
+  if (pref === '静岡県') {
+    const tepcoCities = ['熱海市', '伊豆市', '伊東市', '三島市', '沼津市', '下田市', '裾野市', '御殿場市', '賀茂郡', '田方郡', '駿東郡'];
+    if (tepcoCities.some(c => city.includes(c))) return { name: '東京電力', isMixed: false };
+    if (city.includes('富士市') || city.includes('富士宮市')) return { name: '東電 / 中部電力', isMixed: true, note: '富士川を境に混在' }; // 富士市などは川で割れるため警告残し
+    return { name: '中部電力', isMixed: false }; // それ以外の静岡は中電
+  }
+
+  // 🦞 三重県（南部は関西電力）
+  if (pref === '三重県') {
+    const kepcoCities = ['熊野市', '南牟婁郡', '御浜町', '紀宝町'];
+    if (kepcoCities.some(c => city.includes(c))) return { name: '関西電力', isMixed: false };
+    return { name: '中部電力', isMixed: false }; // それ以外の三重は中電
+  }
+
+  // 🦀 福井県（若狭地方は関西電力）
+  if (pref === '福井県') {
+    const kepcoCities = ['小浜市', '敦賀市', '三方郡', '三方上中郡', '大飯郡', '美浜町', '高浜町', 'おおい町', '若狭町'];
+    if (kepcoCities.some(c => city.includes(c))) return { name: '関西電力', isMixed: false };
+    return { name: '北陸電力', isMixed: false }; // それ以外の福井は北陸電力
+  }
+
+  // 🏯 兵庫県（赤穂周辺の一部が中国電力）
+  if (pref === '兵庫県') {
+    if (city.includes('赤穂市') || city.includes('赤穂郡')) return { name: '関西 / 中国電力', isMixed: true, note: '一部中国電力エリア' };
+    return { name: '関西電力', isMixed: false };
+  }
+
+  // ⛷️ 長野県・新潟県・岐阜県（一部の端っこエリア）
+  if (pref === '長野県') {
+    if (city.includes('軽井沢町')) return { name: '東京電力', isMixed: false };
+    return { name: '中部電力', isMixed: false }; // 大半は中電
+  }
+  if (pref === '新潟県') {
+    if (city.includes('糸魚川市') || city.includes('妙高市')) return { name: '東北 / 中部電力', isMixed: true, note: '一部中部電力エリア' };
+    return { name: '東北電力', isMixed: false };
+  }
+  if (pref === '岐阜県') {
+    if (city.includes('関ケ原町')) return { name: '中部 / 関西電力', isMixed: true, note: '一部関西電力エリア' };
+    return { name: '中部電力', isMixed: false };
+  }
+
+
+  // --------------------------------------------------
+  // 🟢 通常の都道府県レベル判定（混在がないエリア）
+  // --------------------------------------------------
+  if (pref === '北海道') return { name: '北海道電力', isMixed: false };
+  if (['青森県', '岩手県', '宮城県', '秋田県', '山形県', '福島県'].includes(pref)) return { name: '東北電力', isMixed: false };
+  if (['茨城県', '栃木県', '群馬県', '埼玉県', '千葉県', '東京都', '神奈川県', '山梨県'].includes(pref)) return { name: '東京電力', isMixed: false };
+  if (pref === '愛知県') return { name: '中部電力', isMixed: false };
+  if (['富山県', '石川県'].includes(pref)) return { name: '北陸電力', isMixed: false };
+  if (['滋賀県', '京都府', '大阪府', '奈良県', '和歌山県'].includes(pref)) return { name: '関西電力', isMixed: false };
+  if (['鳥取県', '島根県', '岡山県', '広島県', '山口県'].includes(pref)) return { name: '中国電力', isMixed: false };
+  if (['徳島県', '香川県', '愛媛県', '高知県'].includes(pref)) return { name: '四国電力', isMixed: false };
+  if (['福岡県', '佐賀県', '長崎県', '熊本県', '大分県', '宮崎県', '鹿児島県'].includes(pref)) return { name: '九州電力', isMixed: false };
+  if (pref === '沖縄県') return { name: '沖縄電力', isMixed: false };
+
+  return { name: '要確認', isMixed: true, note: 'エリアを確認してください' };
+};
+
 export default function GlobalAddressSearch() {
   const pathname = usePathname();
   const [query, setQuery] = useState("");
@@ -58,7 +124,6 @@ export default function GlobalAddressSearch() {
       }
 
       setStatus(`${locs.length}件ヒット`);
-      // 💡 せっかくスクロールできるようになったので、最大50件まで表示！
       setResults(locs.slice(0, 50));
     } catch (e) {
       setStatus("通信エラー");
@@ -129,7 +194,7 @@ export default function GlobalAddressSearch() {
               setIsFocused(true); 
               if (results.length > 0) setIsOpen(true); 
             }}
-            placeholder={isFocused ? "地名・カナを入力... (Enter)" : "住所読み方検索"}
+            placeholder={isFocused ? "地名・カナを入力... (Enter)" : "住所読み方＆地域電力検索"}
             style={{
               flex: 1,
               border: "none",
@@ -187,13 +252,16 @@ export default function GlobalAddressSearch() {
               const formattedZip = loc.postal.replace(/(\d{3})(\d{4})/, '$1-$2');
               const kana = `${loc.city_kana || ''} ${loc.town_kana || ''}`.trim();
               
+              // ⚡️ 判定ロジックに【都道府県】と【市区町村】の両方を投げて、超正確に判定させる！
+              const powerInfo = getPowerCompany(loc.prefecture, loc.city); 
+              
               return (
                 <div 
                   key={idx} 
                   className="rainbow-hover-item"
                   onClick={() => handleCopy(formattedZip, loc.prefecture, loc.city, loc.town)}
                   style={{
-                    flexShrink: 0, // 👈 💥コレが魔法の1行！どんなに件数が増えてもカードが絶対に潰れません！
+                    flexShrink: 0,
                     padding: "12px 16px",
                     borderRadius: "14px",
                     background: "#fff",
@@ -204,14 +272,40 @@ export default function GlobalAddressSearch() {
                     transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
                     <span className="item-zip">〒{formattedZip}</span>
+                    
+                    {/* ⚡️ 電力会社バッジの表示 */}
+                    <span style={{
+                      fontSize: "9px",
+                      fontWeight: 900,
+                      padding: "3px 8px",
+                      borderRadius: "12px",
+                      background: powerInfo.isMixed ? "rgba(245, 158, 11, 0.1)" : "rgba(59, 130, 246, 0.1)",
+                      color: powerInfo.isMixed ? "#d97706" : "#2563eb",
+                      border: `1px solid ${powerInfo.isMixed ? "rgba(245, 158, 11, 0.3)" : "rgba(59, 130, 246, 0.3)"}`,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px"
+                    }}>
+                      ⚡️ {powerInfo.name}
+                    </span>
                   </div>
+                  
                   <div style={{ color: "#1e293b", fontWeight: 800, fontSize: "13px", position: "relative", zIndex: 2 }}>
                     {loc.prefecture}{loc.city}{loc.town}
                   </div>
-                  <div style={{ color: "#64748b", fontSize: "10px", marginTop: "4px", fontWeight: 700, position: "relative", zIndex: 2 }}>
-                    ヨミ: {kana}
+                  
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: "4px", position: "relative", zIndex: 2 }}>
+                    <div style={{ color: "#64748b", fontSize: "10px", fontWeight: 700 }}>
+                      ヨミ: {kana}
+                    </div>
+                    {/* ⚡️ どうしても判定しきれない境界線の時だけ警告 */}
+                    {powerInfo.isMixed && (
+                      <div style={{ color: "#ef4444", fontSize: "9px", fontWeight: 800, background: "rgba(239, 68, 68, 0.05)", padding: "2px 6px", borderRadius: "4px" }}>
+                        ⚠️ {powerInfo.note}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
