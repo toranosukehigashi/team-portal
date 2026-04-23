@@ -58,7 +58,8 @@ export default function GlobalAddressSearch() {
       }
 
       setStatus(`${locs.length}件ヒット`);
-      setResults(locs.slice(0, 15));
+      // 💡 せっかくスクロールできるようになったので、最大50件まで表示！
+      setResults(locs.slice(0, 50));
     } catch (e) {
       setStatus("通信エラー");
     }
@@ -88,22 +89,22 @@ export default function GlobalAddressSearch() {
         right: "30px",
         zIndex: 99999,
         width: (isFocused || query.length > 0) ? "320px" : "220px", 
-        transition: "width 0.5s cubic-bezier(0.16, 1, 0.3, 1)", // Appleライクな超滑らかな広がり
+        transition: "width 0.5s cubic-bezier(0.16, 1, 0.3, 1)", 
         fontFamily: "'Inter', 'Noto Sans JP', sans-serif",
         animation: "searchBarEnterRight 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards"
       }}
     >
-      {/* 🌈 流れるレインボーグラデーションの「外枠」 */}
+      {/* 🌈 流れるレインボーグラデーションの外枠 */}
       <div className={`rainbow-border-wrapper ${isFocused || query.length > 0 ? 'active' : ''}`}>
         
-        {/* 🌐 グラスモーフィズムの「内側（検索バー本体）」 */}
+        {/* 🌐 グラスモーフィズムの内側（検索バー本体） */}
         <div style={{
           display: "flex",
           alignItems: "center",
-          background: "rgba(255, 255, 255, 0.85)", // 内側は透明感のある白
+          background: "rgba(255, 255, 255, 0.85)",
           backdropFilter: "blur(20px)",
           WebkitBackdropFilter: "blur(20px)",
-          borderRadius: "28px", // 外枠より少し小さくしてボーダーを見せる
+          borderRadius: "28px", 
           padding: "5px 5px 5px 16px",
           width: "100%",
           height: "100%",
@@ -141,7 +142,6 @@ export default function GlobalAddressSearch() {
             }}
           />
           
-          {/* 🌈 プレミアム・レインボーボタン */}
           <button 
             className="rainbow-button"
             onClick={handleSearch}
@@ -164,7 +164,7 @@ export default function GlobalAddressSearch() {
         </div>
       </div>
 
-      {/* 🍱 ドロップダウン検索結果 (Bento UI風 + ホバーレインボー) */}
+      {/* 🍱 ドロップダウン検索結果 */}
       {isOpen && (
         <div style={{
           marginTop: "12px",
@@ -193,6 +193,7 @@ export default function GlobalAddressSearch() {
                   className="rainbow-hover-item"
                   onClick={() => handleCopy(formattedZip, loc.prefecture, loc.city, loc.town)}
                   style={{
+                    flexShrink: 0, // 👈 💥コレが魔法の1行！どんなに件数が増えてもカードが絶対に潰れません！
                     padding: "12px 16px",
                     borderRadius: "14px",
                     background: "#fff",
@@ -219,7 +220,7 @@ export default function GlobalAddressSearch() {
         </div>
       )}
 
-      {/* ✨ コピー完了トースト（オーロラ仕様） */}
+      {/* ✨ コピー完了トースト */}
       <div style={{
         position: "absolute",
         top: "60px",
@@ -242,14 +243,12 @@ export default function GlobalAddressSearch() {
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
-        /* 🌟 SaaS最高峰！流れるレインボーグラデーション (Generative UI) */
         @keyframes rainbowGlow {
           0% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
           100% { background-position: 0% 50%; }
         }
 
-        /* 🌈 外枠（普段は半透明、アクティブ時にレインボーが走り出す） */
         .rainbow-border-wrapper {
           padding: 2px;
           border-radius: 30px;
@@ -264,7 +263,6 @@ export default function GlobalAddressSearch() {
           box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2), 0 0 15px rgba(236, 72, 153, 0.3);
         }
 
-        /* 🌈 ボタン（常に美しく色が流れる） */
         .rainbow-button {
           background: linear-gradient(90deg, #ec4899, #8b5cf6, #3b82f6, #10b981, #ec4899);
           background-size: 300% 100%;
@@ -276,7 +274,6 @@ export default function GlobalAddressSearch() {
           box-shadow: 0 8px 20px rgba(236, 72, 153, 0.4);
         }
 
-        /* 🍱 リストアイテムのホバーエフェクト（オーロラハイライト） */
         .rainbow-hover-item::before {
           content: '';
           position: absolute;
@@ -317,7 +314,6 @@ export default function GlobalAddressSearch() {
           to { opacity: 1; transform: translateY(0); }
         }
 
-        /* カスタムスクロールバー */
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: transparent; }
         .custom-scroll::-webkit-scrollbar-thumb { background: rgba(203, 213, 225, 0.6); border-radius: 10px; }
