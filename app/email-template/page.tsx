@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import SideMenu from "@/app/components/SideMenu"; // 💡 共通メニューを呼び出し！
 
 // ✨ 背景の光の粒（ビジネスライクなデータパーティクルへ変更）
 const FlowParticles = () => {
@@ -33,8 +34,7 @@ export default function EmailTemplate() {
   const [preview, setPreview] = useState("");
   const [form, setForm] = useState({ name1: "", date: "", listKey: "", name2: "", area: "" });
   
-  // 🍔 メニュー開閉状態
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // 💡 isMenuOpen は SideMenu 側に移動したので削除済み！
   const [isReady, setIsReady] = useState(false);
 
   // ☀️ テーマ管理
@@ -244,29 +244,10 @@ export default function EmailTemplate() {
           .data-path { fill: none; stroke: var(--svg-color); stroke-width: 2; stroke-dasharray: 1500; stroke-dashoffset: 1500; animation: drawDataFlow 15s linear infinite; transition: stroke 0.5s; }
           @keyframes drawDataFlow { 0% { stroke-dashoffset: 1500; } 100% { stroke-dashoffset: -1500; } }
 
-          /* 🍔 ハンバーガーボタン */
-          .hamburger-btn { position: fixed; top: 20px; left: 20px; z-index: 1001; background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; box-shadow: var(--card-shadow); transition: 0.3s; }
-          .hamburger-btn:hover { background: var(--card-hover-bg); transform: scale(1.05); }
-          .hamburger-line { width: 22px; height: 3px; background: var(--text-sub); border-radius: 3px; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
-          .hamburger-btn.open .line1 { transform: translateY(8px) rotate(45deg); background: var(--accent-color); }
-          .hamburger-btn.open .line2 { opacity: 0; transform: translateX(-10px); }
-          .hamburger-btn.open .line3 { transform: translateY(-8px) rotate(-45deg); background: var(--accent-color); }
-
-          /* 🌌 メニューオーバーレイ */
-          .menu-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s ease; }
-          .menu-overlay.open { opacity: 1; pointer-events: auto; }
-
-          /* 🗄️ サイドメニュー */
-          .side-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; background: var(--card-bg); backdrop-filter: blur(30px); border-right: 1px solid var(--card-border); z-index: 1000; box-shadow: var(--card-shadow); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 90px 24px 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
-          .side-menu.open { left: 0; }
-          .menu-title { font-size: 13px; font-weight: 900; color: var(--title-color); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--card-border); letter-spacing: 1px; }
-
-          .side-link { text-decoration: none; padding: 14px 20px; border-radius: 14px; background: var(--input-bg); color: var(--text-main); font-weight: 800; font-size: 14px; border: 1px solid var(--card-border); transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
-          .side-link:hover { border-color: var(--card-hover-border); transform: translateX(8px); color: var(--accent-color); }
-          .side-link.current-page { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; box-shadow: 0 6px 15px rgba(245, 158, 11, 0.3); pointer-events: none; }
+          /* 💡 古いハンバーガーメニューのCSSを完全に削除しました！ */
 
           /* 🎈 ナビゲーション（中央配置） */
-          .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 30px; }
+          .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 30px; margin-top: 20px;}
           .glass-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 50px; box-shadow: var(--card-shadow); max-width: 800px; width: 100%; }
           
           .nav-left { display: flex; gap: 12px; align-items: center; }
@@ -339,29 +320,8 @@ export default function EmailTemplate() {
           <path className="data-path" d="M -10,80 L 40,80 L 60,30 L 90,30 L 110,80" style={{animationDelay: "3s", opacity: 0.5}} />
         </svg>
 
-        {/* 🍔 ハンバーガーボタン */}
-        <div className={`hamburger-btn ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
-          <div className="hamburger-line line1"></div>
-          <div className="hamburger-line line2"></div>
-          <div className="hamburger-line line3"></div>
-        </div>
-
-        {/* 🌌 メニュー展開時の背景オーバーレイ */}
-        <div className={`menu-overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
-
-        {/* 🗄️ サイドメニュー（全ツール網羅） */}
-        <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
-          <div className="menu-title">🧭 TOOL MENU</div>
-          <a href="/kpi-detail" className="side-link">📊 獲得進捗・KPI</a>
-          <a href="/bulk-register" className="side-link">📦 データ一括登録</a>
-          <a href="/net-toss" className="side-link">🌐 ネットトス連携</a>
-          <a href="/self-close" className="side-link">🤝 自己クロ連携</a>
-          <a href="/sms-kraken" className="side-link">📱 SMS (Kraken)送信</a>
-          <a href="/email-template" className="side-link current-page">✉️ メールテンプレート</a>
-          <a href="/procedure-wizard" className="side-link">🗺️ Kraken 手順辞書</a>
-          <a href="/simulator" className="side-link">🆚 料金シミュレーター</a>
-          <a href="/trouble-nav" className="side-link">⚡ トラブル解決ナビ</a>
-        </div>
+        {/* 💡 ここに共通化されたメニューコンポーネントをポンと置くだけ！！！ */}
+        <SideMenu />
 
         {/* 🎈 ナビゲーション & テーマ切り替え */}
         <div className="glass-nav-wrapper fade-up-element" style={{ "--delay": "0s" } as any}>
