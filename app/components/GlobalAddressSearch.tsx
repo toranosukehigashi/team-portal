@@ -194,7 +194,7 @@ export default function GlobalAddressSearch() {
               setIsFocused(true); 
               if (results.length > 0) setIsOpen(true); 
             }}
-            placeholder={isFocused ? "地名・カナを入力... (Enter)" : "住所読み方＆地域電力検索"}
+            placeholder={isFocused ? "地名・カナを入力... (Enter)" : "住所&地域電力検索"}
             style={{
               flex: 1,
               border: "none",
