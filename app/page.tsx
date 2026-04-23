@@ -128,23 +128,49 @@ export default function ThemeParkEntrance() {
   const [animDelayOffset, setAnimDelayOffset] = useState(0.2);
   const [activeBookmark, setActiveBookmark] = useState<string | null>(null);
 
+  // 💡 ここが新しい「コピー完了」のアニメーションを管理するStateです！
+  const [copiedStatus, setCopiedStatus] = useState<{ id: string, type: 'name' | 'url' } | null>(null);
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
   // ⌨️ Cmd+K 検索用ステート
   const [isCmdKOpen, setIsCmdKOpen] = useState(false);
   const [cmdKQuery, setCmdKQuery] = useState("");
 
-  // 💡 KPIデータを動的に管理するステート（初期値は0）
   const [kpiData, setKpiData] = useState({ current: 0, target: 20 });
   const progressPercent = kpiData.target > 0 ? Math.min(100, Math.round((kpiData.current / kpiData.target) * 100)) : 0;
 
+  // 💡 【重要】ここに実際のブックマーク名とURLを設定してください！！！
+  // 例：「https://example.com」などのURLを入れると、それをコピーできるようになります！
+  // 💡 【ここです！】app/page.tsx の 147行目付近
   const callTreeBookmarks = [
-    { id: 'b1', icon: '📦', title: 'データ一括取得（Warp）', copyName: 'Warp一括取得', copyUrl: 'javascript:(function(){/* 一括取得のスクリプト */ alert("Warpデータを取得しました");})();' },
-    { id: 'b2', icon: '📞', title: '電話番号一括コピー', copyName: '電話番号一括コピー', copyUrl: 'javascript:(function(){/* 電話番号抽出のスクリプト */ alert("電話番号を抽出しました");})();' },
-    { id: 'b3', icon: '🌐', title: 'ネットトス自動入力', copyName: 'ネットトス自動入力', copyUrl: 'javascript:(function(){/* 自動入力のスクリプト */ alert("自動入力しました");})();' }
+    { 
+      id: 'b1', icon: '📦', title: 'データ一括取得（Warp）', 
+      copyName: 'Warp一括取得', 
+      // 👇 このバッククォート( ` )で囲んだ中に、実際のコードをペーストしてください！
+      copyUrl: `javascript:(function(){navigator.clipboard.readText().then(function(c){p(c);}).catch(function(){var j=prompt('⚠%EF%B8%8Fクリップボードの読み取りがブロックされました！\n手動で貼り付けてください:','');if(j)p(j);});function p(j){if(!j)return;var d;try{d=JSON.parse(j);}catch(e){alert('データの読み込みに失敗しました！コピーし直してください！');return;}function f(n,v){if(!v)return;var e=document.querySelector('input[name="'+n+'"]');if(!e)return;e.focus();var s=Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,"value").set;if(s){s.call(e,v);}else{e.value=v;}e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));e.blur();}var b=d.addressLine1||"";var m=b.match(/(.*?)([0-9０-９一二三四五六七八九十百]+丁目.*|[0-9０-９]+[-ー−].*|[0-9０-９]+)$/);if(m){b=m[2];}var bn=d.buildingName||"";var rn="";var bm=bn.match(/^(.*?)([\s%E3%80%80]+.*|[0-9０-９]+[-ー−0-9０-９]*号?[室]?)$/);if(bm){bn=bm[1].trim();rn=bm[2].trim();}var a=(d.propertyType&&d.propertyType.indexOf(%27集合%27)!==-1)||bn.length>0;function r(){var q=document.querySelectorAll(%27input[type="radio"][name="propertyType"]%27);for(var i=0;i<q.length;i++){var t=q[i].value===%27detachedHouse%27;if((a&&!t)||(!a&&t)){q[i].click();var s=Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,"checked").set;if(s)s.call(q[i],true);q[i].dispatchEvent(new Event(%27change%27,{bubbles:true}));}}}r();setTimeout(function(){r();f(%27moveInDate%27,d.moveInDate);f(%27lastName%27,d.lastName);f(%27firstName%27,d.firstName);f(%27lastNameKatakana%27,d.lastNameKatakana);f(%27firstNameKatakana%27,d.firstNameKatakana);f(%27mobile%27,d.mobile);f(%27email%27,d.email);f(%27postcode%27,d.postcode);f(%27addressLine1%27,b);setTimeout(function(){if(a){f(%27buildingName%27,bn);f(%27roomNumber%27,rn);}alert(%27✨ Automatic input complete! Please check the contents!🐙%27);},300);},800);}})();
+  alert("Warp一括取得スクリプトが実行されました！");
+})();` 
+    },
+    { 
+      id: 'b2', icon: '📞', title: '電話番号一括コピー', 
+      copyName: '電話番号一括コピー', 
+      // 👇 ここも同じようにバッククォート( ` )で囲みます！
+      copyUrl: `javascript:(function(){
+  // ※ここに電話番号抽出のコードを貼り付け！
+  console.log("電話番号をコピーしました");
+})();` 
+    },
+    { 
+      id: 'b3', icon: '🌐', title: 'ネットトス自動入力', 
+      copyName: 'ネットトス自動入力', 
+      // 👇 同様です！
+      copyUrl: `javascript:(function(){
+  // ※ここに自動入力のコードを貼り付け！
+})();` 
+    }
   ];
 
-  // ✨ Cmd+K インテント検索用リスト
   const allCmdKLinks = [
     { id: 'affiliate', name: "🔗 OBJリンクポータルを開く", desc: "各不動産会社のOBJリンク、重説フォームのコピー", url: "/affiliate-links", search: ["リンク", "アフィリエイト", "affiliate", "link", "obj", "不動産", "重説", "コピー", "ポータル", "空室", "名古屋"] },
     { id: 'sim', name: "🆚 料金シミュレーターへ移動", desc: "乗り換え費用、スマホセット割、違約金の計算", url: "/simulator", search: ["sim", "シミュレーター", "料金", "cost", "見積もり", "比較", "乗り換え", "違約金", "スマホ割", "安く", "解約金", "シミュ", "計算"] },
@@ -175,7 +201,6 @@ export default function ThemeParkEntrance() {
 
     const savedNews = localStorage.getItem("team_portal_news"); if (savedNews) setNewsText(savedNews);
 
-    // 💡 KPIデータをローカルストレージから読み込むロジック！
     const loadKpi = () => {
       const savedKpi = localStorage.getItem("team_portal_kpi");
       if(savedKpi) {
@@ -187,7 +212,6 @@ export default function ThemeParkEntrance() {
     };
     loadKpi();
 
-    // 💡 他のタブ（kpi-detail画面など）でデータが更新されたら即座に反映！
     window.addEventListener("storage", loadKpi);
     
     const observerTimer = setTimeout(() => {
@@ -205,7 +229,7 @@ export default function ThemeParkEntrance() {
       if (readyTimeout) clearTimeout(readyTimeout);
       clearTimeout(observerTimer); 
       window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener("storage", loadKpi); // クリーンアップ
+      window.removeEventListener("storage", loadKpi); 
     };
   }, []);
 
@@ -259,9 +283,25 @@ export default function ThemeParkEntrance() {
   const handleLogout = () => { localStorage.removeItem("team_portal_user"); router.push("/login"); };
   const handleClockOut = async () => { const now = new Date(); const hours = String(now.getHours()).padStart(2, "0"); const minutes = String(now.getMinutes()).padStart(2, "0"); try { await navigator.clipboard.writeText(`${hours}:${minutes} 退勤いたします`); showToast(`✨ 退勤メッセージをコピーしました！`); } catch (err) { alert("コピーに失敗しました"); } };
   
-  const handleTargetCopy = async (e: React.MouseEvent, text: string, label: string) => { 
+  // 💡 ここが魔法のコピー関数です！
+  const handleTargetCopy = async (e: React.MouseEvent, text: string, label: string, id: string, type: 'name' | 'url') => { 
     e.stopPropagation();
-    try { await navigator.clipboard.writeText(text); showToast(`📋 ${label}をコピーしました！`); setActiveBookmark(null); } catch (err) { alert("コピーに失敗しました"); } 
+    try { 
+      await navigator.clipboard.writeText(text); 
+      // 1. ポップオーバー内の表示を「✅ コピー完了！」に切り替える
+      setCopiedStatus({ id, type });
+      
+      // 2. 1.2秒後に元に戻し、ポップオーバーをスッと閉じる
+      setTimeout(() => {
+        setCopiedStatus(null);
+        setActiveBookmark(null); 
+      }, 1200);
+
+      // (念のため下部のトーストでもお知らせ)
+      showToast(`📋 ${label}をコピーしました！`); 
+    } catch (err) { 
+      alert("コピーに失敗しました"); 
+    } 
   };
   
   const calculateDeadlines = (dateStr: string) => {
@@ -428,20 +468,6 @@ export default function ThemeParkEntrance() {
           .context-greeting { font-size: 20px; font-weight: 900; color: var(--title-color); letter-spacing: 1px; display: flex; align-items: center; gap: 12px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); transition: color 0.5s; }
           .context-greeting span { text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); }
 
-          .app-wrapper.time-evening .context-greeting { color: #ea580c; }
-          .app-wrapper.time-evening.theme-dark .context-greeting { color: #fb923c; }
-          
-          .app-wrapper.time-evening .kinetic-char, 
-          .app-wrapper.time-evening .static-char {
-            background: linear-gradient(to bottom, #f97316, #c2410c) !important;
-            -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important;
-          }
-          .app-wrapper.time-evening.theme-dark .kinetic-char, 
-          .app-wrapper.time-evening.theme-dark .static-char {
-            background: linear-gradient(to bottom, #fdba74, #ea580c) !important;
-            -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important;
-          }
-
           .cmdk-hint-bar { background: var(--input-bg); border: 1px solid var(--input-border); padding: 8px 15px; border-radius: 20px; display: flex; align-items: center; gap: 30px; font-size: 13px; font-weight: 800; color: var(--text-main); cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.05); backdrop-filter: blur(10px); transition: 0.3s; }
           .cmdk-hint-bar:hover { border-color: var(--card-hover-border); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
           .cmdk-shortcut { display: flex; gap: 4px; }
@@ -514,6 +540,9 @@ export default function ThemeParkEntrance() {
           .script-box:hover { border-color: var(--card-hover-border); transform: translateX(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
           .script-title { font-weight: 900; font-size: 11px; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
 
+          /* 💡 コピー完了アニメーション用の緑色を反映させるCSS！ */
+          .copied-success { color: #10b981 !important; font-weight: 900 !important; }
+
           .bookmark-popover { position: absolute; top: 50%; left: calc(100% + 15px); transform: translateY(-50%) scale(0.9); transform-origin: left center; background: var(--modal-bg); backdrop-filter: blur(30px); border: 1px solid var(--card-hover-border); border-radius: 16px; padding: 12px; width: 260px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); z-index: 9999; opacity: 0; animation: popoverIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; display: flex; flex-direction: column; gap: 8px; pointer-events: auto; }
           .theme-dark .bookmark-popover { box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
           .bookmark-popover::before { content: ''; position: absolute; top: 50%; left: -6px; transform: translateY(-50%) rotate(45deg); width: 12px; height: 12px; background: var(--modal-bg); border-bottom: 1px solid var(--card-hover-border); border-left: 1px solid var(--card-hover-border); }
@@ -531,7 +560,7 @@ export default function ThemeParkEntrance() {
           .popover-badge { font-size: 10px; font-weight: 900; padding: 2px 6px; border-radius: 6px; white-space: nowrap; }
           .name-badge { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.4); }
           .url-badge { background: rgba(14, 165, 233, 0.15); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.4); }
-          .popover-text { font-size: 11px; font-weight: 800; color: var(--text-main); flex: 1; margin: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+          .popover-text { font-size: 11px; font-weight: 800; color: var(--text-main); flex: 1; margin: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.2s; }
           .popover-copy-icon { font-size: 12px; opacity: 0.6; transition: 0.2s; }
           .popover-row:hover .popover-copy-icon { opacity: 1; color: var(--accent-color); transform: scale(1.1); }
 
@@ -670,16 +699,34 @@ export default function ThemeParkEntrance() {
                         <div className="bookmark-popover" onClick={(e) => e.stopPropagation()}>
                           <div className="popover-header">🔗 コピーする項目</div>
                           
-                          <div className="popover-row glitch-hover" onClick={(e) => handleTargetCopy(e, bm.copyName, "ブックマーク名")}>
+                          <div className="popover-row glitch-hover" onClick={(e) => handleTargetCopy(e, bm.copyName, "ブックマーク名", bm.id, 'name')}>
                             <span className="popover-badge name-badge">名前</span>
-                            <span className="popover-text">{bm.copyName}</span>
-                            <span className="popover-copy-icon">📋</span>
+                            
+                            {/* 💡 コピー完了時は文字が緑色で「✅ コピー完了！」に切り替わります！ */}
+                            {copiedStatus?.id === bm.id && copiedStatus?.type === 'name' ? (
+                              <span className="popover-text copied-success">✅ コピー完了！</span>
+                            ) : (
+                              <span className="popover-text">{bm.copyName}</span>
+                            )}
+                            
+                            <span className="popover-copy-icon">
+                              {copiedStatus?.id === bm.id && copiedStatus?.type === 'name' ? '✨' : '📋'}
+                            </span>
                           </div>
                           
-                          <div className="popover-row glitch-hover" onClick={(e) => handleTargetCopy(e, bm.copyUrl, "URL")}>
+                          <div className="popover-row glitch-hover" onClick={(e) => handleTargetCopy(e, bm.copyUrl, "URL", bm.id, 'url')}>
                             <span className="popover-badge url-badge">URL</span>
-                            <span className="popover-text">{bm.copyUrl.substring(0, 18)}...</span>
-                            <span className="popover-copy-icon">📋</span>
+                            
+                            {/* 💡 こちらもURLコピー完了時に文字が切り替わります！ */}
+                            {copiedStatus?.id === bm.id && copiedStatus?.type === 'url' ? (
+                              <span className="popover-text copied-success">✅ コピー完了！</span>
+                            ) : (
+                              <span className="popover-text">{bm.copyUrl.substring(0, 18)}...</span>
+                            )}
+                            
+                            <span className="popover-copy-icon">
+                              {copiedStatus?.id === bm.id && copiedStatus?.type === 'url' ? '✨' : '📋'}
+                            </span>
                           </div>
                         </div>
                       )}
@@ -700,14 +747,15 @@ export default function ThemeParkEntrance() {
             )}
 
             <div className="attraction-grid">
-              {/* 💡 ここでローカルストレージと連動する kpiData を利用して進捗バーを描画！ */}
+              <MagicCard delay={animDelayOffset + 0.5} attraction="AFFILIATE LINKS" badge="NEW" title="🔗 OBJリンクポータル" desc="各不動産会社のOBJリンクと共通重説フォームを素早くコピー。" onClick={(e: any) => { e.stopPropagation(); router.push("/affiliate-links"); }} />
+
               <MagicCard delay={animDelayOffset + 0.6} attraction="KPI DASHBOARD" title="📊 獲得進捗・KPI" desc="本日の目標まであと何件か、リアルタイムで確認。" liveData={`${progressPercent}%`} sparkline={true} onClick={(e: any) => { e.stopPropagation(); router.push("/kpi-detail"); }}>
                 <div className="kpi-widget">
                   <div className="kpi-numbers"><span className="kpi-current">{kpiData.current}</span><span className="kpi-target">/ {kpiData.target}件</span></div>
                   <div className="kpi-bar-bg"><div className="kpi-bar-fill" style={{ width: `${progressPercent}%` }}></div></div>
                 </div>
               </MagicCard>
-               <MagicCard delay={animDelayOffset + 0.5} attraction="AFFILIATE LINKS" badge="NEW" title="🔗 アフィリエイトリンク" desc="各不動産会社のOBJリンクと共通重説フォームを素早くコピー。" onClick={(e: any) => { e.stopPropagation(); router.push("/affiliate-links"); }} />
+
               <MagicCard delay={animDelayOffset + 0.7} attraction="BULK REGISTER" title="📦 データ一括登録" desc="成約後シートに自動で書き込みます。" liveData="Ready" onClick={(e: any) => { e.stopPropagation(); router.push("/bulk-register"); }} />
               <MagicCard delay={animDelayOffset + 0.8} attraction="NET TOSS" title="🌐 ネットトス連携" desc="ネットトスFMTを作成します。" onClick={(e: any) => { e.stopPropagation(); router.push("/net-toss"); }} />
               <MagicCard delay={animDelayOffset + 0.9} attraction="SELF CLOSE" title="🤝 自己クロ連携" desc="自己クロFMTを作成します。" onClick={(e: any) => { e.stopPropagation(); router.push("/self-close"); }} />
