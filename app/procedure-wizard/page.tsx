@@ -109,9 +109,9 @@ const MANUAL_DATA: ManualData[] = [
     id: "inv-address",
     icon: "❌",
     title: "無効なアドレス対処法",
-    badge: "極秘", // 💡 分かりやすいようにバッジをつけました
+    badge: "極秘", 
     desc: "OBJでメアドエラーになったときの対処法です。この方法はOBJ時点では違うアドレスで一旦登録してしまうので自己責任でw",
-    allowedUsers: ["admin_higashi", "master_user"], // 💡 ここが魔法の鍵！このIDの人にしかメニューが表示されなくなります！
+    allowedUsers: ["admin_higashi", "master_user"], 
     tabs: [
       {
         id: "has-other",
@@ -177,14 +177,13 @@ const MANUAL_DATA: ManualData[] = [
 export default function ProcedureWizard() {
   const router = useRouter();
 
-  // 💡 【重要】現在のログインユーザーID（※実際のアプリではログイン情報から取得します！）
-  // ここを "guest" などにすると、「無効なアドレス対処法」が完全に消滅します！
+  // 💡 【重要】現在のログインユーザーID
   const CURRENT_USER_ID = "admin_higashi"; 
 
-  // 💡 ユーザーの権限に合わせて、メニューに表示するマニュアルを絞り込む！
+  // 💡 ユーザーの権限に合わせてマニュアルを絞り込む
   const visibleManuals = MANUAL_DATA.filter(manual => {
-    if (!manual.allowedUsers) return true; // 制限が書いてなければ誰でも見れる
-    return manual.allowedUsers.includes(CURRENT_USER_ID); // 制限がある場合はIDが一致する人のみ！
+    if (!manual.allowedUsers) return true;
+    return manual.allowedUsers.includes(CURRENT_USER_ID); 
   });
 
   const [isReady, setIsReady] = useState(false);
@@ -194,7 +193,6 @@ export default function ProcedureWizard() {
   const [activeTabId, setActiveTabId] = useState<string>("");
   const [activeSubTabId, setActiveSubTabId] = useState<string>(""); 
 
-  // 💡 isMenuOpen は SideMenu に移動したので削除済み！
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [toast, setToast] = useState({ show: false, msg: "", type: "success" });
 
@@ -297,7 +295,7 @@ export default function ProcedureWizard() {
         .app-wrapper { padding: 20px 40px 100px 40px; position: relative; z-index: 10; opacity: 0; transition: opacity 0.8s ease; max-width: 1400px; margin: 0 auto; }
         .app-wrapper.ready { opacity: 1; }
 
-        /* 💡 ここにあった古いハンバーガーメニューのCSSを完全に削除しました！ */
+        /* 💡 悪さをしていた古いハンバーガーメニューのCSSを完全に削除しました！！ */
 
         .glass-nav-wrapper { display: flex; justify-content: center; margin-bottom: 40px; margin-top: 10px; }
         .glass-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 50px; box-shadow: var(--card-shadow); max-width: 800px; width: 100%; }
@@ -318,8 +316,11 @@ export default function ProcedureWizard() {
         .menu-item:hover { border-color: var(--card-hover-border); transform: translateX(5px); }
         .menu-item.active { background: var(--card-hover-bg); border-color: var(--card-hover-border); color: var(--accent-color); box-shadow: 0 0 20px rgba(56,189,248,0.1); }
         .menu-icon { font-size: 20px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.1); border-radius: 10px; }
-        .menu-item.active .menu-title { color: var(--accent-color); font-weight: 900; }
-        .menu-title { font-weight: 800; font-size: 14px; flex: 1; }
+        
+        /* 💡 クラス名衝突を回避するため .category-title に変更！ */
+        .menu-item.active .category-title { color: var(--accent-color); font-weight: 900; }
+        .category-title { font-weight: 800; font-size: 14px; flex: 1; }
+        
         .badge { background: #ef4444; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: 900; letter-spacing: 1px; }
 
         .content-panel { display: flex; flex-direction: column; gap: 20px; }
@@ -386,7 +387,6 @@ export default function ProcedureWizard() {
 
         <div className="layout-grid">
           
-          {/* 💡 カテゴリー一覧を「制限突破したマニュアル（visibleManuals）」だけで作る！ */}
           <div className="categories-menu fade-up-element" style={{ transitionDelay: "0.1s" }}>
             <h3 style={{fontSize:"11px", color:"var(--text-sub)", fontWeight:900, letterSpacing:"2px", margin:"0 0 10px 10px"}}>CATEGORIES</h3>
             {visibleManuals.map(manual => (
@@ -396,7 +396,8 @@ export default function ProcedureWizard() {
                 onClick={() => { setActiveManualId(manual.id); setExpandedSteps([1]); }}
               >
                 <div className="menu-icon">{manual.icon}</div>
-                <div className="menu-title">{manual.title}</div>
+                {/* 💡 クラス名を category-title に変更し、干渉を完全に防ぎました！ */}
+                <div className="category-title">{manual.title}</div>
                 {manual.badge && <span className="badge">{manual.badge}</span>}
               </div>
             ))}
