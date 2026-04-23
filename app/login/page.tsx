@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 const VALID_USERS = [
   { id: "toranosuke.higashi@octopusenergy.co.jp", pass: "701005p" },
   { id: "motoki.ota@octopusenergy.co.jp", pass: "701002p" },
+  { id: "honoka.ishii@octopusenergy.co.jp", pass: "701011p" },
 ];
 
 export default function Login() {
