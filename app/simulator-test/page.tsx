@@ -34,8 +34,8 @@ export default function SimulatorTest() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [toast, setToast] = useState({ show: false, msg: "", type: "success" });
   
-  // 💡 4つのタブをすべて管理！
-  const [activeTab, setActiveTab] = useState<"sb-hikari" | "sb-air" | "docomo-hikari" | "flets-hikari">("sb-hikari");
+  // 💡 5つのタブをすべて管理！
+  const [activeTab, setActiveTab] = useState<"sb-hikari" | "sb-air" | "docomo-hikari" | "flets-hikari" | "free-half">("sb-hikari");
 
   // ==========================================
   // 🧮 1. SB光 (StoStoS) ロジック
@@ -155,6 +155,53 @@ export default function SimulatorTest() {
     fletsCbTotal = selectedFlets.initial + selectedFlets.install + selectedFlets.penalty + halfYearMonthlyCost;
   }
 
+  // ==========================================
+  // 🎁 5. 半年間無料案内Ver. ロジック
+  // ==========================================
+  type FreeHalfLineType = "ドコモ光" | "SB光" | "BIGLOBE光" | "au光" | "フレッツ光";
+  type FreeHalfPlanType = "MS" | "FM" | "10G";
+
+  const FREE_HALF_DATA: Record<FreeHalfLineType, Partial<Record<FreeHalfPlanType, any>>> = {
+    "ドコモ光": {
+      "MS": { monthly: 4400, half: 26400, debt: 17028, admin: 7480, total: 50908, totalNoDebt: 33880 },
+      "FM": { monthly: 5700, half: 34200, debt: 17028, admin: 8800, total: 60028, totalNoDebt: 43000 },
+      "10G": { monthly: 6300, half: 3000, debt: 17028, admin: 7480, total: 27508, totalNoDebt: 10480, note: "半年間500円" }
+    },
+    "SB光": {
+      "MS": { monthly: 4180, half: 25080, debt: 31680, admin: 9130, total: 65890, totalNoDebt: 34210 },
+      "FM": { monthly: 5720, half: 17160, debt: 31680, admin: 10670, total: 59510, totalNoDebt: 27830, note: "3ヶ月間無料" },
+      "10G": { monthly: 6380, half: 0, debt: 31680, admin: 9130, total: 40810, totalNoDebt: 9130, note: "半年間無料" }
+    },
+    "BIGLOBE光": {
+      "MS": { monthly: 4378, half: 26268, debt: 28600, admin: 8470, total: 63338, totalNoDebt: 34738 },
+      "FM": { monthly: 5478, half: 32868, debt: 28600, admin: 9570, total: 71038, totalNoDebt: 42438 },
+      "10G": { monthly: 6270, half: 37620, debt: 28600, admin: 8470, total: 74690, totalNoDebt: 46090 }
+    },
+    "au光": {
+      "MS": { monthly: 4180, half: 25080, debt: 33000, admin: 9130, total: 67210, totalNoDebt: 34210 },
+      "FM": { monthly: 5610, half: 33660, debt: 33000, admin: 10560, total: 77220, totalNoDebt: 44220 },
+      "10G": { monthly: 6468, half: 38808, debt: 33000, admin: 9130, total: 80938, totalNoDebt: 47938 }
+    },
+    "フレッツ光": {
+      "MS": { monthly: 5115, half: 30690, debt: 22000, admin: 8250, total: 60940, totalNoDebt: 38940 },
+      "FM": { monthly: 6490, half: 38940, debt: 22000, admin: 9625, total: 70565, totalNoDebt: 48565 }
+    }
+  };
+
+  const [freeLine, setFreeLine] = useState<FreeHalfLineType>("ドコモ光");
+  const [freePlan, setFreePlan] = useState<FreeHalfPlanType>("MS");
+  const [freeUseDebt, setFreeUseDebt] = useState<boolean>(true);
+  const [freeTalkTab, setFreeTalkTab] = useState<number>(1);
+
+  useEffect(() => {
+    if (!FREE_HALF_DATA[freeLine][freePlan]) {
+      setFreePlan("MS");
+    }
+  }, [freeLine]);
+
+  const currentFreeData = FREE_HALF_DATA[freeLine][freePlan] || FREE_HALF_DATA[freeLine]["MS"];
+  const freeFinalCb = freeUseDebt ? currentFreeData.total : currentFreeData.totalNoDebt;
+
   useEffect(() => {
     setIsReady(true);
     const observer = new IntersectionObserver((entries) => {
@@ -162,7 +209,7 @@ export default function SimulatorTest() {
     }, { threshold: 0.1 });
     document.querySelectorAll('.fade-up-element').forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, [activeTab, fletsTalkScenario]);
+  }, [activeTab, fletsTalkScenario, freeTalkTab]);
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
@@ -200,7 +247,7 @@ export default function SimulatorTest() {
           
           .sim-tabs-wrapper { display: flex; justify-content: center; margin-bottom: 30px; }
           .sim-tabs { display: flex; background: var(--input-bg); padding: 6px; border-radius: 20px; border: 1px solid var(--card-border); box-shadow: var(--card-shadow); gap: 5px; flex-wrap: wrap; justify-content: center;}
-          .sim-tab-btn { padding: 10px 20px; border: none; border-radius: 14px; font-size: 13px; font-weight: 900; cursor: pointer; transition: 0.3s; background: transparent; color: var(--text-sub); }
+          .sim-tab-btn { padding: 10px 18px; border: none; border-radius: 14px; font-size: 13px; font-weight: 900; cursor: pointer; transition: 0.3s; background: transparent; color: var(--text-sub); }
           .sim-tab-btn.active { background: linear-gradient(135deg, #10b981, #14b8a6); color: #fff; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); pointer-events: none; }
 
           .main-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; max-width: 1200px; margin: 0 auto; }
@@ -211,25 +258,28 @@ export default function SimulatorTest() {
           
           .slider-container { display: flex; flex-direction: column; gap: 10px; background: var(--input-bg); padding: 20px; border-radius: 16px; border: 1px solid var(--input-border); }
           .slider-label { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; font-weight: 800; color: var(--text-sub); }
-          .slider-value { font-size: 32px; font-weight: 900; color: var(--accent-color); }
-          .util-slider { -webkit-appearance: none; width: 100%; height: 8px; border-radius: 4px; background: var(--input-border); outline: none; }
+          .slider-value { font-size: 32px; font-weight: 900; color: var(--accent-color); text-shadow: 0 2px 10px rgba(20, 184, 166, 0.2);}
+          .util-slider { -webkit-appearance: none; width: 100%; height: 8px; border-radius: 4px; background: var(--input-border); outline: none; transition: 0.2s;}
           .util-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--accent-color); cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
           
           .result-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
           .result-box { display: flex; justify-content: space-between; align-items: center; background: var(--input-bg); padding: 14px 18px; border-radius: 12px; border: 1px solid var(--input-border); transition: 0.2s; }
+          .result-box:hover { border-color: var(--accent-color); transform: translateX(5px); }
           .result-label { font-size: 13px; font-weight: 800; color: var(--text-sub); display: flex; align-items: center; gap: 8px; }
           .result-value { font-size: 18px; font-weight: 900; color: var(--text-main); transition: 0.3s; }
           
-          .toggle-btn { background: var(--card-bg); border: 1px solid var(--card-border); padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 900; cursor: pointer; color: var(--text-sub); }
-          .toggle-btn.on { background: rgba(16, 185, 129, 0.15); border-color: var(--accent-color); color: var(--accent-color); }
+          .toggle-btn { background: var(--card-bg); border: 1px solid var(--card-border); padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 900; cursor: pointer; transition: 0.3s; color: var(--text-sub); letter-spacing: 1px;}
+          .toggle-btn.on { background: rgba(16, 185, 129, 0.15); border-color: var(--accent-color); color: var(--accent-color); box-shadow: 0 2px 10px rgba(16, 185, 129, 0.2);}
           .toggle-btn.off { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: #ef4444; }
+          
           .total-box { background: linear-gradient(135deg, rgba(20, 184, 166, 0.1), rgba(16, 185, 129, 0.2)); border: 2px solid var(--accent-color); margin-top: 10px;}
           .total-box .result-label { color: var(--accent-color); font-size: 15px; }
-          .total-box .result-value { font-size: 26px; color: var(--accent-color); }
+          .total-box .result-value { font-size: 26px; color: var(--accent-color); text-shadow: 0 2px 5px rgba(20, 184, 166, 0.3); }
           
-          .script-bubble { background: var(--input-bg); padding: 20px; border-radius: 16px 16px 16px 0; border: 1px solid var(--input-border); font-size: 14px; line-height: 1.8; font-weight: 700; color: var(--text-main); position: relative; margin-bottom: 15px; border-left: 4px solid var(--accent-color); }
+          .script-bubble { background: var(--input-bg); padding: 20px; border-radius: 16px 16px 16px 0; border: 1px solid var(--input-border); font-size: 14px; line-height: 1.8; font-weight: 700; color: var(--text-main); position: relative; margin-bottom: 15px; border-left: 4px solid var(--accent-color); transition: 0.3s;}
           .script-bubble::after { content: ''; position: absolute; bottom: -10px; left: -1px; border-width: 10px 10px 0 0; border-style: solid; border-color: var(--accent-color) transparent transparent transparent; }
-          .script-highlight { color: #e11d48; font-weight: 900; background: rgba(225, 29, 72, 0.08); padding: 1px 4px; border-radius: 4px; }
+          .script-highlight { color: #e11d48; font-weight: 900; background: rgba(225, 29, 72, 0.08); padding: 1px 4px; border-radius: 4px; transition: 0.3s;}
+          .theme-dark .script-highlight { color: #fb7185; background: rgba(251, 113, 133, 0.15); }
           
           .script-guest { background: rgba(0,0,0,0.03); border-left: 4px solid #64748b; margin-left: 20px; border-radius: 16px 16px 0 16px;}
           .script-guest::after { right: -1px; left: auto; border-width: 10px 0 0 10px; border-color: #64748b transparent transparent transparent; }
@@ -239,8 +289,10 @@ export default function SimulatorTest() {
           .fade-up-element { opacity: 0; transform: translateY(40px); transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
           .fade-up-element.visible { opacity: 1; transform: translateY(0); }
 
+          /* 💡 VS比較カード */
           .vs-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-          .vs-card { padding: 15px; border-radius: 16px; border: 1px solid var(--card-border); background: var(--input-bg); position: relative;}
+          .vs-card { padding: 15px; border-radius: 16px; border: 1px solid var(--card-border); background: var(--input-bg); position: relative; transition: 0.3s;}
+          .vs-card:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
           .vs-card.bad { border-color: #ef4444; background: rgba(239, 68, 68, 0.05); }
           .vs-card.good { border-color: #10b981; background: rgba(16, 185, 129, 0.05); border-width: 2px;}
           .vs-label { font-size: 11px; font-weight: 900; margin-bottom: 8px; display: block; }
@@ -248,11 +300,14 @@ export default function SimulatorTest() {
           .vs-detail { font-size: 10px; color: var(--text-sub); margin-top: 5px; line-height: 1.4; font-weight: 800;}
           .vs-badge { position: absolute; top: -10px; right: 10px; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 900; color: #fff;}
 
+          /* 💡 プラン・セレクトUI */
           .plan-switcher { display: flex; gap: 8px; background: var(--card-bg); padding: 4px; border-radius: 12px; border: 1px solid var(--card-border); margin-bottom: 5px; flex-wrap: wrap;}
           .plan-btn { flex: 1; padding: 10px 4px; border: none; border-radius: 8px; font-weight: 900; font-size: 11px; cursor: pointer; background: transparent; color: var(--text-sub); transition: 0.2s; text-align: center; white-space: nowrap;}
           .plan-btn.active { background: var(--accent-color); color: #fff; box-shadow: 0 2px 8px rgba(20, 184, 166, 0.3); }
-          .select-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-main); font-weight: 800; outline: none; margin-bottom: 10px; appearance: none; cursor: pointer;}
+          .select-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-main); font-weight: 800; outline: none; margin-bottom: 10px; appearance: none; cursor: pointer; transition: 0.3s;}
+          .select-input:hover { border-color: var(--accent-color); }
           
+          /* 💡 スマートプロンプター (カンペ切り替え) */
           .prompter-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 15px; }
           .prompter-btn { padding: 8px 12px; border-radius: 8px; font-size: 11px; font-weight: 900; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-sub); cursor: pointer; transition: 0.2s; }
           .prompter-btn.active { background: var(--card-hover-bg); color: var(--accent-color); border-color: var(--accent-color); box-shadow: 0 2px 8px rgba(20, 184, 166, 0.15); }
@@ -270,17 +325,19 @@ export default function SimulatorTest() {
           </div>
         </div>
 
+        {/* 🌟 メインタブ切り替え 🌟 */}
         <div className="sim-tabs-wrapper fade-up-element">
           <div className="sim-tabs">
             <button className={`sim-tab-btn ${activeTab === "sb-hikari" ? "active" : ""}`} onClick={() => setActiveTab("sb-hikari")}>🏢 SB光</button>
             <button className={`sim-tab-btn ${activeTab === "sb-air" ? "active" : ""}`} onClick={() => setActiveTab("sb-air")}>🏠 SB Air</button>
             <button className={`sim-tab-btn ${activeTab === "docomo-hikari" ? "active" : ""}`} onClick={() => setActiveTab("docomo-hikari")}>📱 docomo光</button>
             <button className={`sim-tab-btn ${activeTab === "flets-hikari" ? "active" : ""}`} onClick={() => setActiveTab("flets-hikari")}>🌐 フレッツ光</button>
+            <button className={`sim-tab-btn ${activeTab === "free-half" ? "active" : ""}`} onClick={() => setActiveTab("free-half")}>🎁 半年無料CP</button>
           </div>
         </div>
 
         {/* ======================================================== */}
-        {/* 1. 🏢 SB光 (StoStoS) 画面 */}
+        {/* 1. 🏢 SB光 (StoStoS) 画面（完全版） */}
         {/* ======================================================== */}
         {activeTab === "sb-hikari" && (
           <div className="main-layout">
@@ -293,6 +350,9 @@ export default function SimulatorTest() {
                   <span className="slider-value">{hikariUsedMonths}<span style={{fontSize: "14px", color:"var(--text-sub)", marginLeft:"5px"}}>ヶ月</span></span>
                 </div>
                 <input type="range" min="1" max="48" value={hikariUsedMonths} onChange={(e) => setHikariUsedMonths(Number(e.target.value))} className="util-slider" />
+                <div style={{display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--text-sub)", fontWeight: 800, marginTop:"5px"}}>
+                  <span>1ヶ月</span><span>24ヶ月</span><span>48ヶ月</span>
+                </div>
               </div>
 
               <div className="result-grid">
@@ -341,6 +401,12 @@ export default function SimulatorTest() {
                   <div className="result-label">💰 お客様へ提示する CB Total</div>
                   <div className="result-value">¥{finalHikariCbTotal.toLocaleString()}</div>
                 </div>
+                
+                {hikariRemaining === 0 && (
+                   <div style={{fontSize: "11px", color: "#f59e0b", fontWeight: 800, textAlign: "right", marginTop: "-5px"}}>
+                     ※工事費残債がないため、CBは最低保証の4万円に調整されています。
+                   </div>
+                )}
               </div>
             </section>
 
@@ -357,7 +423,7 @@ export default function SimulatorTest() {
         )}
 
         {/* ======================================================== */}
-        {/* 2. 🏠 SB Air (StoStoS) 画面 */}
+        {/* 2. 🏠 SB Air (StoStoS) 画面（完全版） */}
         {/* ======================================================== */}
         {activeTab === "sb-air" && (
           <div className="main-layout">
@@ -370,6 +436,9 @@ export default function SimulatorTest() {
                   <span className="slider-value">{airUsedMonths}<span style={{fontSize: "14px", marginLeft:"5px"}}>ヶ月</span></span>
                 </div>
                 <input type="range" min="1" max="48" value={airUsedMonths} onChange={(e) => setAirUsedMonths(Number(e.target.value))} className="util-slider" />
+                <div style={{display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--text-sub)", fontWeight: 800, marginTop:"5px"}}>
+                  <span>1ヶ月</span><span>24ヶ月</span><span>48ヶ月</span>
+                </div>
               </div>
 
               <div className="result-grid">
@@ -394,6 +463,12 @@ export default function SimulatorTest() {
                   <div className="result-label">💰 お客様へ提示する CB Total</div>
                   <div className="result-value">¥{finalAirCbTotal.toLocaleString()}</div>
                 </div>
+                
+                {airUsedMonths >= 12 && (
+                   <div style={{fontSize: "11px", color: "#10b981", fontWeight: 800, textAlign: "right", marginTop: "-5px"}}>
+                     ※1年以上ご利用のため、ターミナル残債を全額CB補填可能です！
+                   </div>
+                )}
               </div>
             </section>
 
@@ -410,7 +485,7 @@ export default function SimulatorTest() {
         )}
 
         {/* ======================================================== */}
-        {/* 3. 📱 docomo光 (D to D) 画面 */}
+        {/* 3. 📱 docomo光 (D to D) 画面（魂の完全版） */}
         {/* ======================================================== */}
         {activeTab === "docomo-hikari" && (
           <div className="main-layout">
@@ -452,25 +527,49 @@ export default function SimulatorTest() {
 
             <section className="glass-panel fade-up-element" style={{ transitionDelay: "0.1s" }}>
               <h2 className="section-title">💬 docomo光 (D to D) 促しトーク</h2>
-              <div className="script-bubble">ご新居先の設備を確認いたしましたところ、問題なくドコモ光がご利用いただけますのでご安心ください！<br/>ただ、継続いただく方の中で今人気でトレンドの使い方がありまして、お手続きの進め方によって、お客様の最終的なご負担額が大きく変わってしまうんです。</div>
-              <div className="script-bubble">大きく分けて方法は2つあります。 1つ目は、お客様ご自身で**『移転（お引越し）』**の手続きをする方法。 2つ目は、今回私どもで引き続きドコモのご利用お申し込みをする方法です。</div>
-              <div className="script-bubble">正直に申し上げますと、1つ目の『ご自身での移転』手続きは、あまりお勧めしておりません。<br/>なぜなら、移転でも新規でも、新居での開通工事費は基本的には発生してしまうのですが、 ご自身で移転手続きをされると、さらに**『移転事務手数料』**などが余計にかかってしまう上に、工事費補填する特典などが一切つかないため、単純にお客様の持ち出し（ご負担）になってしまうからです。</div>
-              <div className="script-bubble">そこで、私どもでは2つ目の**『私どもの方でドコモご利用のお申し込みをする方法』**を推奨しております。（すなわち解約新規）<br/>この方法ですと、まず移転事務手数料はかからずに、工事費もdポイントで全額還元されます！<br/>また『現金キャッシュバック』もついてくるため、移転手続きしていただくよりもかなりお得にご継続いただけます！</div>
-              <div className="script-bubble script-me">ちなみに、今のドコモ光はどのくらいの期間ご利用されていましたでしょうか？</div>
-              <div className="script-bubble script-guest">お客様： 「えーっと、たしか〇年くらいかな…」</div>
+              
+              <div className="script-bubble">
+                ご新居先の設備を確認いたしましたところ、問題なくドコモ光がご利用いただけますのでご安心ください！<br/>
+                ただ、継続いただく方の中で今人気でトレンドの使い方がありまして、お手続きの進め方によって、お客様の最終的なご負担額が大きく変わってしまうんです。
+              </div>
+              <div className="script-bubble">
+                大きく分けて方法は2つあります。 1つ目は、お客様ご自身で**『移転（お引越し）』**の手続きをする方法。 2つ目は、今回私どもで引き続きドコモのご利用お申し込みをする方法です。
+              </div>
+              <div className="script-bubble">
+                正直に申し上げますと、1つ目の『ご自身での移転』手続きは、あまりお勧めしておりません。<br/>
+                なぜなら、移転でも新規でも、新居での開通工事費は基本的には発生してしまうのですが、 ご自身で移転手続きをされると、さらに**『移転事務手数料』**などが余計にかかってしまう上に、工事費補填する特典などが一切つかないため、単純にお客様の持ち出し（ご負担）になってしまうからです。
+              </div>
+              <div className="script-bubble">
+                そこで、私どもでは2つ目の**『私どもの方でドコモご利用のお申し込みをする方法』**を推奨しております。（すなわち解約新規）<br/>
+                この方法ですと、まず移転事務手数料はかからずに、工事費もdポイントで全額還元されます！<br/>
+                また『現金キャッシュバック』もついてくるため、移転手続きしていただくよりもかなりお得にご継続いただけます！
+              </div>
+              <div className="script-bubble script-me">
+                ちなみに、今のドコモ光はどのくらいの期間ご利用されていましたでしょうか？
+              </div>
+              <div className="script-bubble script-guest">
+                お客様： 「えーっと、たしか〇年くらいかな…」
+              </div>
+
               {docomoMonths < 12 ? (
                 <div className="script-bubble script-me">東（あなた）： 「ありがとうございます！ （1年未満の場合）あ、それでしたら一番ランクの高い補填特典が適用できます！」</div>
               ) : (
                 <div className="script-bubble script-me">東（あなた）： 「ありがとうございます！ （2年以上の場合）なるほど、長期で使っていただいているので感謝特典が適用できます！」</div>
               )}
-              <div className="script-bubble script-me" style={{background: "var(--card-hover-bg)", borderColor: "var(--accent-color)"}}>具体的には、今回こちらで進めさせていただくことで… 今のドコモ光の解約手数料分も こちらから<span className="script-highlight" style={{fontSize:"16px"}}>現金【{finalDocomoCbTotal.toLocaleString()}円】のキャッシュバック</span>をお付けしますので、お渡しまで一度ご負担いただきますが、後で十分にお釣りがくる計算になります！</div>
-              <div className="script-bubble">もちろん、携帯料金のセット割（550円〜1,100円）も、これまで通り適用可能です。<br/>今のドコモ光の解約方法なども含めて、一番スムーズな流れでサポートさせていただきますので、引越し先のドコモ光についてはこちらで進めさせていただいてよろしいでしょうか？</div>
+
+              <div className="script-bubble script-me" style={{background: "var(--card-hover-bg)", borderColor: "var(--accent-color)"}}>
+                具体的には、今回こちらで進めさせていただくことで… 今のドコモ光の解約手数料分も こちらから<span className="script-highlight" style={{fontSize:"16px"}}>現金【{finalDocomoCbTotal.toLocaleString()}円】のキャッシュバック</span>をお付けしますので、お渡しまで一度ご負担いただきますが、後で十分にお釣りがくる計算になります！
+              </div>
+              <div className="script-bubble">
+                もちろん、携帯料金のセット割（550円〜1,100円）も、これまで通り適用可能です。<br/>
+                今のドコモ光の解約方法なども含めて、一番スムーズな流れでサポートさせていただきますので、引越し先のドコモ光についてはこちらで進めさせていただいてよろしいでしょうか？
+              </div>
             </section>
           </div>
         )}
 
         {/* ======================================================== */}
-        {/* 🌐 4. フレッツ光（半年無料）画面 */}
+        {/* 🌐 4. フレッツ光（半年無料）画面（完全版） */}
         {/* ======================================================== */}
         {activeTab === "flets-hikari" && (
           <div className="main-layout">
@@ -527,7 +626,6 @@ export default function SimulatorTest() {
               </div>
             </section>
 
-            {/* 🔥🔥🔥 ご指定のスマートカンペUI（スクリプト完全対応版） 🔥🔥🔥 */}
             <section className="glass-panel fade-up-element" style={{ transitionDelay: "0.1s" }}>
               <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", borderBottom: "2px dashed var(--card-border)", paddingBottom: "10px", marginBottom:"5px"}}>
                 <h2 className="section-title" style={{borderBottom:"none", paddingBottom:0, marginBottom:0}}>💬 トーク切り替え</h2>
@@ -542,7 +640,6 @@ export default function SimulatorTest() {
                 <button className={`prompter-btn ${fletsTalkScenario===6 ? "active":""}`} onClick={()=>setFletsTalkScenario(6)}>⑥回線有×利用予定無</button>
               </div>
 
-              {/* シナリオ① */}
               {fletsTalkScenario === 1 && (
                 <div className="fade-up-element visible">
                   <div className="script-bubble">ご新居先ではインターネット回線を引き続きご利用いただけますのでご安心ください。<br/>まず、こちらのご物件は管理会社様の推奨でNTTの設備が導入されています。<br/>ですので、最初は変に特定のキャリアに絞らず、『大元のフレッツ光』でスタートしていただくのが一番の正解（セオリー）のかたちになります。</div>
@@ -555,7 +652,6 @@ export default function SimulatorTest() {
                 </div>
               )}
 
-              {/* シナリオ② */}
               {fletsTalkScenario === 2 && (
                 <div className="fade-up-element visible">
                   <div className="script-bubble">ご新居先ではインターネット回線をご利用いただけますのでご安心ください。<br/>まず、こちらのご物件は管理会社様の推奨でNTTの設備が導入されております。<br/>ですので、最初は変に特定のキャリアに絞らず、『大元のフレッツ光』でスタートしていただくのが一番の正解（セオリー）のかたちになります。</div>
@@ -567,7 +663,6 @@ export default function SimulatorTest() {
                 </div>
               )}
 
-              {/* シナリオ③ */}
               {fletsTalkScenario === 3 && (
                 <div className="fade-up-element visible">
                   <div className="script-bubble">ご新居先では<span className="script-highlight">{fletsSelectedLine}</span>を引き続きご利用いただけますのでご安心ください。ただ、継続いただく方の中で今人気でトレンドの使い方がありまして<br/>それは、そのまま移転手続きをするのではなく、まずは一旦、こちらの物件に導入されているNTT設備である『大元のフレッツ光』でスタートしていただく、という方法です。</div>
@@ -580,7 +675,6 @@ export default function SimulatorTest() {
                 </div>
               )}
 
-              {/* シナリオ④ */}
               {fletsTalkScenario === 4 && (
                 <div className="fade-up-element visible">
                   <div className="script-bubble">無料のネット回線ついているご物件に移動される方であれば、ご入居日から問題なくご利用いただけますのでご安心くださいませ。<br/>ただ、無料のネット回線は、現住所で使っているものと違い、1つの回線を他のお部屋の入居者の方と分け合う形になってしまうので、使い方や時間帯によってはご満足いただけない方が多いです。</div>
@@ -592,12 +686,136 @@ export default function SimulatorTest() {
                 </div>
               )}
 
-              {/* シナリオ⑤・⑥ (プレースホルダー) */}
               {(fletsTalkScenario >= 5) && (
                 <div className="fade-up-element visible">
                   <div className="script-bubble" style={{borderColor:"#f59e0b", background:"rgba(245, 158, 11, 0.05)"}}>
                     ⚠️ （プレースホルダー）<br/>
                     シナリオ {fletsTalkScenario} の具体的なトーク内容は準備でき次第ここに表示されます！
+                  </div>
+                </div>
+              )}
+            </section>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* 🎁 5. 半年間無料CP（半年間無料案内Ver.）画面 */}
+        {/* ======================================================== */}
+        {activeTab === "free-half" && (
+          <div className="main-layout">
+            <section className="glass-panel highlight-panel fade-up-element">
+              <h2 className="section-title">🧮 半年実質無料 CB算出ツール</h2>
+              
+              <div className="plan-switcher" style={{marginBottom:"10px"}}>
+                {Object.keys(FREE_HALF_DATA).map((line) => (
+                  <button key={line} className={`plan-btn ${freeLine === line ? "active" : ""}`} onClick={() => setFreeLine(line as any)}>
+                    {line}
+                  </button>
+                ))}
+              </div>
+              
+              <div className="plan-switcher" style={{marginBottom:"20px"}}>
+                {Object.keys(FREE_HALF_DATA[freeLine]).map((plan) => (
+                  <button key={plan} className={`plan-btn ${freePlan === plan ? "active" : ""}`} onClick={() => setFreePlan(plan as any)}>
+                    {plan} プラン
+                  </button>
+                ))}
+              </div>
+
+              <div className="result-grid">
+                <div className="result-box">
+                  <div className="result-label"><span>📅</span> 1ヶ月の料金目安</div>
+                  <div className="result-value">¥{currentFreeData.monthly?.toLocaleString()}</div>
+                </div>
+                <div className="result-box">
+                  <div className="result-label"><span>🗓️</span> 半年分の料金</div>
+                  <div className="result-value">
+                    ¥{currentFreeData.half?.toLocaleString()}
+                    {currentFreeData.note && <span style={{fontSize:"11px", color:"#e11d48", marginLeft:"8px"}}>{currentFreeData.note}</span>}
+                  </div>
+                </div>
+                <div className="result-box">
+                  <div className="result-label"><span>📝</span> 事務手数料等</div>
+                  <div className="result-value">¥{currentFreeData.admin?.toLocaleString()}</div>
+                </div>
+                
+                <div className="result-box">
+                  <div className="result-label"><span>📉</span> 工事費残債を含めるか？</div>
+                  <div style={{display: "flex", alignItems: "center", gap: "10px"}}>
+                    <div className="result-value" style={{ textDecoration: !freeUseDebt ? "line-through" : "none", opacity: !freeUseDebt ? 0.3 : 1 }}>
+                      ¥{currentFreeData.debt?.toLocaleString()}
+                    </div>
+                    <button className={`toggle-btn ${freeUseDebt ? "on" : "off"}`} onClick={() => setFreeUseDebt(!freeUseDebt)}>
+                      {freeUseDebt ? "✅ 含める" : "❌ 外す"}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="result-box total-box">
+                  <div className="result-label" style={{color:"var(--accent-color)", fontSize:"15px", fontWeight:900}}>
+                    💰 実質無料にするためのCB提示額
+                  </div>
+                  <div className="result-value" style={{color:"var(--accent-color)", fontSize:"28px"}}>
+                    ¥{freeFinalCb?.toLocaleString()}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="glass-panel fade-up-element" style={{ transitionDelay: "0.1s" }}>
+              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", borderBottom: "2px dashed var(--card-border)", paddingBottom: "10px", marginBottom:"5px"}}>
+                <h2 className="section-title" style={{borderBottom:"none", paddingBottom:0, marginBottom:0}}>💬 トーク切り替え</h2>
+              </div>
+              
+              <div className="prompter-tabs">
+                <button className={`prompter-btn ${freeTalkTab === 1 ? "active" : ""}`} onClick={() => setFreeTalkTab(1)}>①無料ネット有りの方向け</button>
+                <button className={`prompter-btn ${freeTalkTab === 2 ? "active" : ""}`} onClick={() => setFreeTalkTab(2)}>②Wi-Fi使わない(10G提案)</button>
+                <button className={`prompter-btn ${freeTalkTab === 3 ? "active" : ""}`} onClick={() => setFreeTalkTab(3)}>③それでも無料ネット進める方</button>
+              </div>
+
+              {freeTalkTab === 1 && (
+                <div className="fade-up-element visible">
+                  <div className="script-bubble">
+                    無料のネット回線ついているご物件に移動される方であれば、ご入居日から問題なくご利用いただけますのでご安心くださいませ。<br/>
+                    ただ、無料のネット回線は、現住所で使っているものと違い、1つの回線を他のお部屋の入居者の方と分け合う形になってしまうので、使い方や時間帯によってはご満足いただけない方が多いです。
+                  </div>
+                  <div className="script-bubble">
+                    ですので、皆様ご不便ないように、無料のネットと同時に、通常有料の光回線を半年間実質無料でお試しいただいてます！（お試しいただいた方に現金5000円プレゼント）<br/>
+                    <span style={{fontSize:"11px", color:"var(--text-sub)"}}>※でもどうしても光回線使いたくないよっていう拘りが無ければ、残り少ないお試し枠でご案内できますが、こだわりとかはございますか？</span>
+                  </div>
+                  <div className="script-bubble script-guest">（お客様の反応後）</div>
+                  <div className="script-bubble script-me">
+                    ありがとうございます！半年後に継続いただくか、ご解約いただいて無料ネットで進めるかどうかはご自由にお選びいただけます！その際解約金もかかりませんのでご安心ください！
+                  </div>
+                  <div className="script-bubble script-me" style={{background: "var(--card-hover-bg)", borderColor: "var(--accent-color)"}}>
+                    では、改めて<span className="script-highlight">{freeLine}</span>の方でお試しいただけるよう対応させていただきますのでよろしくお願いいたします！
+                  </div>
+                </div>
+              )}
+
+              {freeTalkTab === 2 && (
+                <div className="fade-up-element visible">
+                  <div className="script-bubble script-guest">相手：Wi-Fi使いません〜！</div>
+                  <div className="script-bubble script-me">
+                    そうだったんですね！今、引越しシーズン限定で無料で半年間高速回線をお試しいただけるCPをしております。
+                  </div>
+                  <div className="script-bubble script-me">
+                    CPご参加いただくだけで、実質無料で高速回線をお試しいただける上に、CB5000円と今後ずっと使っていただけるルーターをプレゼントしております。
+                  </div>
+                  <div className="script-bubble script-me" style={{background: "var(--card-hover-bg)", borderColor: "var(--accent-color)"}}>
+                    半年後に解約していただいても、お客様の持ち出し（負担）は一切ないのですが、こういった無料のキャンペーン枠だけでも抑えておきませんか？
+                  </div>
+                </div>
+              )}
+
+              {freeTalkTab === 3 && (
+                <div className="fade-up-element visible">
+                  <div className="script-bubble script-guest">『それでも無料のもので一旦進める方』</div>
+                  <div className="script-bubble script-me">
+                    こちらについては、導入日を入居日から10日以降とかで設定いただければまずは入居してから無料の回線速度を試していただけます！
+                  </div>
+                  <div className="script-bubble script-me" style={{background: "var(--card-hover-bg)", borderColor: "var(--accent-color)"}}>
+                    速ければ申し込みいいたく<span className="script-highlight">{freeLine}</span>については無料でキャンセル、遅ければ工事日取得しているもので問題なく開通いただければと思います。
                   </div>
                 </div>
               )}
