@@ -128,7 +128,7 @@ export default function GlobalAddressSearch() {
               setIsFocused(true); 
               if (results.length > 0) setIsOpen(true); 
             }}
-            placeholder={isFocused ? "地名・カナを入力... (Enter)" : "魔法の住所検索"}
+            placeholder={isFocused ? "地名・カナを入力... (Enter)" : "住所読み方検索"}
             style={{
               flex: 1,
               border: "none",
