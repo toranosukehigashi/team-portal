@@ -1,31 +1,34 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { usePathname } from "next/navigation"; // 👈 現在のURL（ページ）を取得するフック！
+import { usePathname } from "next/navigation";
 
 export default function GlobalAddressSearch() {
-  const pathname = usePathname(); // 👈 URLのパスを取得
+  const pathname = usePathname();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [status, setStatus] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [isFocused, setIsFocused] = useState(false); // 👈 フォーカス状態を管理するフックを追加！
   const [showToast, setShowToast] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // 💡 外側をクリックしたらドロップダウンを閉じる魔法
+  // 💡 外側をクリックしたらドロップダウンを閉じて、バーを縮める魔法
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setIsFocused(false); // 外をクリックしたらフォーカス解除
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 💡 ページが切り替わったら（pathnameが変化したら）、検索状態をリセットして閉じる！
+  // 💡 ページ遷移時にリセット
   useEffect(() => {
     setIsOpen(false);
+    setIsFocused(false);
     setQuery("");
   }, [pathname]);
 
@@ -36,7 +39,7 @@ export default function GlobalAddressSearch() {
     setIsOpen(true);
     setResults([]);
 
-    // 🪄 魔法のノーマライザ（旧字体を新字体へ自動変換！）
+    // 🪄 魔法のノーマライザ（旧字体を新字体へ自動変換）
     const normalizedKw = query
       .replace(/彌/g, '弥').replace(/櫻/g, '桜').replace(/澤/g, '沢')
       .replace(/[邊邉]/g, '辺').replace(/濱/g, '浜').replace(/廣/g, '広')
@@ -56,7 +59,7 @@ export default function GlobalAddressSearch() {
       }
 
       setStatus(`${locs.length}件ヒット`);
-      setResults(locs.slice(0, 15)); // 最大15件
+      setResults(locs.slice(0, 15));
     } catch (e) {
       setStatus("通信エラー");
     }
@@ -73,23 +76,24 @@ export default function GlobalAddressSearch() {
     // コピー完了トーストを表示
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2000);
-    setIsOpen(false); // コピーしたら閉じる
+    setIsOpen(false);
+    setIsFocused(false); // コピー後も縮める
   };
 
   return (
     <div 
       ref={wrapperRef} 
-      key={pathname} // 👈 💥ココが最強の魔法！URLが変わるたびにこのdivが生まれ変わり、アニメーションが再発火する！
+      key={pathname} // URLが変わるたびにアニメーション再発火
       style={{
         position: "fixed",
-        top: "15px",
-        left: "50%",
+        top: "20px",    // 👈 少し下げてバランス調整
+        right: "30px",  // 👈 画面の右端にしれっと配置！
         zIndex: 99999,
-        width: "100%",
-        maxWidth: "400px",
+        // 💡 魔法の可変幅！ フォーカス中 or 文字入力中のみ長く伸びる！
+        width: (isFocused || query.length > 0) ? "320px" : "220px", 
+        transition: "width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)", // ヌルッと伸びるアニメーション
         fontFamily: "'Inter', 'Noto Sans JP', sans-serif",
-        /* 🎨 下のカードたちと完全にシンクロする、Blur付きの美しい登場アニメーション！ */
-        animation: "searchBarEnter 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards"
+        animation: "searchBarEnterRight 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards"
       }}
     >
       {/* 🌐 グローバル検索バー本体 */}
@@ -99,28 +103,32 @@ export default function GlobalAddressSearch() {
         background: "rgba(255, 255, 255, 0.8)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
-        border: "1px solid rgba(255, 255, 255, 0.6)",
+        border: (isFocused || query.length > 0) ? "1px solid rgba(16, 185, 129, 0.5)" : "1px solid rgba(255, 255, 255, 0.6)",
         borderRadius: "30px",
         padding: "6px 6px 6px 16px",
-        boxShadow: "0 10px 30px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05)",
-        transition: "0.3s",
+        boxShadow: (isFocused || query.length > 0) ? "0 10px 30px rgba(16, 185, 129, 0.15)" : "0 8px 20px rgba(0,0,0,0.05)",
+        transition: "all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)",
       }}>
-        <span style={{ fontSize: "16px", marginRight: "8px", opacity: 0.6 }}>🔍</span>
+        <span style={{ fontSize: "14px", marginRight: "8px", opacity: 0.6, transition: "0.3s", transform: isFocused ? "scale(1.1)" : "scale(1)" }}>🔍</span>
         <input 
           type="text" 
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          onFocus={() => { if (results.length > 0) setIsOpen(true); }}
-          placeholder="地名・カナで住所を検索... (Enter)"
+          onFocus={() => { 
+            setIsFocused(true); 
+            if (results.length > 0) setIsOpen(true); 
+          }}
+          placeholder={isFocused ? "地名・カナを入力... (Enter)" : "住所ヨミ検索"} // フォーカス時でプレースホルダーも変更
           style={{
             flex: 1,
             border: "none",
             background: "transparent",
             outline: "none",
-            fontSize: "14px",
+            fontSize: "13px",
             fontWeight: 800,
             color: "#334155",
+            width: "100%",
           }}
         />
         <button 
@@ -129,13 +137,14 @@ export default function GlobalAddressSearch() {
             background: "linear-gradient(135deg, #10b981, #059669)",
             color: "#fff",
             border: "none",
-            padding: "8px 16px",
+            padding: "8px 14px",
             borderRadius: "24px",
             fontWeight: 900,
-            fontSize: "12px",
+            fontSize: "11px",
             cursor: "pointer",
             boxShadow: "0 4px 10px rgba(16, 185, 129, 0.3)",
-            transition: "0.2s"
+            transition: "0.3s",
+            opacity: (isFocused || query.length > 0) ? 1 : 0.7, // 未使用時はボタンも少し大人しく
           }}
           onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.05)"}
           onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
@@ -209,7 +218,7 @@ export default function GlobalAddressSearch() {
       {/* ✨ コピー完了トースト */}
       <div style={{
         position: "absolute",
-        top: "60px",
+        top: "55px",
         left: "50%",
         transform: `translateX(-50%) ${showToast ? 'translateY(0) scale(1)' : 'translateY(-10px) scale(0.9)'}`,
         opacity: showToast ? 1 : 0,
@@ -228,10 +237,10 @@ export default function GlobalAddressSearch() {
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
-        /* 🌟 ページ遷移時にカードと完全にシンクロする登場アニメーション！ */
-        @keyframes searchBarEnter {
-          0% { opacity: 0; transform: translate(-50%, -30px) scale(0.95); filter: blur(8px); }
-          100% { opacity: 1; transform: translate(-50%, 0) scale(1); filter: blur(0); }
+        /* 🌟 右上に合わせて、X軸の-50%中央寄せを削除した専用アニメーション！ */
+        @keyframes searchBarEnterRight {
+          0% { opacity: 0; transform: translateY(-20px) scale(0.95); filter: blur(8px); }
+          100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
         }
 
         @keyframes fadeInDown {
