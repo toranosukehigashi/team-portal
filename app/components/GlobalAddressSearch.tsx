@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation"; // 👈 現在のURL（ページ）を取得するフック！
 
 export default function GlobalAddressSearch() {
+  const pathname = usePathname(); // 👈 URLのパスを取得
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [status, setStatus] = useState("");
@@ -20,6 +22,12 @@ export default function GlobalAddressSearch() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // 💡 ページが切り替わったら（pathnameが変化したら）、検索状態をリセットして閉じる！
+  useEffect(() => {
+    setIsOpen(false);
+    setQuery("");
+  }, [pathname]);
 
   const handleSearch = async () => {
     if (!query.trim()) return;
@@ -69,16 +77,21 @@ export default function GlobalAddressSearch() {
   };
 
   return (
-    <div ref={wrapperRef} style={{
-      position: "fixed",
-      top: "15px",
-      left: "50%",
-      transform: "translateX(-50%)",
-      zIndex: 99999,
-      width: "100%",
-      maxWidth: "400px",
-      fontFamily: "'Inter', 'Noto Sans JP', sans-serif"
-    }}>
+    <div 
+      ref={wrapperRef} 
+      key={pathname} // 👈 💥ココが最強の魔法！URLが変わるたびにこのdivが生まれ変わり、アニメーションが再発火する！
+      style={{
+        position: "fixed",
+        top: "15px",
+        left: "50%",
+        zIndex: 99999,
+        width: "100%",
+        maxWidth: "400px",
+        fontFamily: "'Inter', 'Noto Sans JP', sans-serif",
+        /* 🎨 下のカードたちと完全にシンクロする、Blur付きの美しい登場アニメーション！ */
+        animation: "searchBarEnter 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards"
+      }}
+    >
       {/* 🌐 グローバル検索バー本体 */}
       <div style={{
         display: "flex",
@@ -215,10 +228,17 @@ export default function GlobalAddressSearch() {
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
+        /* 🌟 ページ遷移時にカードと完全にシンクロする登場アニメーション！ */
+        @keyframes searchBarEnter {
+          0% { opacity: 0; transform: translate(-50%, -30px) scale(0.95); filter: blur(8px); }
+          100% { opacity: 1; transform: translate(-50%, 0) scale(1); filter: blur(0); }
+        }
+
         @keyframes fadeInDown {
           from { opacity: 0; transform: translateY(-10px); }
           to { opacity: 1; transform: translateY(0); }
         }
+
         /* スクロールバーの装飾 */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
