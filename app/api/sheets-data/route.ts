@@ -13,32 +13,27 @@ export async function GET() {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      // 💡 AからFまでしっかり取得します！
-      range: "シンプル獲得（じげん、侍）!A2:F", 
+      range: "シンプル獲得（じげん、侍）!A2:F", // A列からF列まで取得
     });
 
     const rows = response.data.values;
+    if (!rows || rows.length === 0) return NextResponse.json([]);
 
-    if (!rows || rows.length === 0) {
-      return NextResponse.json([]);
-    }
-
-    // 💡 6つの項目を正確にマッピング
+    // 💡 ご主人様の列構成に合わせて正確にマッピング
     const data = rows.map((row) => ({
-      timestamp: row[0] || "",
-      email: row[1] || "",
-      phone: row[2] || "",
-      plan: row[3] || "",          // プラン名
-      simpleWari: row[4] || "",    // シンプル割（「確認しました」が入る場所）
-      jusetsu: row[5] || "",       // 重要事項説明書
+      timestamp: row[0] || "",   // A列
+      email: row[1] || "",       // B列
+      phone: row[2] || "",       // C列
+      plan: row[3] || "",        // D列：プラン名
+      simpleWari: row[4] || "",  // E列：確認しました
+      jusetsu: row[5] || "",     // F列：はい
     }));
 
-    // 💡 新しいデータが「下」に追加される順番（古い順：昇順）
-    // スプシの並び順を維持、または念のためタイムスタンプでソート
+    // 新しいデータが「下」に追加される順番（古い順）
     data.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
     return NextResponse.json(data);
   } catch (error: any) {
-    return NextResponse.json({ error: "API接続に失敗しました", details: error.message }, { status: 500 });
+    return NextResponse.json({ error: "APIエラー", details: error.message }, { status: 500 });
   }
 }
