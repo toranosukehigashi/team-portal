@@ -57,7 +57,7 @@ export async function GET(request: Request) {
       }
 
       // 🎯 共通5列構成：名古屋オフィス(同意/FF同意) ＆ フォームの回答１
-      if (range.includes("名古屋") || range.includes("フォームの回答１")) {
+      if (range.includes("名古屋") || range.includes("フォームの回答1")) {
         return {
           timestamp: row[0],
           email: row[1],
