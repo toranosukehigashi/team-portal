@@ -2,7 +2,6 @@ import { google } from "googleapis";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
-  // URLから「どのスプシIDか」「どの範囲か」を受け取る
   const { searchParams } = new URL(request.url);
   const spreadsheetId = searchParams.get("id");
   const range = searchParams.get("range");
@@ -26,10 +25,9 @@ export async function GET(request: Request) {
     const rows = response.data.values;
     if (!rows) return NextResponse.json([]);
 
-    // カラム数に応じて動的にマッピング
+    // 💡 どんなにデータが増えても、最新100件だけを切り取る最強ロジック
     const data = rows.slice(-100).reverse().map((row) => {
       if (range.includes("名古屋")) {
-        // 名古屋版（5カラム）
         return {
           timestamp: row[0],
           email: row[1],
@@ -39,7 +37,6 @@ export async function GET(request: Request) {
           type: "nagoya"
         };
       } else {
-        // 通常版（6カラム）
         return {
           timestamp: row[0],
           email: row[1],
@@ -53,8 +50,8 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json(data);
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return NextResponse.json({ error: "取得失敗" }, { status: 500 });
+    return NextResponse.json({ error: "Google APIエラー: " + error.message }, { status: 500 });
   }
 }
