@@ -11,7 +11,6 @@ export async function GET(request: Request) {
   }
 
   try {
-    // 💡 修正の超・核心部！Vercelの金庫にある「本当の鍵の名前」と完全に一致させました！！
     const auth = new google.auth.GoogleAuth({
       credentials: {
         client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
@@ -29,36 +28,63 @@ export async function GET(request: Request) {
     const rows = response.data.values;
     if (!rows) return NextResponse.json([]);
 
-    // 💡 どんなにデータが増えても、最新100件だけを切り取る最強ロジック
     const data = rows.slice(-100).reverse().map((row) => {
-      if (range.includes("名古屋")) {
+      
+      // 🎯 特殊構成：グリーン デンワde割 (修正済：5列構成)
+      // 構成: 0:タイムスタンプ, 1:メールアドレス, 2:電話番号, 3:重説, 4:サクッと割
+      if (range.includes("デンワde割")) {
+        return {
+          timestamp: row[0],
+          email: row[1],
+          phone: row[2],
+          jusetsu: row[3],
+          sakutto: row[4],
+          type: "denwa_wari"
+        };
+      }
+
+      // 🎯 特殊構成：電気ガスセット割
+      if (range.includes("電気ガスセット割")) {
+        return {
+          timestamp: row[0],
+          email: row[1],
+          phone: row[2],
+          plan: row[3],
+          gasSet: row[4],
+          jusetsu: row[5],
+          type: "gas_set"
+        };
+      }
+
+      // 🎯 共通5列構成：名古屋オフィス(同意/FF同意) ＆ フォームの回答１
+      if (range.includes("名古屋") || range.includes("フォームの回答１")) {
         return {
           timestamp: row[0],
           email: row[1],
           phone: row[2],
           plan: row[3],
           jusetsu: row[4],
-          type: "nagoya"
-        };
-      } else {
-        return {
-          timestamp: row[0],
-          email: row[1],
-          phone: row[2],
-          plan: row[3],
-          simpleWari: row[4],
-          jusetsu: row[5],
-          type: "standard"
+          type: "common_5"
         };
       }
+
+      // 🎯 デフォルト：シンプル獲得（旧：標準獲得）
+      return {
+        timestamp: row[0],
+        email: row[1],
+        phone: row[2],
+        plan: row[3],
+        simpleWari: row[4],
+        jusetsu: row[5],
+        type: "standard"
+      };
     });
 
- return NextResponse.json(data);
+    return NextResponse.json(data);
   } catch (error: any) {
     console.error(error);
-    // 🚀 ここを上書き！Vercelが実際に使っている「メールアドレス」をエラー文にくっつけます！
     return NextResponse.json({ 
-      error: `Google APIエラー: ${error.message} 【🚨 出動中のロボット: ${process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL}】` 
+      error: `Google APIエラー: ${error.message}` 
     }, { status: 500 });
   }
 }
