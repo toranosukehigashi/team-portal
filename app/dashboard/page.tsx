@@ -6,13 +6,13 @@ import { useState, useRef } from "react";
 const SHEET_CONFIGS = [
   { 
     name: "標準獲得", 
-    id: "1_YibJDSTzg7erVehfAE_ShuM3LY7PgNyN1KEMICdJK0", 
+    id: "1gXTpTFfp5f5I83P0FVbJbzX-bEsvgLY_DpNl6YDo9-w", 
     range: "シンプル獲得（じげん、侍）!A2:F",
     cols: ["獲得時間", "メールアドレス", "電話番号", "プラン", "シンプル割", "重説"]
   },
   { 
     name: "名古屋オフィス同意", 
-    id: "1_YibJDSTzg7erVehfAE_ShuM3LY7PgNyN1KEMICdJK0", 
+    id: "1gXTpTFfp5f5I83P0FVbJbzX-bEsvgLY_DpNl6YDo9-w", 
     range: "名古屋オフィス同意!A2:E",
     cols: ["タイムスタンプ", "メールアドレス", "電話番号", "プラン", "重説"]
   }
