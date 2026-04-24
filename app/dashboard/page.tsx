@@ -5,7 +5,6 @@ import { useState, useRef } from "react";
 
 const MASTER_SHEET_ID = "1gXTpTFfp5f5I83P0FVbJbzX-bEsvgLY_DpNl6YDo9-w";
 
-// 🎨 各シートごとのテーマカラーを定義（SaaSライクな厳選カラー）
 const SHEET_CONFIGS = [
   { 
     name: "シンプル獲得（侍、その他）", 
@@ -43,9 +42,10 @@ const SHEET_CONFIGS = [
     theme: { primary: "#10b981", light: "rgba(16, 185, 129, 0.1)", shadow: "rgba(16, 185, 129, 0.3)", name: "Emerald" }
   },
   { 
-    name: "フォーム回答1", 
+    name: "フォーム回答 1", // 画面のボタン表示用
     id: MASTER_SHEET_ID, 
-    range: "フォームの回答1!A2:E",
+    // 🚀 修正：半角スペースを追加して完全一致させました！
+    range: "フォームの回答 1!A2:E",
     cols: ["タイムスタンプ", "メールアドレス", "電話番号", "プラン", "重説"],
     theme: { primary: "#f43f5e", light: "rgba(244, 63, 94, 0.1)", shadow: "rgba(244, 63, 94, 0.3)", name: "Rose" }
   }
@@ -76,7 +76,6 @@ export default function SheetsDashboard() {
   };
 
   return (
-    // 💡 CSS変数をReactのスタイルとして注入し、Tailwindと連携させる高度なテクニック
     <div 
       style={{
         '--theme-primary': activeSheet.theme.primary,
@@ -115,10 +114,10 @@ export default function SheetsDashboard() {
                 <span className="px-3 py-1 rounded-md text-[10px] font-black tracking-[0.2em] uppercase" style={{ backgroundColor: 'var(--theme-light)', color: 'var(--theme-primary)' }}>
                   Workspace
                 </span>
-                <span className="text-[10px] font-bold tracking-widest uppercase text-slate-400">Data Feed Analytics</span>
+                <span className="text-[10px] font-bold tracking-widest uppercase text-slate-400">Omni-Channel Data Console</span>
               </div>
               <h1 className="text-4xl md:text-5xl font-black tracking-tight" style={{ color: 'var(--theme-primary)' }}>
-                Pulse<span className={isDarkMode ? "text-slate-100" : "text-slate-900"}>HQ.</span>
+                Growth <span className={isDarkMode ? "text-slate-100" : "text-slate-900"}>Matrix.</span>
               </h1>
             </div>
             <button 
@@ -129,7 +128,6 @@ export default function SheetsDashboard() {
             </button>
           </div>
           
-          {/* 📱 カスタムテーマ連動型タブ */}
           <div className="saas-glass p-2 rounded-2xl w-full overflow-x-auto tab-scroll mb-8">
             <div className="flex gap-2 min-w-max">
               {SHEET_CONFIGS.map((sheet) => (
@@ -187,7 +185,6 @@ export default function SheetsDashboard() {
                 </thead>
                 <tbody className={`divide-y ${isDarkMode ? "divide-slate-800/50" : "divide-slate-50"}`}>
                   {!data ? (
-                    // 💡 美しいスケルトンローディング
                     Array(8).fill(0).map((_, i) => (
                       <tr key={`skeleton-${i}`} className="animate-pulse">
                         <td className="py-5 px-8"><div className="h-3 rounded-full w-24" style={{ backgroundColor: 'var(--theme-light)' }}></div></td>
@@ -203,7 +200,6 @@ export default function SheetsDashboard() {
                     data.map((row: any, index: number) => (
                       <tr key={index} className={`group hover-row transition-colors duration-200 ${index % 2 !== 0 ? (isDarkMode ? 'bg-slate-800/20' : 'bg-slate-50/50') : ''}`}>
                         
-                        {/* 左端のアクセント＆タイムスタンプ */}
                         <td className="relative py-4 px-8 text-[11px] font-mono text-slate-400">
                           <div className="absolute left-0 top-0 bottom-0 w-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: 'var(--theme-primary)' }}></div>
                           {row.timestamp}
@@ -265,7 +261,6 @@ export default function SheetsDashboard() {
         )}
       </div>
       
-      {/* 🚀 フロートボタン */}
       <button 
         onClick={scrollToBottom} 
         style={{ backgroundColor: 'var(--theme-primary)', boxShadow: '0 10px 25px var(--theme-shadow)' }}

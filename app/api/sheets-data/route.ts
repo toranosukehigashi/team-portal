@@ -44,8 +44,8 @@ export async function GET(request: Request) {
         };
       }
 
-      // 🚀 修正完了：名古屋オフィス ＆ フォームの回答1 (半角)
-      if (range.includes("名古屋") || range.includes("フォームの回答1")) {
+      // 🚀 修正：名古屋オフィス ＆ フォームの回答 1 (半角スペースありに完全対応！)
+      if (range.includes("名古屋") || range.includes("フォームの回答 1")) {
         return {
           timestamp: row[0], email: row[1], phone: row[2], plan: row[3], jusetsu: row[4]
         };
