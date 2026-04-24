@@ -107,10 +107,9 @@ export default function SheetsDashboard() {
                         hover:bg-white hover:shadow-md hover:-translate-y-[1px]
                       `}
                     >
-                      {/* 左端のアクセントカラー（ホバー時に出現） */}
-                      <td className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></td>
-                      
-                      <td className="py-4 px-6 text-[11px] text-slate-500 font-mono tracking-tight whitespace-nowrap">
+                      {/* 🚀 修正：ホバーエフェクトの装飾とデータを1つの <td> に統合 */}
+                      <td className="relative py-4 px-6 text-[11px] text-slate-500 font-mono tracking-tight whitespace-nowrap">
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                         {row.timestamp}
                       </td>
                       <td className="py-4 px-6 text-[13px] font-bold text-slate-800">

@@ -144,11 +144,6 @@ export default function GlobalAddressSearch() {
     setIsFocused(false);
   };
 
-  // 🛡️ ログイン画面では検索バーを隠す
-  if (pathname === '/login') {
-    return null;
-  }
-
   return (
     <div 
       ref={wrapperRef} 
@@ -336,8 +331,7 @@ export default function GlobalAddressSearch() {
         letterSpacing: "1px",
         boxShadow: "0 10px 25px rgba(139, 92, 246, 0.4)",
         transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
-        pointerEvents: "none",
-        whiteSpace: "nowrap" // 💥 これを追加！絶対に1行で表示させる最強の魔法！
+        pointerEvents: "none"
       }}>
         ✨ コピー完了！
       </div>
