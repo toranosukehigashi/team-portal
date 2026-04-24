@@ -8,13 +8,13 @@ const SHEET_CONFIGS = [
   { 
     name: "標準獲得", 
     id: "1_YibJDSTzg7erVehfAE_ShuM3LY7PgNyN1KEMICdJK0", // 以前のスプシIDを入れてください
-    range: "シート1!A2:F1000",
+    range: "シンプル獲得（じげん、侍）!A2:F",
     cols: ["獲得時間", "メールアドレス", "電話番号", "プラン", "シンプル割", "重説"]
   },
   { 
     name: "名古屋オフィス同意", 
     id: "1_YibJDSTzg7erVehfAE_ShuM3LY7PgNyN1KEMICdJK0", 
-    range: "名古屋オフィス同意!A2:E1000",
+    range: "名古屋オフィス同意!A2:E",
     cols: ["タイムスタンプ", "メールアドレス", "電話番号", "プラン", "重説"]
   }
 ];
