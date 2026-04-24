@@ -53,9 +53,9 @@ export default function SheetsDashboard() {
                     </td>
                     <td className="p-5 text-center">
                       {row.simpleWari === "確認しました" ? (
-                        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-black">確認済</span>
+                        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-black">確認しました</span>
                       ) : (
-                        <span className="text-slate-300 text-[10px] italic">未確認</span>
+                        <span className="text-slate-300 text-[10px] italic">　　</span>
                       )}
                     </td>
                     <td className="p-5 text-center">
