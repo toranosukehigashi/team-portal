@@ -144,6 +144,14 @@ export default function GlobalAddressSearch() {
     setIsFocused(false);
   };
 
+  // 🛡️ ==========================================
+  // ここが魔法の扉！ログイン画面では検索バーを隠す！
+  // ※もしログインページのURLが "/login" 以外の場合は、ここを変更してください！
+  // ==========================================
+  if (pathname === '/login') {
+    return null;
+  }
+
   return (
     <div 
       ref={wrapperRef} 
