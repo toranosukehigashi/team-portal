@@ -33,8 +33,12 @@ export async function GET() {
     })).reverse(); // 👈 新しいデータが一番上に来るように逆順にする魔法！
 
     return NextResponse.json(formattedData);
-  } catch (error) {
+ } catch (error: any) {
     console.error("Sheets API Error:", error);
-    return NextResponse.json({ error: "API接続に失敗しました" }, { status: 500 });
+    // 👇 ここ！ error.message を追加して、Googleの本音を画面に表示させます！
+    return NextResponse.json({ 
+      error: "API接続に失敗しました", 
+      details: error.message 
+    }, { status: 500 });
   }
 }
