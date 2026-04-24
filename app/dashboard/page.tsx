@@ -4,8 +4,7 @@ import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-// 💡 高品質なSVGアイコン
-// 💡 絶対に巨大化しないように width="16" height="16" と style を追加してガチガチに固定しました！
+// 💡 絶対に巨大化しないSVGアイコン
 const Icons = {
   Search: () => <svg width="16" height="16" style={{ minWidth: '16px', minHeight: '16px' }} className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>,
   Filter: () => <svg width="16" height="16" style={{ minWidth: '16px', minHeight: '16px' }} className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>,
@@ -66,7 +65,7 @@ export default function SheetsDashboard() {
       <main className="max-w-[1600px] mx-auto p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none group-focus-within:text-blue-500">
               <Icons.Search />
             </div>
             <input 
@@ -78,10 +77,10 @@ export default function SheetsDashboard() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm disabled:opacity-50">
+            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm disabled:opacity-50" title="将来的に絞り込みができるようになります">
               <Icons.Filter /> Filters
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm disabled:opacity-50">
+            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm disabled:opacity-50" title="将来的にCSVダウンロードができるようになります">
               <Icons.Download /> Export
             </button>
           </div>
@@ -90,20 +89,21 @@ export default function SheetsDashboard() {
         <div className="bg-white rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto max-h-[calc(100vh-220px)] overflow-y-auto custom-scrollbar">
             <table className="w-full text-left border-collapse">
-              <thead className="sticky top-0 z-10 bg-slate-50/90 backdrop-blur-sm border-b border-slate-200">
+              <thead className="sticky top-0 z-10 bg-slate-100/95 backdrop-blur-sm border-b-2 border-slate-200 shadow-sm">
                 <tr>
-                  <th className="py-4 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-wider">獲得時間</th>
-                  <th className="py-4 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-wider">メールアドレス</th>
-                  <th className="py-4 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-wider">電話番号</th>
-                  <th className="py-4 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-wider">プラン名</th>
-                  <th className="py-4 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center">シンプル割</th>
-                  <th className="py-4 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center">重説</th>
+                  <th className="py-4 px-6 text-[11px] font-extrabold text-slate-600 uppercase tracking-widest">獲得時間</th>
+                  <th className="py-4 px-6 text-[11px] font-extrabold text-slate-600 uppercase tracking-widest">メールアドレス</th>
+                  <th className="py-4 px-6 text-[11px] font-extrabold text-slate-600 uppercase tracking-widest">電話番号</th>
+                  <th className="py-4 px-6 text-[11px] font-extrabold text-slate-600 uppercase tracking-widest">プラン名</th>
+                  <th className="py-4 px-6 text-[11px] font-extrabold text-slate-600 uppercase tracking-widest text-center">シンプル割</th>
+                  <th className="py-4 px-6 text-[11px] font-extrabold text-slate-600 uppercase tracking-widest text-center">重説</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-200">
                 {!data ? (
                   Array(10).fill(0).map((_, i) => (
-                    <tr key={`skeleton-${i}`} className="animate-pulse">
+                    // 💡 スケルトンにも交互の色（ゼブラ）を適用
+                    <tr key={`skeleton-${i}`} className="animate-pulse even:bg-slate-50">
                       <td className="py-5 px-6"><div className="h-3 bg-slate-200 rounded w-24"></div></td>
                       <td className="py-5 px-6"><div className="h-4 bg-slate-200 rounded w-48"></div></td>
                       <td className="py-5 px-6"><div className="h-4 bg-slate-200 rounded w-28"></div></td>
@@ -114,27 +114,28 @@ export default function SheetsDashboard() {
                   ))
                 ) : (
                   data.map((row: any, index: number) => (
-                    <tr key={index} className="group hover:bg-blue-50/40 transition-all duration-200 relative">
-                      <td className="absolute left-0 top-0 bottom-0 w-0.5 bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></td>
-                      
-                      <td className="py-4 px-6 text-[11px] text-slate-400 font-medium whitespace-nowrap">
+                    // 💡 修正ポイント！
+                    // 1. emptyのtdを削除し、ヘッダーとデータの数を「6」で完全一致させました。
+                    // 2. even:bg-slate-50/70 を追加して、行の背景色を交互（ゼブラストライプ）にしました！
+                    // 3. ホバーした時は少し青みがかった色になるようにしています。
+                    <tr key={index} className="group even:bg-slate-50/80 hover:bg-blue-50/50 transition-all duration-200 border-l-4 border-transparent hover:border-blue-500">
+                      <td className="py-4 px-6 text-[11px] text-slate-500 font-medium whitespace-nowrap">
                         {row.timestamp}
                       </td>
-                      <td className="py-4 px-6 text-[13px] font-semibold text-slate-800">
+                      <td className="py-4 px-6 text-[13px] font-bold text-slate-800">
                         {row.email}
                       </td>
-                      <td className="py-4 px-6 text-[13px] text-slate-500 font-mono">
+                      <td className="py-4 px-6 text-[13px] text-slate-600 font-mono">
                         {row.phone}
                       </td>
                       <td className="py-4 px-6">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 uppercase tracking-wide">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold bg-white border border-slate-200 text-slate-600 uppercase shadow-sm">
                           {row.plan || "---"}
                         </span>
                       </td>
                       <td className="py-4 px-6 text-center">
-                        {/* 💡 ここをご指定通り「確認しました」に変更しました！ */}
                         {row.simpleWari === "確認しました" ? (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-sm">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
                             確認しました
                           </span>
@@ -143,10 +144,10 @@ export default function SheetsDashboard() {
                         )}
                       </td>
                       <td className="py-4 px-6 text-center">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black shadow-sm ${
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black shadow-sm ${
                           row.jusetsu === "はい" 
-                          ? "bg-indigo-50 text-indigo-600 border border-indigo-200" 
-                          : "bg-slate-50 text-slate-400 border border-slate-200"
+                          ? "bg-indigo-50 text-indigo-700 border border-indigo-200" 
+                          : "bg-white text-slate-400 border border-slate-200"
                         }`}>
                           {row.jusetsu || "---"}
                         </span>
