@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-// 💡 13. SVG Animation: 洗練されたアニメーション付きアイコン
+// 💡 洗練されたアニメーション付きアイコン
 const Icons = {
   Pulse: () => (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="animate-pulse">
@@ -26,7 +26,6 @@ export default function SheetsDashboard() {
     revalidateOnFocus: true,
   });
 
-  // 💡 14 & 15. カスケード（波状）ロードアニメーションのためのステート
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -39,35 +38,31 @@ export default function SheetsDashboard() {
   );
 
   return (
-    // 💡 7. Calm Design & 9. Immersive: 画面全体を静寂なグラデーションと空間で包む
     <div className="min-h-screen bg-[#f4f7f9] bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50 via-[#f4f7f9] to-slate-100 text-slate-800 font-sans selection:bg-blue-600 selection:text-white p-4 md:p-8 overflow-hidden relative">
       
-      {/* 背景のアンビエント・グロウ（深度表現） */}
+      {/* 💡 アンビエント・グロウ（深度表現） */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-400/10 blur-[120px] pointer-events-none"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-emerald-400/10 blur-[120px] pointer-events-none"></div>
 
       <div className={`max-w-[1400px] mx-auto transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
         
-        {/* 💡 2. Bento UI & 5. Dynamic Typography: ヘッダーとサマリーをグリッドで配置 */}
+        {/* 💡 ヘッダー（Bento UI） */}
         <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <div className="flex items-center gap-3 mb-2">
               <div className="px-2.5 py-1 rounded-md bg-blue-600/10 border border-blue-600/20 text-blue-600 text-[10px] font-black tracking-[0.2em] uppercase">
                 Acquisition Data
               </div>
-              {/* 💡 1. Generative UI: データ検証状態によって動的に変化するバッジ */}
               <div className={`flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase transition-colors duration-500 ${isValidating ? 'text-blue-500' : 'text-emerald-500'}`}>
                 {isValidating ? <Icons.Sync /> : <Icons.Pulse />}
                 {isValidating ? 'Syncing...' : 'Live System'}
               </div>
             </div>
-            {/* 💡 11. Masking: グラデーションテキストマスク */}
             <h1 className="text-4xl md:text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900">
               Team Portal Feed.
             </h1>
           </div>
 
-          {/* Bento UI: データサマリーカード */}
           {data && (
             <div className="flex gap-4">
               <div className="bg-white/60 backdrop-blur-xl border border-white rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] min-w-[140px]">
@@ -82,7 +77,7 @@ export default function SheetsDashboard() {
           )}
         </header>
 
-        {/* 💡 6. Action-First & 8. Vertical UI: 無駄なボタンを排除し、データ表示に全集中 */}
+        {/* 💡 ここの <main> が閉じていなかったのを完全に修正しました！！ */}
         <main className="bg-white/60 backdrop-blur-2xl border border-white/80 rounded-[2rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
           <div className="overflow-x-auto max-h-[calc(100vh-280px)] custom-scrollbar">
             <table className="w-full text-left border-collapse">
@@ -98,7 +93,6 @@ export default function SheetsDashboard() {
               </thead>
               <tbody className="divide-y divide-slate-100/50">
                 {!data ? (
-                  // スケルトンローディング
                   Array(10).fill(0).map((_, i) => (
                     <tr key={`skeleton-${i}`} className={`animate-pulse ${i % 2 === 0 ? 'bg-transparent' : 'bg-slate-50/50'}`}>
                       <td className="py-5 px-6"><div className="h-2.5 bg-slate-200/60 rounded-full w-24"></div></td>
@@ -113,8 +107,6 @@ export default function SheetsDashboard() {
                   data.map((row: any, index: number) => (
                     <tr 
                       key={index} 
-                      // 💡 10, 12, 14. 確実なゼブラ配色 ＆ マイクロインタラクション ＆ カスケード表示
-                      // プログラム制御(index % 2)で絶対に交互の色になります！
                       className={`
                         group relative transition-all duration-300 ease-out hover:z-10 cursor-default
                         ${index % 2 === 0 ? 'bg-transparent' : 'bg-slate-50/60'}
@@ -125,7 +117,7 @@ export default function SheetsDashboard() {
                         opacity: mounted ? 1 : 0
                       }}
                     >
-                      {/* 💡 4. 深度表現: ホバー時に左側に現れるインジケーター */}
+                      {/* 💡 ホバー時の左端インジケーター */}
                       <td className="absolute left-0 top-1 bottom-1 w-1 bg-blue-500 rounded-r-full opacity-0 group-hover:opacity-100 transition-all duration-300 scale-y-50 group-hover:scale-y-100"></td>
                       
                       <td className="py-4 px-6 text-[11px] text-slate-400 font-mono tracking-tight whitespace-nowrap group-hover:text-blue-500 transition-colors">
@@ -167,7 +159,8 @@ export default function SheetsDashboard() {
               </tbody>
             </table>
           </div>
-        </div>
+        </main>
+
       </div>
     </div>
   );
