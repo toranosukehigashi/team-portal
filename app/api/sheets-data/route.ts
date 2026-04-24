@@ -53,9 +53,12 @@ export async function GET(request: Request) {
       }
     });
 
-    return NextResponse.json(data);
+ return NextResponse.json(data);
   } catch (error: any) {
     console.error(error);
-    return NextResponse.json({ error: "Google APIエラー: " + error.message }, { status: 500 });
+    // 🚀 ここを上書き！Vercelが実際に使っている「メールアドレス」をエラー文にくっつけます！
+    return NextResponse.json({ 
+      error: `Google APIエラー: ${error.message} 【🚨 出動中のロボット: ${process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL}】` 
+    }, { status: 500 });
   }
 }
