@@ -30,53 +30,30 @@ export async function GET(request: Request) {
 
     const data = rows.slice(-100).reverse().map((row) => {
       
-      // 🎯 特殊構成：グリーン デンワde割 (修正済：5列構成)
-      // 構成: 0:タイムスタンプ, 1:メールアドレス, 2:電話番号, 3:重説, 4:サクッと割
-      if (range.includes("デンワde割")) {
-        return {
-          timestamp: row[0],
-          email: row[1],
-          phone: row[2],
-          jusetsu: row[3],
-          sakutto: row[4],
-          type: "denwa_wari"
-        };
-      }
-
-      // 🎯 特殊構成：電気ガスセット割
+      // 🎯 電気ガスセット割
       if (range.includes("電気ガスセット割")) {
         return {
-          timestamp: row[0],
-          email: row[1],
-          phone: row[2],
-          plan: row[3],
-          gasSet: row[4],
-          jusetsu: row[5],
-          type: "gas_set"
+          timestamp: row[0], email: row[1], phone: row[2], plan: row[3], gasSet: row[4], jusetsu: row[5]
         };
       }
 
-      // 🎯 共通5列構成：名古屋オフィス(同意/FF同意) ＆ フォームの回答１
+      // 🎯 グリーン デンワde割
+      if (range.includes("デンワde割")) {
+        return {
+          timestamp: row[0], email: row[1], phone: row[2], jusetsu: row[3], sakutto: row[4]
+        };
+      }
+
+      // 🚀 修正完了：名古屋オフィス ＆ フォームの回答1 (半角)
       if (range.includes("名古屋") || range.includes("フォームの回答1")) {
         return {
-          timestamp: row[0],
-          email: row[1],
-          phone: row[2],
-          plan: row[3],
-          jusetsu: row[4],
-          type: "common_5"
+          timestamp: row[0], email: row[1], phone: row[2], plan: row[3], jusetsu: row[4]
         };
       }
 
-      // 🎯 デフォルト：シンプル獲得（旧：標準獲得）
+      // 🎯 デフォルト：シンプル獲得（侍、その他）
       return {
-        timestamp: row[0],
-        email: row[1],
-        phone: row[2],
-        plan: row[3],
-        simpleWari: row[4],
-        jusetsu: row[5],
-        type: "standard"
+        timestamp: row[0], email: row[1], phone: row[2], plan: row[3], simpleWari: row[4], jusetsu: row[5]
       };
     });
 
