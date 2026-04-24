@@ -13,25 +13,27 @@ export async function GET() {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: "シンプル獲得（じげん、侍）!A2:F", // A列からF列まで取得
+      range: "シンプル獲得（じげん、侍）!A2:F", // 一旦全体を取得（またはA:Fで全行）
     });
 
-    const rows = response.data.values;
-    if (!rows || rows.length === 0) return NextResponse.json([]);
+    const allRows = response.data.values;
+    if (!allRows || allRows.length === 0) return NextResponse.json([]);
 
-    // 💡 ご主人様の列構成に合わせて正確にマッピング
-    const data = rows.map((row) => ({
-      timestamp: row[0] || "",   // A列
-      email: row[1] || "",       // B列
-      phone: row[2] || "",       // C列
-      plan: row[3] || "",        // D列：プラン名
-      simpleWari: row[4] || "",  // E列：確認しました
-      jusetsu: row[5] || "",     // F列：はい
+    // 💡 【ここがポイント！】下から100個だけを切り取る
+    // slice(-100) と書くだけで、常に最新の100件になります！
+    const latestRows = allRows.slice(-100);
+
+    const data = latestRows.map((row) => ({
+      timestamp: row[0] || "",
+      email: row[1] || "",
+      phone: row[2] || "",
+      plan: row[3] || "",
+      simpleWari: row[4] || "",
+      jusetsu: row[5] || "",
     }));
 
-    // 新しいデータが「下」に追加される順番（古い順）
-    data.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-
+    // 💡 並び順は「古い順（新しいのが下）」を維持
+    // スプシの並び順（最後100件をそのまま）なので、特に追加のソートなしでも順番通りです
     return NextResponse.json(data);
   } catch (error: any) {
     return NextResponse.json({ error: "APIエラー", details: error.message }, { status: 500 });
