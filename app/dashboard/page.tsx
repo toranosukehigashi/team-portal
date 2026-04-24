@@ -5,15 +5,28 @@ export default function SheetsDashboard() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 💡 定期的にデータを更新したい場合は、ここを5分おきとかにリロードする設定も可能です！
+// 💡 ここから書き換え！
   useEffect(() => {
-    fetch("/api/sheets-data")
-      .then((res) => res.json())
-      .then((json) => {
-        setData(Array.isArray(json) ? json : []);
-        setLoading(false);
-      });
+    // データを取ってくる関数を作る
+    const fetchData = () => {
+      fetch("/api/sheets-data")
+        .then((res) => res.json())
+        .then((json) => {
+          setData(Array.isArray(json) ? json : []);
+          setLoading(false);
+        });
+    };
+
+    // ① 画面を開いた瞬間にまず1回取ってくる
+    fetchData();
+
+    // ② その後、「10秒ごと（10000ミリ秒）」に自動で fetchData を実行し続ける！
+    const intervalId = setInterval(fetchData, 7000);
+
+    // 別のページに移動した時は、この自動更新タイマーをストップする（お行儀の良いコードです！）
+    return () => clearInterval(intervalId);
   }, []);
+  // 💡 ここまで！
 
   if (loading) return <div className="p-10 text-center font-bold text-slate-500 animate-pulse">最新100件を同期中...🚀</div>;
 
