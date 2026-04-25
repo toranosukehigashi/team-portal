@@ -31,16 +31,11 @@ const SHEET_CONFIGS = [
     cols: ["タイムスタンプ", "メールアドレス", "電話番号", "重説", "サクッと割"],
     theme: { primary: "#10b981", light: "rgba(16, 185, 129, 0.1)", ambient: "#ecfdf5", darkAmbient: "#022c22", shadow: "rgba(16, 185, 129, 0.4)", name: "Emerald" }
   },
+  // 🚀 変更：フォーム回答1 を 「空室通電」へ
   { 
-    name: "フォーム回答 1", id: MASTER_SHEET_ID, range: "フォームの回答 1!A2:E",
+    name: "空室通電", id: MASTER_SHEET_ID, range: "空室通電!A2:E",
     cols: ["タイムスタンプ", "メールアドレス", "電話番号", "プラン", "重説"],
     theme: { primary: "#f43f5e", light: "rgba(244, 63, 94, 0.1)", ambient: "#fff1f2", darkAmbient: "#4c0519", shadow: "rgba(244, 63, 94, 0.4)", name: "Rose" }
-  },
-  // 🚀 脱落していた「フォーム回答2（お名前あり）」を復元！
-  { 
-    name: "フォーム回答 2", id: MASTER_SHEET_ID, range: "フォームの回答 2!A2:E", // ※実際のタブ名に合わせて変更してください
-    cols: ["タイムスタンプ", "お名前", "メールアドレス", "重説", "はい"],
-    theme: { primary: "#0ea5e9", light: "rgba(14, 165, 233, 0.1)", ambient: "#f0f9ff", darkAmbient: "#082f49", shadow: "rgba(14, 165, 233, 0.4)", name: "Sky" }
   }
 ];
 
@@ -241,14 +236,11 @@ export default function SheetsDashboard() {
                   ) : (
                     data.map((row: any, index: number) => (
                       <tr key={index} className={`table-row relative group ${index % 2 !== 0 ? 'row-odd' : 'row-even'}`}>
-                        <div className="row-indicator"></div>
                         
-                        <td className="py-5 px-8 text-[11px] font-mono opacity-50 whitespace-nowrap">{row.timestamp}</td>
-                        
-                        {/* 🚀 復元：お名前 (フォーム回答2等) */}
-                        {activeSheet.cols.includes("お名前") && (
-                          <td className="py-5 px-8 text-[14px] font-black" style={{ color: 'var(--theme-primary)' }}>{row.name}</td>
-                        )}
+                        <td className="relative py-5 px-8 text-[11px] font-mono opacity-50 whitespace-nowrap">
+                          <div className="row-indicator"></div>
+                          {row.timestamp}
+                        </td>
 
                         <td className="py-5 px-8 text-[13px] font-bold">{row.email}</td>
                         
@@ -292,15 +284,6 @@ export default function SheetsDashboard() {
                           <td className="py-5 px-8 whitespace-nowrap">
                             <span className="px-4 py-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black rounded-full border border-emerald-500/20 backdrop-blur-sm">
                               {row.sakutto || "---"}
-                            </span>
-                          </td>
-                        )}
-
-                        {/* 🚀 復元：はい (フォーム回答2等) */}
-                        {activeSheet.cols.includes("はい") && (
-                          <td className="py-5 px-8 whitespace-nowrap">
-                            <span className="font-black" style={{ color: 'var(--theme-primary)' }}>
-                              {row.hai || "---"}
                             </span>
                           </td>
                         )}
