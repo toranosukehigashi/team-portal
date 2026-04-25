@@ -14,10 +14,10 @@ const fetcher = async (url: string) => {
   return data;
 };
 
-// 🌟 BentoCard Component (高輝度ボーダー & 達成エフェクト対応)
+// 🌟 BentoCard Component
 const BentoCard = ({ title, attraction, desc, delay, onClick, children, size = "medium", isAchieved = false }: any) => {
   return (
-    <div className={`bento-slot fade-up-element size-${size} ${isAchieved ? 'achieved-glow' : ''}`} style={{ "--delay": `${delay}s` } as any} onClick={onClick}>
+    <div className={`bento-slot fade-up-element size-${size} ${isAchieved ? 'achieved-glow' : ''}`} style={{ "--delay": `${delay}s` } as React.CSSProperties} onClick={onClick}>
       <div className="bento-card-inner calm-hover glass-morphism">
         <div className="card-content">
           <div className="card-top">
@@ -32,9 +32,9 @@ const BentoCard = ({ title, attraction, desc, delay, onClick, children, size = "
   );
 };
 
-// 💠 オリジナルSVGアイコンコンポーネント (Gemini Design)
+// 💠 オリジナルSVGアイコンコンポーネント (エラー修正済: React.ReactNodeを使用)
 const CustomIcon = ({ type }: { type: string }) => {
-  const paths: Record<string, JSX.Element> = {
+  const paths: Record<string, React.ReactNode> = {
     vault: <path d="M19 11V19C19 20.1046 18.1046 21 17 21H7C5.89543 21 5 20.1046 5 19V11M5 11C5 9.89543 5.89543 9 7 9H17C18.1046 9 19 9.89543 19 11M5 11L12 6L19 11M12 12V16M9 14H15" />,
     manual: <path d="M4 19.5V5C4 3.89543 4.89543 3 6 3H19V17C19 18.1046 18.1046 19 17 19H6C4.89543 19 4 18.1046 4 17V19.5ZM4 19.5C4 20.3284 4.67157 21 5.5 21H19" />,
     calc: <path d="M19 5V19C19 20.1046 18.1046 21 17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H17C18.1046 3 19 3.89543 19 5ZM9 7H15M9 11H10M14 11H15M9 15H10M14 15H15" />,
@@ -63,7 +63,6 @@ export default function SaaSIntegratedHome() {
   const [kpi, setKpi] = useState({ current: 0, target: 20 });
   const dockRef = useRef<HTMLDivElement>(null);
 
-  // ダミーのリスト別獲得状況
   const kpiBreakdown = [
     { label: "シンプル", val: 5, color: "#38bdf8" },
     { label: "名古屋", val: 3, color: "#818cf8" },
@@ -96,11 +95,33 @@ export default function SaaSIntegratedHome() {
 
     const savedHistory = localStorage.getItem("clipboard_vault");
     if (savedHistory) setCopiedHistory(JSON.parse(savedHistory));
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dockRef.current && !dockRef.current.contains(event.target as Node)) setActiveDockTool(null);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const progressPercent = Math.min(100, Math.round((kpi.current / kpi.target) * 100));
   const isAchieved = progressPercent >= 100;
   const { data: masterData } = useSWR(`/api/sheets-data?id=${MASTER_SHEET_ID}&range=${encodeURIComponent(CALCULATOR_RANGE)}`, fetcher);
+
+  // 💡 エラー修正済：確実な function 宣言に変更し、スコープの安全性を確保
+  async function handleTargetCopy(e: React.MouseEvent, text: string, id: string, type: 'name' | 'url') {
+    e.stopPropagation();
+    try { 
+      await navigator.clipboard.writeText(text); 
+      setCopiedStatus({ id, type });
+      setTimeout(() => setCopiedStatus(null), 1200);
+      
+      const newHistory = [text, ...copiedHistory.filter(i => i !== text)].slice(0, 5);
+      setCopiedHistory(newHistory);
+      localStorage.setItem("clipboard_vault", JSON.stringify(newHistory));
+    } catch (err) { 
+      alert("コピーに失敗しました"); 
+    } 
+  }
 
   const calculateCompare = () => {
     if (!masterData || !calcInput.bill) return;
@@ -142,7 +163,7 @@ export default function SaaSIntegratedHome() {
 
         <div className="bento-grid">
           
-          {/* Slot A: KPI Dashboard (高機能版) */}
+          {/* Slot A: KPI Dashboard */}
           <BentoCard title="KPI Dashboard" attraction="PERFORMANCE" desc="現在の進捗とリスト別内訳" size="xlarge" isAchieved={isAchieved} onClick={() => router.push("/kpi-detail")}>
             <div className="kpi-enhanced-container">
               <div className="kpi-left">
@@ -174,7 +195,7 @@ export default function SaaSIntegratedHome() {
           </BentoCard>
 
           {/* Slot B: Power Action Stack */}
-          <div className="bento-slot size-tall fade-up-element" style={{ "--delay": "0.3s" } as any}>
+          <div className="bento-slot size-tall fade-up-element" style={{ "--delay": "0.3s" } as React.CSSProperties}>
             <div className="bento-card-inner glass-morphism calm-hover action-stack">
               <div className="card-top"><span className="attraction-tag">POWER ACTIONS</span></div>
               <h2 className="card-title">Quick Launch</h2>
@@ -201,8 +222,8 @@ export default function SaaSIntegratedHome() {
         </div>
       </main>
 
-      {/* 🍏 Utility Dock (Mac / visionOS Style + Custom Icons) */}
-      <nav className="mac-dock-wrapper">
+      {/* 🍏 Utility Dock */}
+      <nav className="mac-dock-wrapper" ref={dockRef}>
         <div className="mac-dock">
           <div className={`mac-dock-item ${activeDockTool === 'vault' ? 'active' : ''}`} onClick={() => setActiveDockTool(activeDockTool === 'vault' ? null : 'vault')} data-tooltip="Clipboard"><CustomIcon type="vault" /></div>
           <div className="mac-dock-item" onClick={() => router.push("/procedure-wizard")} data-tooltip="Manual"><CustomIcon type="manual" /></div>
