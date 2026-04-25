@@ -12,7 +12,7 @@ const SHEET_CONFIGS = [
   { name: "名古屋FF同意", id: MASTER_SHEET_ID, range: "名古屋オフィスFF同意!A2:E" },
   { name: "電気ガスセット割", id: MASTER_SHEET_ID, range: "電気ガスセット割!A2:F" },
   { name: "デンワde割", id: MASTER_SHEET_ID, range: "グリーン　デンワde割!A2:E" },
-  { name: "空室通電", id: MASTER_SHEET_ID, range: "フォームの回答 1!A2:E" }
+  { name: "空室通電", id: MASTER_SHEET_ID, range: "空室通電!A2:E" }
 ];
 
 const fetcher = async (url: string) => {
@@ -28,14 +28,12 @@ export default function LiveFeedWidget() {
   const [activeSheet, setActiveSheet] = useState(SHEET_CONFIGS[0]);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // 🚀 SWRで7秒ごとに自動同期
   const { data, isValidating } = useSWR(
     `/api/sheets-data?id=${activeSheet.id}&range=${encodeURIComponent(activeSheet.range)}`, 
     fetcher, 
     { refreshInterval: 7000 }
   );
 
-  // 💡 外側をクリックしたら閉じる処理
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -46,12 +44,13 @@ export default function LiveFeedWidget() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 🚨 【超重要】ダッシュボード画面（/dashboard）にいる時は、ウィジェットを「完全に非表示」にする！
+  // ダッシュボード画面では非表示にする
   if (pathname === "/dashboard") return null;
 
   return (
-    // 💡 fixed を使って、どのページにいても画面右上に固定で浮かべる設定
-    <div className="fixed top-6 right-6 z-[9999]" ref={dropdownRef}>
+    // 💡 修正ポイント：top-[85px] right-[30px] にして、住所検索バーの真下に配置！
+    // z-[9998] にすることで、住所検索のドロップダウン（99999）の下に綺麗に潜り込みます
+    <div className="fixed top-[85px] right-[30px] z-[9998]" ref={dropdownRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-4 py-2 rounded-2xl border transition-all duration-300 backdrop-blur-xl shadow-lg hover:scale-105 active:scale-95"
@@ -71,7 +70,6 @@ export default function LiveFeedWidget() {
       {isOpen && (
         <div className="absolute right-0 top-full mt-3 w-80 rounded-3xl shadow-2xl border backdrop-blur-3xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300" style={{ background: "rgba(15, 23, 42, 0.85)", borderColor: "rgba(255,255,255,0.1)" }}>
           
-          {/* ヘッダー＆タブ切り替え */}
           <div className="p-4 border-b flex justify-between items-center" style={{ borderColor: "rgba(255,255,255,0.05)", background: "rgba(0,0,0,0.2)" }}>
             <select 
               className="bg-transparent text-[11px] font-black outline-none cursor-pointer text-sky-400" 
@@ -83,7 +81,6 @@ export default function LiveFeedWidget() {
             {isValidating && <span className="text-[10px] text-sky-500 font-bold animate-pulse">Syncing...</span>}
           </div>
 
-          {/* データ表示エリア（最新3件のみ） */}
           <div className="p-3 flex flex-col gap-2 max-h-[350px] overflow-y-auto">
             {!data ? (
               <div className="p-6 text-center text-[10px] text-slate-400 font-bold animate-pulse">Loading Matrix...</div>
@@ -109,7 +106,6 @@ export default function LiveFeedWidget() {
             )}
           </div>
           
-          {/* Growth Matrixへの直通リンク */}
           <div className="p-3 border-t text-center transition-colors hover:bg-slate-800/50" style={{ borderColor: "rgba(255,255,255,0.05)", background: "rgba(0,0,0,0.2)" }}>
             <a href="/dashboard" className="text-[10px] font-black text-sky-400 hover:text-sky-300 flex items-center justify-center gap-1">
               Growth Matrixを開く <span className="text-[14px]">→</span>
