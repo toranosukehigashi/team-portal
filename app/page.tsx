@@ -7,6 +7,9 @@ import useSWR from "swr";
 const MASTER_SHEET_ID = "1gXTpTFfp5f5I83P0FVbJbzX-bEsvgLY_DpNl6YDo9-w";
 const CALCULATOR_RANGE = "電卓単価マスタ!A2:I";
 
+// 💡 kpi-detail から移植した本物のAPI URL
+const GAS_API_URL = "https://script.google.com/a/macros/octopusenergy.co.jp/s/AKfycbxT82SG21OPZUdP2Ix7RG4PYi9qv3KCJNJ81hF3DgFRZATdkp7EpcxpkRBajGJ7RrJBsw/exec";
+
 const fetcher = async (url: string) => {
   const res = await fetch(url);
   const data = await res.json();
@@ -32,7 +35,7 @@ const BentoCard = ({ title, attraction, desc, delay, onClick, children, size = "
   );
 };
 
-// 💠 オリジナルSVGアイコンコンポーネント
+// 💠 オリジナルSVGアイコンコンポーネント (エラー修正済)
 const CustomIcon = ({ type }: { type: string }) => {
   const paths: Record<string, React.ReactNode> = {
     vault: <path d="M19 11V19C19 20.1046 18.1046 21 17 21H7C5.89543 21 5 20.1046 5 19V11M5 11C5 9.89543 5.89543 9 7 9H17C18.1046 9 19 9.89543 19 11M5 11L12 6L19 11M12 12V16M9 14H15" />,
@@ -60,16 +63,17 @@ export default function SaaSIntegratedHome() {
   const [calcInput, setCalcInput] = useState({ company: "", plan: "", amp: "30", bill: "" });
   const [calcResult, setCalcResult] = useState<number | null>(null);
   const [copiedStatus, setCopiedStatus] = useState<{ id: string, type: 'name' | 'url' } | null>(null);
-  const [kpi, setKpi] = useState({ current: 0, target: 20 });
+  
   const dockRef = useRef<HTMLDivElement>(null);
 
-  // 💡 ここが現在の「テキトーな」ダミーデータです！後ほどここを書き換えます。
-  const kpiBreakdown = [
-    { label: "シンプル", val: 5, color: "#38bdf8" },
-    { label: "名古屋", val: 3, color: "#818cf8" },
-    { label: "電気ガス", val: 2, color: "#fbbf24" },
-    { label: "その他", val: kpi.current - 10 > 0 ? kpi.current - 10 : 0, color: "#94a3b8" }
-  ];
+  // 💡 取得するKPIデータを格納するステート（初期値セット）
+  const [kpiStats, setKpiStats] = useState<{ total: number, target: number, lists: {name: string, value: number}[] }>({
+    total: 0, target: 20, lists: []
+  });
+  const [isKpiLoading, setIsKpiLoading] = useState(true);
+
+  // リスト別内訳用の美しいSaaSカラーパレット
+  const colorPalette = ["#0ea5e9", "#8b5cf6", "#f59e0b", "#10b981", "#ec4899", "#f43f5e", "#14b8a6"];
 
   const callTreeBookmarks = [
     { 
@@ -80,22 +84,40 @@ export default function SaaSIntegratedHome() {
   ];
 
   useEffect(() => {
+    // 時間連動テーマ設定
     const hour = new Date().getHours();
     if (hour >= 6 && hour < 16) setTheme("day");
     else if (hour >= 16 && hour < 19) setTheme("sunset");
     else setTheme("night");
 
+    // ローカルストレージ復元
     const savedUser = localStorage.getItem("team_portal_user");
     if (savedUser) setUserName(savedUser);
-    
-    const savedKpi = localStorage.getItem("team_portal_kpi");
-    if (savedKpi) try { setKpi(JSON.parse(savedKpi)); } catch(e){}
-
     const savedMemo = localStorage.getItem("team_portal_quick_memo");
     if (savedMemo) setMemoText(savedMemo);
-
     const savedHistory = localStorage.getItem("clipboard_vault");
     if (savedHistory) setCopiedHistory(JSON.parse(savedHistory));
+
+    // 💡 本物のAPIからKPIデータを取得する処理を HOME画面にも追加！
+    const fetchKPI = () => {
+      const callbackName = 'jsonpCallbackHome_' + Date.now();
+      (window as any)[callbackName] = (jsonData: any) => {
+        if(jsonData.success && jsonData.daily) { 
+          setKpiStats({
+            total: jsonData.daily.total,
+            target: jsonData.daily.target,
+            lists: jsonData.daily.lists || []
+          });
+        }
+        setIsKpiLoading(false);
+        delete (window as any)[callbackName];
+      };
+      const script = document.createElement('script');
+      script.src = `${GAS_API_URL}?callback=${callbackName}`;
+      script.onerror = () => setIsKpiLoading(false);
+      document.body.appendChild(script);
+    };
+    fetchKPI();
 
     const handleClickOutside = (event: MouseEvent) => {
       if (dockRef.current && !dockRef.current.contains(event.target as Node)) setActiveDockTool(null);
@@ -104,7 +126,7 @@ export default function SaaSIntegratedHome() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const progressPercent = Math.min(100, Math.round((kpi.current / kpi.target) * 100));
+  const progressPercent = Math.min(100, Math.round((kpiStats.total / (kpiStats.target || 1)) * 100)) || 0;
   const isAchieved = progressPercent >= 100;
   const { data: masterData } = useSWR(`/api/sheets-data?id=${MASTER_SHEET_ID}&range=${encodeURIComponent(CALCULATOR_RANGE)}`, fetcher);
 
@@ -114,20 +136,16 @@ export default function SaaSIntegratedHome() {
       await navigator.clipboard.writeText(text); 
       setCopiedStatus({ id, type });
       setTimeout(() => setCopiedStatus(null), 1200);
-      
       const newHistory = [text, ...copiedHistory.filter(i => i !== text)].slice(0, 5);
       setCopiedHistory(newHistory);
       localStorage.setItem("clipboard_vault", JSON.stringify(newHistory));
-    } catch (err) { 
-      alert("コピーに失敗しました"); 
-    } 
+    } catch (err) { alert("コピーに失敗しました"); } 
   }
 
   const calculateCompare = () => {
     if (!masterData || !calcInput.bill) return;
     const row = masterData.find((r: any) => r[0] === calcInput.company && r[1] === calcInput.plan);
     if (!row) return alert("マスタに該当データがありません");
-    
     const bill = Number(calcInput.bill);
     const kwh = (bill - Number(row[3])) / Number(row[4]); 
     const octopusBill = (Number(row[3]) * 0.9) + (kwh * 28); 
@@ -163,13 +181,13 @@ export default function SaaSIntegratedHome() {
 
         <div className="bento-grid">
           
-          {/* Slot A: KPI Dashboard */}
+          {/* 🎯 Slot A: KPI Dashboard (本物データ連動版) */}
           <BentoCard title="KPI Dashboard" attraction="PERFORMANCE" desc="現在の進捗とリスト別内訳" size="xlarge" isAchieved={isAchieved} onClick={() => router.push("/kpi-detail")}>
             <div className="kpi-enhanced-container">
               <div className="kpi-left">
                 <div className="kpi-main-stat">
-                  <span className="current-num">{kpi.current}</span>
-                  <span className="target-num">/ {kpi.target}</span>
+                  <span className="current-num">{kpiStats.total}</span>
+                  <span className="target-num">/ {kpiStats.target}</span>
                 </div>
                 <div className={`progress-track ${isAchieved ? 'animate-shine' : ''}`}>
                   <div className="progress-fill" style={{ width: `${progressPercent}%` }}></div>
@@ -177,18 +195,27 @@ export default function SaaSIntegratedHome() {
                 <div className="progress-label">{progressPercent}% Achieved</div>
               </div>
               <div className="kpi-right">
-                <div className="breakdown-list">
-                  {kpiBreakdown.map(item => (
-                    <div key={item.label} className="breakdown-item">
-                      <div className="breakdown-info">
-                        <span>{item.label}</span>
-                        <span style={{color: item.color}}>{item.val}</span>
-                      </div>
-                      <div className="breakdown-bar-bg">
-                        <div className="breakdown-bar-fill" style={{ width: `${(item.val / kpi.target) * 100}%`, background: item.color }}></div>
-                      </div>
-                    </div>
-                  ))}
+                <div className="breakdown-list custom-scrollbar">
+                  {/* 💡 取得したリスト内訳をマップして表示！ */}
+                  {isKpiLoading ? (
+                    <div style={{fontSize: "11px", opacity: 0.5, fontWeight: 900}}>LOADING MATRIX...</div>
+                  ) : (
+                    kpiStats.lists.map((l: any, i: number) => {
+                      const color = colorPalette[i % colorPalette.length];
+                      const percent = Math.min(100, Math.round((l.value / (kpiStats.target || 1)) * 100));
+                      return (
+                        <div key={i} className="breakdown-item">
+                          <div className="breakdown-info">
+                            <span>{l.name}</span>
+                            <span style={{ color: color }}>{l.value} <span style={{fontSize:"9px", opacity:0.5}}>件</span></span>
+                          </div>
+                          <div className="breakdown-bar-bg">
+                            <div className="breakdown-bar-fill" style={{ width: `${percent}%`, background: color }}></div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             </div>
@@ -314,7 +341,7 @@ export default function SaaSIntegratedHome() {
         )}
       </nav>
 
-      {/* ✨ 最新鋭 CSS: Mesh Gradient & SaaS Typography */}
+      {/* ✨ 最新鋭 CSS */}
       <style dangerouslySetInnerHTML={{ __html: `
         :root { 
           --accent: #0ea5e9; 
@@ -340,24 +367,19 @@ export default function SaaSIntegratedHome() {
           --glow: rgba(2, 132, 199, 0.1);
         }
 
-        /* 🌅 修正版サンセットテーマ：ライトモードベースの柔らかな黄昏時 */
         .theme-sunset {
-          --accent: #f59e0b; /* 上品なアンバー */
-          --bg-color: #fffbf5; /* ほんのり暖かい夕暮れの白 */
+          --accent: #f59e0b; 
+          --bg-color: #fffbf5; 
           --card-bg: rgba(255, 250, 245, 0.75);
           --border: rgba(245, 158, 11, 0.2);
-          --text-main: #451a03; /* 視認性の高いダークブラウン */
+          --text-main: #451a03; 
           --text-sub: #92400e; 
           --dock-bg: rgba(255, 255, 255, 0.6);
-          --mesh-1: #fef3c7; /* 薄い黄色 */
-          --mesh-2: #ffedd5; /* 淡いオレンジ */
-          --mesh-3: #fce7f3; /* わずかな夕暮れピンク */
-          --mesh-4: #fff7ed; 
+          --mesh-1: #fef3c7; --mesh-2: #ffedd5; --mesh-3: #fce7f3; --mesh-4: #fff7ed; 
           --glow: rgba(245, 158, 11, 0.2);
         }
 
         body { background: var(--bg-color); color: var(--text-main); font-family: 'Inter', sans-serif; overflow-x: hidden; transition: 1s ease; }
-        
         .portal-container { min-height: 100vh; padding: 40px; position: relative; }
         
         /* 🌊 Mesh Gradient */
@@ -368,7 +390,6 @@ export default function SaaSIntegratedHome() {
         .blob-3 { bottom: -20%; left: 20%; width: 70vw; height: 70vw; background: var(--mesh-3); }
         .blob-4 { top: 10%; left: 40%; width: 40vw; height: 40vw; background: var(--mesh-4); }
         @keyframes moveMesh { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(5vw, 5vh) scale(1.1); } }
-        
         .glass-overlay { position: fixed; inset: 0; z-index: -2; background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.5; pointer-events: none; }
 
         .bento-layout-wrapper { max-width: 1200px; margin: 0 auto; z-index: 10; position: relative; }
@@ -378,7 +399,6 @@ export default function SaaSIntegratedHome() {
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
         .system-date { font-size: 10px; font-weight: 900; color: var(--text-sub); letter-spacing: 2px; }
         
-        /* 🍱 Bento Grid */
         .bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 160px; gap: 16px; margin-bottom: 100px; }
         .size-xlarge { grid-column: span 2; grid-row: span 2; }
         .size-tall { grid-column: span 1; grid-row: span 3; }
@@ -386,42 +406,38 @@ export default function SaaSIntegratedHome() {
 
         .bento-card-inner { height: 100%; border-radius: 28px; padding: 28px; position: relative; border: 1px solid var(--border); cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
         .glass-morphism { background: var(--card-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
-        
         .calm-hover:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: var(--glow); }
 
-        /* 🏆 達成エフェクト (Achieved Glow) */
         .achieved-glow .bento-card-inner { border-color: #fbbf24; box-shadow: 0 0 30px rgba(251, 191, 36, 0.3); animation: subtlePulse 4s infinite; }
         @keyframes subtlePulse { 0% { transform: scale(1); } 50% { transform: scale(1.01); } 100% { transform: scale(1); } }
 
         .attraction-tag { font-size: 10px; font-weight: 900; color: var(--accent); letter-spacing: 1.5px; text-transform: uppercase; }
         .card-title { font-size: 22px; font-weight: 900; margin: 6px 0; color: var(--text-main); }
-        .card-desc { font-size: 14px; color: var(--text-sub); line-height: 1.6; font-weight: 600; }
+        .card-desc { font-size: 14px; color: var(--text-sub); line-height: 1.6; font-weight: 600; margin-bottom: 0; }
+        .card-body-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
 
         /* KPI Enhanced Visual */
         .kpi-enhanced-container { display: flex; gap: 30px; margin-top: 10px; flex: 1; align-items: center; }
         .kpi-left { flex: 1; }
-        .kpi-right { flex: 1; border-left: 1px solid var(--border); padding-left: 25px; }
+        .kpi-right { flex: 1; border-left: 1px solid var(--border); padding-left: 25px; height: 100%; overflow-y: auto; }
         .kpi-main-stat { display: flex; align-items: baseline; gap: 8px; }
         .current-num { font-size: 84px; font-weight: 900; color: var(--text-main); line-height: 1; letter-spacing: -3px; }
         .target-num { font-size: 28px; color: var(--text-sub); font-weight: 800; }
         
         .progress-track { width: 100%; height: 12px; background: var(--border); border-radius: 10px; margin-top: 15px; overflow: hidden; position: relative; }
         .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #a855f7); border-radius: 10px; transition: 1s cubic-bezier(0.16, 1, 0.3, 1); }
-        
-        /* バーが光るエフェクト */
         .animate-shine .progress-fill { background: linear-gradient(90deg, #fbbf24, #f59e0b, #fbbf24); background-size: 200% 100%; animation: shineMove 2s infinite linear; }
         @keyframes shineMove { from { background-position: 200% 0; } to { background-position: -200% 0; } }
-        
         .progress-label { font-size: 11px; font-weight: 900; color: var(--text-sub); margin-top: 8px; }
 
-        .breakdown-list { display: flex; flex-direction: column; gap: 10px; }
+        .breakdown-list { display: flex; flex-direction: column; gap: 10px; padding-right: 6px; }
         .breakdown-item { display: flex; flex-direction: column; gap: 4px; }
         .breakdown-info { display: flex; justify-content: space-between; font-size: 11px; font-weight: 900; }
         .breakdown-bar-bg { width: 100%; height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; }
-        .breakdown-bar-fill { height: 100%; border-radius: 4px; }
+        .breakdown-bar-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
 
         /* Action Stack */
-        .action-buttons-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .action-buttons-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; overflow-y: auto; padding-right: 4px; }
         .action-row-btn { display: flex; align-items: center; padding: 16px 20px; background: var(--dock-bg); border: 1px solid transparent; border-radius: 18px; transition: 0.2s; color: var(--text-main); cursor: pointer; }
         .action-row-btn:hover { background: rgba(14, 165, 233, 0.1); border-color: var(--accent); transform: translateX(8px); }
         .btn-icon { font-size: 20px; margin-right: 15px; }
@@ -442,8 +458,8 @@ export default function SaaSIntegratedHome() {
         /* 💬 Popovers */
         .dock-popover { position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%); width: 330px; background: var(--card-bg); backdrop-filter: blur(50px); border-radius: 30px; border: 1px solid var(--border); padding: 25px; box-shadow: 0 40px 80px rgba(0,0,0,0.4); transform-origin: bottom center; animation: popUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes popUp { from { opacity: 0; transform: translateX(-50%) scale(0.9) translateY(20px); } to { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); } }
-        
         .pop-header { font-size: 12px; font-weight: 900; color: var(--text-sub); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+        .pop-content { max-height: 320px; overflow-y: auto; padding-right: 6px; }
         .pop-row { display: flex; align-items: center; justify-content: space-between; padding: 14px; background: var(--dock-bg); border-radius: 16px; cursor: pointer; transition: 0.2s; border: 1px solid transparent; margin-bottom: 8px; }
         .pop-row:hover { background: var(--card-bg); border-color: var(--accent); transform: translateX(4px); }
         .pop-text { font-size: 12px; font-weight: 800; color: var(--text-main); }
@@ -452,11 +468,15 @@ export default function SaaSIntegratedHome() {
         .pop-input { width: 100%; padding: 14px; border-radius: 14px; border: 1px solid var(--border); background: var(--dock-bg); color: var(--text-main); font-size: 14px; outline: none; margin-bottom: 10px; }
         .pop-btn { width: 100%; padding: 16px; border-radius: 14px; background: var(--accent); color: #fff; font-weight: 900; border: none; cursor: pointer; transition: 0.3s; }
         .pop-btn:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        .calc-result-area { margin-top: 16px; padding: 18px; background: rgba(16, 185, 129, 0.1); border-radius: 16px; text-align: center; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .result-label { font-size: 11px; color: var(--text-sub); font-weight: 800; margin: 0 0 6px 0; }
+        .result-value { font-size: 20px; color: #10b981; font-weight: 900; margin: 0; }
 
         .pop-textarea { width: 100%; height: 180px; padding: 16px; border-radius: 18px; border: 1px solid var(--border); background: var(--dock-bg); color: var(--text-main); font-size: 14px; outline: none; resize: none; }
         
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
       `}} />
     </div>
   );
