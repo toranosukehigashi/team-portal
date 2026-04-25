@@ -3,8 +3,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import AuthGuard from "./AuthGuard"; 
 import GlobalAddressSearch from "@/app/components/GlobalAddressSearch";
-
-// 💡 作成したウィジェットをインポート！
 import LiveFeedWidget from "@/app/components/LiveFeedWidget"; 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -23,32 +21,33 @@ export default function RootLayout({
     <html lang="ja">
       <body className={inter.className}>
         
-        {/* 💡 【修正ポイント】レイアウト・Z-indexのグローバル調整CSS */}
+        {/* 💡 【最強の重なり防止策】 */}
         <style dangerouslySetInnerHTML={{ __html: `
-          /* 1. ヘッダーを常に最前面に配置（退勤・ログアウトボタンを保護） */
+          /* ヘッダーの右側に「小窓専用のスペース」を強制確保 */
           .portal-header {
             position: relative;
-            z-index: 9999999 !important; /* 小窓の99999より高く設定 */
+            z-index: 10000;
+            /* 小窓(約350px幅)と被らないよう、右側に巨大な余白を作る */
+            padding-right: 380px !important;
           }
 
-          /* 2. 画面幅が狭い場合（ノートPCなど）の小窓の自動退避処理 */
-          @media (max-width: 1250px) {
-            /* 住所検索バーを少し下（ヘッダーの下）にずらす */
-            .rainbow-border-wrapper {
-              top: 75px !important;
+          /* 画面幅が1200px以下のノートPC等の場合、さらに小窓を下に避ける */
+          @media (max-width: 1200px) {
+            .portal-header {
+              padding-right: 20px !important; /* ボタンを左に寄せず、小窓を下に落とす */
             }
-            /* Live Feedの配置（トップ）を少し下にずらす */
+            .rainbow-border-wrapper {
+              top: 80px !important; /* 住所検索をヘッダーの下へ */
+            }
             .fixed.top-\\[85px\\] {
-              top: 140px !important;
+              top: 150px !important; /* LIVE FEEDをさらにその下へ */
             }
           }
         `}} />
 
         <AuthGuard>
-          {/* グローバルコンポーネント（小窓たち） */}
           <GlobalAddressSearch />
           <LiveFeedWidget />
-          
           {children}
         </AuthGuard>
       </body>
