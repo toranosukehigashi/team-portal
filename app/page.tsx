@@ -58,10 +58,6 @@ export default function SaaSIntegratedHome() {
   const [showMacWelcome, setShowMacWelcome] = useState(false);
   const [animDelayOffset, setAnimDelayOffset] = useState(0.2);
 
-  const [newsText, setNewsText] = useState("【お知らせ】本日はお疲れ様です！Team Portalへようこそ！");
-  const [isEditingNews, setIsEditingNews] = useState(false);
-  const [tempNews, setTempNews] = useState("");
-
   const [isCmdKOpen, setIsCmdKOpen] = useState(false);
   const [cmdKQuery, setCmdKQuery] = useState("");
 
@@ -142,8 +138,6 @@ export default function SaaSIntegratedHome() {
       setIsReady(true); setAnimDelayOffset(0.2);
     }
 
-    const savedNews = localStorage.getItem("team_portal_news"); 
-    if (savedNews) setNewsText(savedNews);
     const savedMemo = localStorage.getItem("team_portal_quick_memo");
     if (savedMemo) setMemoText(savedMemo);
     const savedHistory = localStorage.getItem("clipboard_vault");
@@ -203,7 +197,6 @@ export default function SaaSIntegratedHome() {
   const showToastMsg = (msg: string) => { setToast({ show: true, msg }); setTimeout(() => setToast({ show: false, msg: "" }), 3000); };
   const handleLogout = () => { localStorage.removeItem("team_portal_user"); router.push("/login"); };
   const handleClockOut = async () => { const now = new Date(); const h = String(now.getHours()).padStart(2, "0"); const m = String(now.getMinutes()).padStart(2, "0"); try { await navigator.clipboard.writeText(`${h}:${m} 退勤いたします`); showToastMsg(`✨ 退勤メッセージをコピーしました！`); } catch (err) { alert("コピー失敗"); } };
-  const handleSaveNews = () => { setNewsText(tempNews); localStorage.setItem("team_portal_news", tempNews); setIsEditingNews(false); showToastMsg("📢 お知らせを更新しました！"); };
   const copyUtilResult = async () => { if (utilResult.includes("📍")) { try { await navigator.clipboard.writeText(utilResult.replace("📍 ", "")); showToastMsg("📋 住所をコピーしました！"); } catch (err) {} } };
 
   const handleCmdKSearch = (e: React.FormEvent) => {
@@ -306,22 +299,10 @@ export default function SaaSIntegratedHome() {
           </div>
         </header>
 
-        <div className="news-ticker-wrapper fade-up-element" style={{ "--delay": `${animDelayOffset + 0.1}s` } as any}>
-          <div className="news-badge">📢 INFO</div>
-          <div className="news-scroll-container"><div className="news-text">{newsText}</div></div>
-          {isAdmin && <button className="news-edit-btn" onClick={() => { setTempNews(newsText); setIsEditingNews(!isEditingNews); }}>✏️ 編集</button>}
-        </div>
-        {isAdmin && isEditingNews && (
-          <div className="news-edit-box">
-            <input type="text" className="pop-input" value={tempNews} onChange={(e) => setTempNews(e.target.value)} />
-            <button className="pop-btn" onClick={handleSaveNews} style={{width: 'auto', marginTop: 0}}>保存</button>
-          </div>
-        )}
-
         <div className="bento-grid">
           
-          {/* 🎯 Slot A: KPI Dashboard (美しいデザインと2カラムグリッドを融合) */}
-          <BentoCard title="Performance Center" attraction="DAILY KPI" size="xlarge" isAchieved={isAchieved} delay={animDelayOffset + 0.2} onClick={() => router.push("/kpi-detail")}>
+          {/* 🎯 Slot A: KPI Dashboard */}
+          <BentoCard title="Performance Center" attraction="DAILY KPI" size="xlarge" isAchieved={isAchieved} delay={animDelayOffset + 0.1} onClick={() => router.push("/kpi-detail")}>
             <div className="kpi-enhanced-container">
               <div className="kpi-left">
                 <div className="kpi-main-stat">
@@ -336,7 +317,6 @@ export default function SaaSIntegratedHome() {
               
               <div className="kpi-right">
                 <div className="panel-title-small">📦 LIST BREAKDOWN</div>
-                {/* 💡 修正点：スクロールさせず、グリッドで綺麗に並べる */}
                 <div className="breakdown-grid">
                   {isKpiLoading ? (
                     <div className="matrix-loader">MAPPING DATA...</div>
@@ -365,8 +345,8 @@ export default function SaaSIntegratedHome() {
             </div>
           </BentoCard>
 
-          {/* Slot B: Power Action Stack (修正点：ボタンが下に行かないように調整) */}
-          <div className="bento-slot size-tall fade-up-element" style={{ "--delay": `${animDelayOffset + 0.3}s` } as React.CSSProperties}>
+          {/* Slot B: Power Action Stack */}
+          <div className="bento-slot size-tall fade-up-element" style={{ "--delay": `${animDelayOffset + 0.2}s` } as React.CSSProperties}>
             <div className="bento-card-inner glass-morphism calm-hover action-stack">
               <div className="card-top"><span className="attraction-tag">QUICK LAUNCH</span></div>
               <h2 className="card-title">Launchpad</h2>
@@ -386,10 +366,10 @@ export default function SaaSIntegratedHome() {
             </div>
           </div>
 
-          <BentoCard title="データ一括登録" attraction="BULK SYNC" desc="成約後マスター同期" delay={animDelayOffset + 0.4} onClick={() => router.push("/bulk-register")} />
-          <BentoCard title="アフィリエイト" attraction="OBJ LINKS" desc="媒体別OBJ自動生成" delay={animDelayOffset + 0.5} onClick={() => router.push("/affiliate-links")} />
-          <BentoCard title="メールテンプレ" attraction="MAIL FMT" delay={animDelayOffset + 0.6} onClick={() => router.push("/email-template")} size="small" />
-          <BentoCard title="SMS Kraken" attraction="SMS DISPATCH" delay={animDelayOffset + 0.7} onClick={() => router.push("/sms-kraken")} size="small" />
+          <BentoCard title="データ一括登録" attraction="BULK SYNC" desc="成約後マスター同期" delay={animDelayOffset + 0.3} onClick={() => router.push("/bulk-register")} />
+          <BentoCard title="アフィリエイト" attraction="OBJ LINKS" desc="媒体別OBJ自動生成" delay={animDelayOffset + 0.4} onClick={() => router.push("/affiliate-links")} />
+          <BentoCard title="メールテンプレ" attraction="MAIL FMT" delay={animDelayOffset + 0.5} onClick={() => router.push("/email-template")} size="small" />
+          <BentoCard title="SMS Kraken" attraction="SMS DISPATCH" delay={animDelayOffset + 0.6} onClick={() => router.push("/sms-kraken")} size="small" />
         </div>
       </main>
 
@@ -515,6 +495,7 @@ export default function SaaSIntegratedHome() {
         body { background: var(--bg-color); color: var(--text-main); font-family: 'Inter', sans-serif; overflow-x: hidden; transition: 1s ease; }
         .portal-container { min-height: 100vh; padding: 30px; position: relative; }
         
+        /* Backgrounds */
         .mesh-bg { position: fixed; inset: 0; z-index: -3; background: var(--bg-color); overflow: hidden; }
         .mesh-blob { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.8; animation: moveMesh 20s infinite alternate; transition: 1.5s ease; }
         .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: var(--mesh-1); }
@@ -527,7 +508,7 @@ export default function SaaSIntegratedHome() {
         .bento-layout-wrapper { max-width: 1200px; margin: 0 auto; z-index: 10; position: relative; opacity: 0; transition: opacity 0.8s; }
         .bento-layout-wrapper.ready { opacity: 1; }
 
-        /* Header */
+        /* Header & Utils */
         .portal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .header-right { display: flex; gap: 15px; align-items: center; }
         .operator-badge { display: flex; align-items: center; background: var(--card-bg); backdrop-filter: blur(20px); padding: 10px 20px; border-radius: 100px; border: 1px solid var(--border); font-size: 12px; color: var(--text-sub); }
@@ -543,39 +524,28 @@ export default function SaaSIntegratedHome() {
         .cmdk-shortcut { display: flex; gap: 4px; }
         .cmdk-shortcut kbd { background: var(--card-bg); border: 1px solid var(--border); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-family: monospace; }
 
-        /* 📢 News Ticker (修正: 文字色を確実に反映) */
-        .news-ticker-wrapper { display: flex; align-items: center; background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 25px; padding: 10px 20px; backdrop-filter: blur(20px); }
-        .news-badge { background: var(--accent); color: #fff; font-weight: 900; font-size: 11px; padding: 6px 14px; border-radius: 8px; white-space: nowrap; margin-right: 20px; letter-spacing: 1px; }
-        .news-scroll-container { flex: 1; overflow: hidden; white-space: nowrap; display: flex; align-items: center; }
-        .news-text { display: inline-block; padding-left: 100%; animation: marquee 25s linear infinite; font-weight: 800; font-size: 13px; color: var(--text-main); }
-        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
-        .news-edit-btn { background: transparent; border: 1px dashed var(--border); color: var(--text-sub); font-size: 11px; padding: 6px 12px; border-radius: 8px; cursor: pointer; margin-left: 15px; font-weight: 900; }
-        .news-edit-box { display: flex; gap: 10px; margin-bottom: 25px; background: var(--card-bg); padding: 15px; border-radius: 16px; border: 1px dashed var(--accent); }
-
-        /* Bento Grid */
-        .bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 160px; gap: 16px; margin-bottom: 100px; }
+        /* 💡 修正：Dock被り防止のために margin-bottom を 140px に拡張 */
+        .bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 160px; gap: 16px; margin-bottom: 140px; }
         .size-xlarge { grid-column: span 2; grid-row: span 2; }
         .size-tall { grid-column: span 1; grid-row: span 3; }
         .size-medium, .size-small { grid-column: span 1; grid-row: span 1; }
 
-        .bento-card-inner { height: 100%; border-radius: 28px; padding: 28px; position: relative; border: 1px solid var(--border); cursor: pointer; display: flex; flex-direction: column; overflow: hidden; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .bento-card-inner { height: 100%; border-radius: 28px; padding: 28px; position: relative; border: 1px solid var(--border); cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
         .glass-morphism { background: var(--card-bg); backdrop-filter: blur(24px); }
         .calm-hover:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: var(--glow); }
 
         .achieved-glow .bento-card-inner { border-color: #fbbf24; box-shadow: 0 0 30px rgba(251, 191, 36, 0.3); animation: subtlePulse 4s infinite; }
         @keyframes subtlePulse { 0% { transform: scale(1); } 50% { transform: scale(1.01); } 100% { transform: scale(1); } }
 
-        .card-top { display: flex; justify-content: space-between; margin-bottom: 8px; }
         .attraction-tag { font-size: 10px; font-weight: 900; color: var(--accent); letter-spacing: 1.5px; text-transform: uppercase; }
-        .card-title { font-size: 22px; font-weight: 900; margin: 0 0 10px 0; color: var(--text-main); }
-        
-        /* 💡 修正: card-body-content が不要にストレッチしないように調整 */
-        .card-body-content { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
+        .card-title { font-size: 22px; font-weight: 900; margin: 6px 0; color: var(--text-main); }
+        .card-desc { font-size: 14px; color: var(--text-sub); line-height: 1.6; font-weight: 600; margin-bottom: 0; }
+        .card-body-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
 
-        /* KPI Enhanced Visual (2カラムグリッド化) */
-        .kpi-enhanced-container { display: flex; gap: 30px; flex: 1; align-items: center; }
+        /* KPI Visual & Breakdown (修正: 2カラムグリッド化で綺麗に収める) */
+        .kpi-enhanced-container { display: flex; gap: 30px; margin-top: 10px; flex: 1; align-items: center; }
         .kpi-left { flex: 1; }
-        .kpi-right { flex: 1.5; border-left: 1px solid var(--border); padding-left: 25px; }
+        .kpi-right { flex: 1.2; border-left: 1px solid var(--border); padding-left: 25px; height: 140px; overflow-y: hidden; display: flex; flex-direction: column; justify-content: center; }
         .current-num { font-size: 84px; font-weight: 900; color: var(--text-main); line-height: 1; letter-spacing: -3px; }
         .target-num { font-size: 28px; color: var(--text-sub); font-weight: 800; }
         .progress-track { width: 100%; height: 12px; background: var(--border); border-radius: 10px; margin-top: 15px; overflow: hidden; position: relative; }
@@ -584,8 +554,6 @@ export default function SaaSIntegratedHome() {
         .progress-label { font-size: 11px; font-weight: 900; color: var(--text-sub); margin-top: 8px; letter-spacing: 1px; }
 
         .panel-title-small { font-size: 10px; font-weight: 900; color: var(--text-sub); letter-spacing: 1px; margin-bottom: 12px; }
-        
-        /* 💡 修正: リストが増えてもスクロール不要にする2カラムグリッド */
         .breakdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; }
         .breakdown-item { display: flex; flex-direction: column; gap: 6px; }
         .breakdown-info { display: flex; justify-content: space-between; align-items: flex-end; }
@@ -595,8 +563,9 @@ export default function SaaSIntegratedHome() {
         .breakdown-bar-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
         .matrix-loader { font-size: 10px; opacity: 0.5; font-weight: 900; letter-spacing: 2px; grid-column: span 2; text-align: center; margin-top: 20px; }
 
-        /* Action Stack (修正: 上揃え) */
-        .action-buttons-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: auto; }
+        /* Action Stack (💡 修正: 上揃え) */
+        .action-stack { justify-content: flex-start !important; }
+        .action-buttons-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; overflow-y: auto; padding-right: 4px; }
         .action-row-btn { display: flex; align-items: center; padding: 16px 20px; background: var(--dock-bg); border: 1px solid transparent; border-radius: 18px; transition: 0.2s; color: var(--text-main); cursor: pointer; }
         .action-row-btn:hover { background: rgba(14, 165, 233, 0.1); border-color: var(--accent); transform: translateX(8px); }
         .btn-icon { font-size: 20px; margin-right: 15px; }
