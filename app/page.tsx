@@ -32,7 +32,7 @@ const BentoCard = ({ title, attraction, desc, delay, onClick, children, size = "
   );
 };
 
-// 💠 オリジナルSVGアイコンコンポーネント (エラー修正済: React.ReactNodeを使用)
+// 💠 オリジナルSVGアイコンコンポーネント
 const CustomIcon = ({ type }: { type: string }) => {
   const paths: Record<string, React.ReactNode> = {
     vault: <path d="M19 11V19C19 20.1046 18.1046 21 17 21H7C5.89543 21 5 20.1046 5 19V11M5 11C5 9.89543 5.89543 9 7 9H17C18.1046 9 19 9.89543 19 11M5 11L12 6L19 11M12 12V16M9 14H15" />,
@@ -63,6 +63,7 @@ export default function SaaSIntegratedHome() {
   const [kpi, setKpi] = useState({ current: 0, target: 20 });
   const dockRef = useRef<HTMLDivElement>(null);
 
+  // 💡 ここが現在の「テキトーな」ダミーデータです！後ほどここを書き換えます。
   const kpiBreakdown = [
     { label: "シンプル", val: 5, color: "#38bdf8" },
     { label: "名古屋", val: 3, color: "#818cf8" },
@@ -80,8 +81,8 @@ export default function SaaSIntegratedHome() {
 
   useEffect(() => {
     const hour = new Date().getHours();
-    if (hour >= 6 && hour < 15) setTheme("day");
-    else if (hour >= 15 && hour < 19) setTheme("sunset");
+    if (hour >= 6 && hour < 16) setTheme("day");
+    else if (hour >= 16 && hour < 19) setTheme("sunset");
     else setTheme("night");
 
     const savedUser = localStorage.getItem("team_portal_user");
@@ -107,7 +108,6 @@ export default function SaaSIntegratedHome() {
   const isAchieved = progressPercent >= 100;
   const { data: masterData } = useSWR(`/api/sheets-data?id=${MASTER_SHEET_ID}&range=${encodeURIComponent(CALCULATOR_RANGE)}`, fetcher);
 
-  // 💡 エラー修正済：確実な function 宣言に変更し、スコープの安全性を確保
   async function handleTargetCopy(e: React.MouseEvent, text: string, id: string, type: 'name' | 'url') {
     e.stopPropagation();
     try { 
@@ -340,16 +340,20 @@ export default function SaaSIntegratedHome() {
           --glow: rgba(2, 132, 199, 0.1);
         }
 
+        /* 🌅 修正版サンセットテーマ：ライトモードベースの柔らかな黄昏時 */
         .theme-sunset {
-          --accent: #f97316; 
-          --bg-color: #431407;
-          --card-bg: rgba(67, 20, 7, 0.6);
-          --border: rgba(255,255,255,0.2);
-          --text-main: #fff7ed;
-          --text-sub: #fed7aa;
-          --dock-bg: rgba(255,255,255,0.1);
-          --mesh-1: #9a3412; --mesh-2: #ea580c; --mesh-3: #431407; --mesh-4: #f97316;
-          --glow: rgba(249, 115, 22, 0.3);
+          --accent: #f59e0b; /* 上品なアンバー */
+          --bg-color: #fffbf5; /* ほんのり暖かい夕暮れの白 */
+          --card-bg: rgba(255, 250, 245, 0.75);
+          --border: rgba(245, 158, 11, 0.2);
+          --text-main: #451a03; /* 視認性の高いダークブラウン */
+          --text-sub: #92400e; 
+          --dock-bg: rgba(255, 255, 255, 0.6);
+          --mesh-1: #fef3c7; /* 薄い黄色 */
+          --mesh-2: #ffedd5; /* 淡いオレンジ */
+          --mesh-3: #fce7f3; /* わずかな夕暮れピンク */
+          --mesh-4: #fff7ed; 
+          --glow: rgba(245, 158, 11, 0.2);
         }
 
         body { background: var(--bg-color); color: var(--text-main); font-family: 'Inter', sans-serif; overflow-x: hidden; transition: 1s ease; }
