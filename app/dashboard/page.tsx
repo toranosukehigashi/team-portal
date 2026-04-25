@@ -31,9 +31,9 @@ const SHEET_CONFIGS = [
     cols: ["タイムスタンプ", "メールアドレス", "電話番号", "重説", "サクッと割"],
     theme: { primary: "#10b981", light: "rgba(16, 185, 129, 0.1)", ambient: "#ecfdf5", darkAmbient: "#022c22", shadow: "rgba(16, 185, 129, 0.4)", name: "Emerald" }
   },
-  // 🚀 変更：フォーム回答1 を 「空室通電」へ
+  // 🚀 修正完了：表示名は「空室通電」、スプシ参照名は「フォームの回答 1」（半角スペースあり）
   { 
-    name: "空室通電", id: MASTER_SHEET_ID, range: "空室通電!A2:E",
+    name: "空室通電", id: MASTER_SHEET_ID, range: "フォームの回答 1!A2:E",
     cols: ["タイムスタンプ", "メールアドレス", "電話番号", "プラン", "重説"],
     theme: { primary: "#f43f5e", light: "rgba(244, 63, 94, 0.1)", ambient: "#fff1f2", darkAmbient: "#4c0519", shadow: "rgba(244, 63, 94, 0.4)", name: "Rose" }
   }

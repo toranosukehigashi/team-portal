@@ -30,22 +30,22 @@ export async function GET(request: Request) {
 
     const data = rows.slice(-100).reverse().map((row) => {
       
-      // 🎯 特殊構成：電気ガスセット割
+      // 🎯 電気ガスセット割
       if (range.includes("電気ガスセット割")) {
         return {
           timestamp: row[0], email: row[1], phone: row[2], plan: row[3], gasSet: row[4], jusetsu: row[5]
         };
       }
 
-      // 🎯 特殊構成：グリーン デンワde割
+      // 🎯 グリーン デンワde割
       if (range.includes("デンワde割")) {
         return {
           timestamp: row[0], email: row[1], phone: row[2], jusetsu: row[3], sakutto: row[4]
         };
       }
 
-      // 🚀 変更：名古屋オフィス ＆ 空室通電 (旧：フォームの回答1)
-      if (range.includes("名古屋") || range.includes("空室通電")) {
+      // 🚀 修正：名古屋オフィス ＆ 空室通電（スプシ名は「フォームの回答 1」）
+      if (range.includes("名古屋") || range.includes("フォームの回答 1")) {
         return {
           timestamp: row[0], email: row[1], phone: row[2], plan: row[3], jusetsu: row[4]
         };
