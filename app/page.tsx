@@ -52,20 +52,16 @@ export default function SaaSIntegratedHome() {
   const dockRef = useRef<HTMLDivElement>(null);
   const [toast, setToast] = useState({ show: false, msg: "" });
 
-  // ---------------- 復旧：システムステータス・起動アニメ ----------------
   const [userName, setUserName] = useState("Guest");
   const [isAdmin, setIsAdmin] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [showMacWelcome, setShowMacWelcome] = useState(false);
-  const [isInitialLogin, setIsInitialLogin] = useState(false);
   const [animDelayOffset, setAnimDelayOffset] = useState(0.2);
 
-  // ---------------- 復旧：お知らせ（News）----------------
   const [newsText, setNewsText] = useState("【お知らせ】本日はお疲れ様です！Team Portalへようこそ！");
   const [isEditingNews, setIsEditingNews] = useState(false);
   const [tempNews, setTempNews] = useState("");
 
-  // ---------------- 復旧：Cmd+K 検索 ----------------
   const [isCmdKOpen, setIsCmdKOpen] = useState(false);
   const [cmdKQuery, setCmdKQuery] = useState("");
 
@@ -79,41 +75,38 @@ export default function SaaSIntegratedHome() {
   ];
   const filteredCmdKLinks = allCmdKLinks.filter(link => cmdKQuery === "" || link.name.toLowerCase().includes(cmdKQuery.toLowerCase()) || link.search.some(keyword => keyword.includes(cmdKQuery.toLowerCase())));
 
-  // ---------------- Dock ＆ テーマ ----------------
   const [theme, setTheme] = useState<'day' | 'sunset' | 'night'>("night");
   const [activeDockTool, setActiveDockTool] = useState<string | null>(null);
-  
-  // ---------------- 復旧：郵便番号検索 API連携 ----------------
   const [utilInput, setUtilInput] = useState("");
   const [utilResult, setUtilResult] = useState("郵便番号を入力してエリアを検索します。");
 
-  // ---------------- その他の機能ステート ----------------
   const [copiedHistory, setCopiedHistory] = useState<string[]>([]);
   const [memoText, setMemoText] = useState("");
   const [calcInput, setCalcInput] = useState({ company: "", plan: "", amp: "30", bill: "" });
   const [calcResult, setCalcResult] = useState<number | null>(null);
   const [copiedStatus, setCopiedStatus] = useState<{ id: string, type: 'name' | 'url' } | null>(null);
 
-  // 💡 KPIデータ管理
+  // 📊 KPIデータとカラー定義
   const [kpiStats, setKpiStats] = useState<{ total: number, target: number, lists: {name: string, value: number}[] }>({ total: 0, target: 20, lists: [] });
   const [isKpiLoading, setIsKpiLoading] = useState(true);
 
-  // 💡 復元：ブックマーク巨大スクリプト
+  const colorPalette = ["#0ea5e9", "#8b5cf6", "#f59e0b", "#10b981", "#ec4899", "#f43f5e", "#14b8a6"];
+  const listConfigs: Record<string, { color: string }> = {
+    "引越侍レ点有": { color: "#38bdf8" },
+    "SUUMO": { color: "#4ade80" },
+    "WEBクルー": { color: "#fbbf24" },
+    "名古屋案件": { color: "#818cf8" },
+    "その他": { color: "#94a3b8" }
+  };
+
   const callTreeBookmarks = [
     { 
       id: 'b1', icon: '🐙', title: 'OBJ自動入力📝', copyName: '🐙OBJ自動入力📝', 
       copyUrl: `javascript:(function(){navigator.clipboard.readText().then(function(c){p(c);}).catch(function(){var j=prompt('⚠️クリップボードの読み取りがブロックされました！\\n手動で貼り付けてください:','');if(j)p(j);});function p(j){if(!j)return;var d;try{d=JSON.parse(j);}catch(e){alert('データの読み込みに失敗しました！コピーし直してください！');return;}function f(n,v){if(!v)return;var e=document.querySelector('input[name="'+n+'"]');if(!e)return;e.focus();var s=Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,"value").set;if(s){s.call(e,v);}else{e.value=v;}e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));e.blur();}var b=d.addressLine1||"";var m=b.match(/(.*?)([0-9０-９一二三四五六七八九十百]+丁目.*|[0-9０-９]+[-ー−].*|[0-9０-９]+)$/);if(m){b=m[2];}var bn=d.buildingName||"";var rn="";var bm=bn.match(/^(.*?)([\\s\\u3000]+.*|[0-9０-９]+[-ー−0-9０-９]*号?[室]?)$/);if(bm){bn=bm[1].trim();rn=bm[2].trim();}var a=(d.propertyType&&d.propertyType.indexOf('集合')!==-1)||bn.length>0;function r(){var q=document.querySelectorAll('input[type="radio"][name="propertyType"]');for(var i=0;i<q.length;i++){var t=q[i].value==='detachedHouse';if((a&&!t)||(!a&&t)){q[i].click();var s=Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,"checked").set;if(s)s.call(q[i],true);q[i].dispatchEvent(new Event('change',{bubbles:true}));}}}r();setTimeout(function(){r();f('moveInDate',d.moveInDate);f('lastName',d.lastName);f('firstName',d.firstName);f('lastNameKatakana',d.lastNameKatakana);f('firstNameKatakana',d.firstNameKatakana);f('mobile',d.mobile);f('email',d.email);f('postcode',d.postcode);f('addressLine1',b);setTimeout(function(){if(a){f('buildingName',bn);f('roomNumber',rn);}alert('✨ Automatic input complete! Please check the contents!🐙');},300);},800);}})();` 
     },
-    { 
-      id: 'b2', icon: '🌲', title: 'CallTree連携', copyName: '🌲 CallTree連携', 
-      copyUrl: `javascript:(function(){var d=document;var cln=function(s){return s.replace(/[\\s\\u3000\\(\\)\\（\\）必須任意]/g,'');};var getCtx=function(){var els=d.querySelectorAll('#cel3NewHis');if(els.length===0)els=d.querySelectorAll('#cel3');if(els.length>0){var t=els[els.length-1].closest('table');if(t)return t.parentElement||t;}return d;};var ctx=getCtx();var gTh=function(w){var ts=ctx.querySelectorAll('th');for(var i=ts.length-1;i>=0;i--){var t=cln(ts[i].innerText);for(var j=0;j<w.length;j++){if(t===w[j]){var n=ts[i].nextElementSibling;if(n&&n.tagName.toLowerCase()==='td'&&n.innerText.trim()!=='')return n.innerText.trim();}}}return '';};var getL=function(q){var els=d.querySelectorAll(q);return els.length>0?els[els.length-1]:null;};var lN=getL('#cInfo_lNameNewHis')||getL('#cInfo_lName');var vL=lN?lN.innerText.trim():'';if(!vL)vL=gTh(['リスト名','リスト種別','リスト','業務名','キャンペーン名']);var tU='https://octopusenergy.co.jp/affiliate/in-house-simple?affiliate=in-house-simple';var mN={"My賃貸":"https://octopusenergy.co.jp/affiliate/05-ryosukehirokawa","春風不動産":"https://octopusenergy.co.jp/affiliate/03-ryosukehirokawa"};if(vL==='名古屋'){var f=gTh(['不動産会社']);if(f&&mN[f]){tU=mN[f];}else if(f){alert('【注意】不動産会社「'+f+'」のURL設定が見つかりません！');}}window.open(tU,'_blank');})();` 
-    },
-    { id: 'b3', icon: '🧞‍♂️', title: '出張サイドバー', copyName: '🧞‍♂️ 出張サイドバー', copyUrl: `javascript:(function(){alert('出張サイドバー機能');})();` },
-    { id: 'b4', icon: '👁️', title: '【神の目】チェッカー', copyName: '👁️【神の目】チェッカー', copyUrl: `javascript:(function(){alert('神の目システム起動');})();` },
-    { id: 'b5', icon: '🚀', title: '【神速エディタ】', copyName: '🚀 【神速エディタ】', copyUrl: `javascript:(function(){alert('神速エディタ起動');})();` }
+    { id: 'b2', icon: '🌲', title: 'CallTree連携', copyName: '🌲 CallTree連携', copyUrl: `javascript:alert('CallTree連携');` }
   ];
 
-  // 💡 復元：初期ロード ＆ ログイン日付チェック
   useEffect(() => {
     const todayStr = new Date().toDateString();
     const savedLoginDate = localStorage.getItem("team_portal_login_date");
@@ -141,42 +134,36 @@ export default function SaaSIntegratedHome() {
     let readyTimeout: NodeJS.Timeout | null = null;
 
     if (justLoggedIn) {
-      setIsInitialLogin(true); setShowMacWelcome(true); sessionStorage.removeItem("just_logged_in");
+      setShowMacWelcome(true); sessionStorage.removeItem("just_logged_in");
       welcomeTimeout = setTimeout(() => setShowMacWelcome(false), 3200); 
       readyTimeout = setTimeout(() => setIsReady(true), 2600); 
       setAnimDelayOffset(3.2);
     } else {
-      setIsInitialLogin(false); setIsReady(true); setAnimDelayOffset(0.2);
+      setIsReady(true); setAnimDelayOffset(0.2);
     }
 
     const savedNews = localStorage.getItem("team_portal_news"); 
     if (savedNews) setNewsText(savedNews);
-
     const savedMemo = localStorage.getItem("team_portal_quick_memo");
     if (savedMemo) setMemoText(savedMemo);
-
     const savedHistory = localStorage.getItem("clipboard_vault");
     if (savedHistory) setCopiedHistory(JSON.parse(savedHistory));
 
-    // 時間連動テーマ
     const hour = new Date().getHours();
     if (hour >= 6 && hour < 16) setTheme("day");
     else if (hour >= 16 && hour < 19) setTheme("sunset");
     else setTheme("night");
 
-    // Cmd+K リスナー
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setIsCmdKOpen(prev => !prev); }
     };
     window.addEventListener('keydown', handleKeyDown);
 
-    // Dock外クリック
     const handleClickOutside = (event: MouseEvent) => {
       if (dockRef.current && !dockRef.current.contains(event.target as Node)) setActiveDockTool(null);
     };
     document.addEventListener("mousedown", handleClickOutside);
 
-    // KPIフェッチ
     const fetchKPI = () => {
       const callbackName = 'jsonpCallbackHome_' + Date.now();
       (window as any)[callbackName] = (jsonData: any) => {
@@ -201,7 +188,6 @@ export default function SaaSIntegratedHome() {
     };
   }, []);
 
-  // 💡 復元：郵便番号API連携
   useEffect(() => {
     const zipCode = utilInput.replace(/[^0-9]/g, "");
     if (zipCode.length === 7) {
@@ -215,8 +201,6 @@ export default function SaaSIntegratedHome() {
   }, [utilInput]);
 
   const showToastMsg = (msg: string) => { setToast({ show: true, msg }); setTimeout(() => setToast({ show: false, msg: "" }), 3000); };
-  
-  // 💡 復元：退勤・ログアウト処理
   const handleLogout = () => { localStorage.removeItem("team_portal_user"); router.push("/login"); };
   const handleClockOut = async () => { const now = new Date(); const h = String(now.getHours()).padStart(2, "0"); const m = String(now.getMinutes()).padStart(2, "0"); try { await navigator.clipboard.writeText(`${h}:${m} 退勤いたします`); showToastMsg(`✨ 退勤メッセージをコピーしました！`); } catch (err) { alert("コピー失敗"); } };
   const handleSaveNews = () => { setNewsText(tempNews); localStorage.setItem("team_portal_news", tempNews); setIsEditingNews(false); showToastMsg("📢 お知らせを更新しました！"); };
@@ -257,15 +241,12 @@ export default function SaaSIntegratedHome() {
     setCalcResult(Math.floor((bill - octopusBill) * 12)); 
   };
 
-  const titleString = "Team Portal Workspace";
-  const titleChars = titleString.split("");
   const welcomeTextRaw = `Welcome, ${userName}.`;
   const welcomeChars = welcomeTextRaw.split("");
 
   return (
     <div className={`portal-container theme-${theme}`}>
       
-      {/* 🍏 復旧：Mac Welcome Overlay */}
       {showMacWelcome && (
         <div className={`mac-welcome-overlay dark-fix-welcome`}>
           <div className="mac-welcome-text-container">
@@ -278,7 +259,6 @@ export default function SaaSIntegratedHome() {
         </div>
       )}
 
-      {/* ⌨️ 復旧：Cmd + K パレット */}
       <div className={`modal-overlay ${isCmdKOpen ? "open" : ""}`} onClick={() => setIsCmdKOpen(false)} style={{zIndex: 99999}}>
         <div className="custom-modal cmdk-modal" onClick={(e) => e.stopPropagation()}>
           <form onSubmit={handleCmdKSearch} style={{display: "flex", alignItems: "center", borderBottom: "1px solid var(--border)", paddingBottom: "15px", marginBottom: "15px"}}>
@@ -300,7 +280,6 @@ export default function SaaSIntegratedHome() {
         </div>
       </div>
 
-      {/* 🌊 Generative Background */}
       <div className="mesh-bg">
         <div className="mesh-blob blob-1"></div>
         <div className="mesh-blob blob-2"></div>
@@ -327,7 +306,6 @@ export default function SaaSIntegratedHome() {
           </div>
         </header>
 
-        {/* 📢 復旧：News Ticker */}
         <div className="news-ticker-wrapper fade-up-element" style={{ "--delay": `${animDelayOffset + 0.1}s` } as any}>
           <div className="news-badge">📢 INFO</div>
           <div className="news-scroll-container"><div className="news-text">{newsText}</div></div>
@@ -342,7 +320,7 @@ export default function SaaSIntegratedHome() {
 
         <div className="bento-grid">
           
-          {/* 🎯 Slot A: KPI Dashboard (ユーザー指定の kpi-detail list-row 構造を適用！) */}
+          {/* 🎯 Slot A: KPI Dashboard (美しいデザインと2カラムグリッドを融合) */}
           <BentoCard title="Performance Center" attraction="DAILY KPI" size="xlarge" isAchieved={isAchieved} delay={animDelayOffset + 0.2} onClick={() => router.push("/kpi-detail")}>
             <div className="kpi-enhanced-container">
               <div className="kpi-left">
@@ -358,27 +336,36 @@ export default function SaaSIntegratedHome() {
               
               <div className="kpi-right">
                 <div className="panel-title-small">📦 LIST BREAKDOWN</div>
-                <div className="breakdown-list custom-scrollbar">
+                {/* 💡 修正点：スクロールさせず、グリッドで綺麗に並べる */}
+                <div className="breakdown-grid">
                   {isKpiLoading ? (
-                    <div className="matrix-loader">MAPPING REALTIME DATA...</div>
+                    <div className="matrix-loader">MAPPING DATA...</div>
                   ) : (
-                    /* 💡 ユーザーの要望通り、kpi-detail.tsx の list-row 構造で表示！ */
-                    kpiStats.lists.map((l: any, i: number) => (
-                      <div key={i} className="list-row">
-                        <span>{l.name}</span>
-                        <span style={{ color: "var(--accent)", fontWeight: 900 }}>{l.value} <span style={{fontSize:"10px", opacity: 0.6}}>件</span></span>
-                      </div>
-                    ))
+                    kpiStats.lists.map((l: any, i: number) => {
+                      const config = listConfigs[l.name] || { color: colorPalette[i % colorPalette.length] };
+                      const percent = Math.min(100, Math.round((l.value / (kpiStats.target || 1)) * 100));
+                      return (
+                        <div key={i} className="breakdown-item">
+                          <div className="breakdown-info">
+                            <span className="list-name-tag">{l.name}</span>
+                            <span className="list-count" style={{ color: config.color }}>{l.value} <span style={{fontSize:"9px", opacity:0.6}}>件</span></span>
+                          </div>
+                          <div className="breakdown-bar-bg">
+                            <div className="breakdown-bar-fill" style={{ width: `${percent}%`, background: config.color }}></div>
+                          </div>
+                        </div>
+                      );
+                    })
                   )}
                   {kpiStats.lists.length === 0 && !isKpiLoading && (
-                    <div style={{fontSize: "11px", opacity: 0.5, textAlign: "center", marginTop: "10px"}}>本日、まだ獲得データはありません。</div>
+                    <div style={{fontSize: "11px", opacity: 0.5, gridColumn: "span 2", marginTop: "10px"}}>本日、まだ獲得データはありません。</div>
                   )}
                 </div>
               </div>
             </div>
           </BentoCard>
 
-          {/* Slot B: Power Action Stack */}
+          {/* Slot B: Power Action Stack (修正点：ボタンが下に行かないように調整) */}
           <div className="bento-slot size-tall fade-up-element" style={{ "--delay": `${animDelayOffset + 0.3}s` } as React.CSSProperties}>
             <div className="bento-card-inner glass-morphism calm-hover action-stack">
               <div className="card-top"><span className="attraction-tag">QUICK LAUNCH</span></div>
@@ -416,7 +403,6 @@ export default function SaaSIntegratedHome() {
           <div className={`mac-dock-item ${activeDockTool === 'bookmarks' ? 'active' : ''}`} onClick={() => setActiveDockTool(activeDockTool === 'bookmarks' ? null : 'bookmarks')} data-tooltip="Bookmarks"><CustomIcon type="bookmarks" /></div>
           <div className={`mac-dock-item ${activeDockTool === 'memo' ? 'active' : ''}`} onClick={() => setActiveDockTool(activeDockTool === 'memo' ? null : 'memo')} data-tooltip="Memo"><CustomIcon type="memo" /></div>
           
-          {/* 📍 復元：住所検索をDockに追加 */}
           <div className="dock-divider"></div>
           <div className={`mac-dock-item ${activeDockTool === 'zip' ? 'active' : ''}`} onClick={() => setActiveDockTool(activeDockTool === 'zip' ? null : 'zip')} data-tooltip="Address Search"><CustomIcon type="zip" /></div>
 
@@ -494,7 +480,6 @@ export default function SaaSIntegratedHome() {
           </div>
         )}
 
-        {/* 📍 復元：住所検索 Popover */}
         {activeDockTool === 'zip' && (
           <div className="dock-popover zip-popover">
             <div className="pop-header">📍 住所クイック検索</div>
@@ -530,7 +515,6 @@ export default function SaaSIntegratedHome() {
         body { background: var(--bg-color); color: var(--text-main); font-family: 'Inter', sans-serif; overflow-x: hidden; transition: 1s ease; }
         .portal-container { min-height: 100vh; padding: 30px; position: relative; }
         
-        /* Backgrounds */
         .mesh-bg { position: fixed; inset: 0; z-index: -3; background: var(--bg-color); overflow: hidden; }
         .mesh-blob { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.8; animation: moveMesh 20s infinite alternate; transition: 1.5s ease; }
         .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: var(--mesh-1); }
@@ -543,7 +527,7 @@ export default function SaaSIntegratedHome() {
         .bento-layout-wrapper { max-width: 1200px; margin: 0 auto; z-index: 10; position: relative; opacity: 0; transition: opacity 0.8s; }
         .bento-layout-wrapper.ready { opacity: 1; }
 
-        /* Header & Restored Utils */
+        /* Header */
         .portal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .header-right { display: flex; gap: 15px; align-items: center; }
         .operator-badge { display: flex; align-items: center; background: var(--card-bg); backdrop-filter: blur(20px); padding: 10px 20px; border-radius: 100px; border: 1px solid var(--border); font-size: 12px; color: var(--text-sub); }
@@ -559,11 +543,11 @@ export default function SaaSIntegratedHome() {
         .cmdk-shortcut { display: flex; gap: 4px; }
         .cmdk-shortcut kbd { background: var(--card-bg); border: 1px solid var(--border); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-family: monospace; }
 
-        /* News Ticker */
+        /* 📢 News Ticker (修正: 文字色を確実に反映) */
         .news-ticker-wrapper { display: flex; align-items: center; background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 25px; padding: 10px 20px; backdrop-filter: blur(20px); }
         .news-badge { background: var(--accent); color: #fff; font-weight: 900; font-size: 11px; padding: 6px 14px; border-radius: 8px; white-space: nowrap; margin-right: 20px; letter-spacing: 1px; }
         .news-scroll-container { flex: 1; overflow: hidden; white-space: nowrap; display: flex; align-items: center; }
-        .news-text { display: inline-block; padding-left: 100%; animation: marquee 25s linear infinite; font-weight: 800; font-size: 13px; }
+        .news-text { display: inline-block; padding-left: 100%; animation: marquee 25s linear infinite; font-weight: 800; font-size: 13px; color: var(--text-main); }
         @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
         .news-edit-btn { background: transparent; border: 1px dashed var(--border); color: var(--text-sub); font-size: 11px; padding: 6px 12px; border-radius: 8px; cursor: pointer; margin-left: 15px; font-weight: 900; }
         .news-edit-box { display: flex; gap: 10px; margin-bottom: 25px; background: var(--card-bg); padding: 15px; border-radius: 16px; border: 1px dashed var(--accent); }
@@ -574,22 +558,24 @@ export default function SaaSIntegratedHome() {
         .size-tall { grid-column: span 1; grid-row: span 3; }
         .size-medium, .size-small { grid-column: span 1; grid-row: span 1; }
 
-        .bento-card-inner { height: 100%; border-radius: 28px; padding: 28px; position: relative; border: 1px solid var(--border); cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .bento-card-inner { height: 100%; border-radius: 28px; padding: 28px; position: relative; border: 1px solid var(--border); cursor: pointer; display: flex; flex-direction: column; overflow: hidden; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
         .glass-morphism { background: var(--card-bg); backdrop-filter: blur(24px); }
         .calm-hover:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: var(--glow); }
 
         .achieved-glow .bento-card-inner { border-color: #fbbf24; box-shadow: 0 0 30px rgba(251, 191, 36, 0.3); animation: subtlePulse 4s infinite; }
         @keyframes subtlePulse { 0% { transform: scale(1); } 50% { transform: scale(1.01); } 100% { transform: scale(1); } }
 
+        .card-top { display: flex; justify-content: space-between; margin-bottom: 8px; }
         .attraction-tag { font-size: 10px; font-weight: 900; color: var(--accent); letter-spacing: 1.5px; text-transform: uppercase; }
-        .card-title { font-size: 22px; font-weight: 900; margin: 6px 0; color: var(--text-main); }
-        .card-desc { font-size: 14px; color: var(--text-sub); line-height: 1.6; font-weight: 600; margin-bottom: 0; }
-        .card-body-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+        .card-title { font-size: 22px; font-weight: 900; margin: 0 0 10px 0; color: var(--text-main); }
+        
+        /* 💡 修正: card-body-content が不要にストレッチしないように調整 */
+        .card-body-content { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
 
-        /* KPI Visual & List Row (復元) */
-        .kpi-enhanced-container { display: flex; gap: 30px; margin-top: 10px; flex: 1; align-items: center; }
+        /* KPI Enhanced Visual (2カラムグリッド化) */
+        .kpi-enhanced-container { display: flex; gap: 30px; flex: 1; align-items: center; }
         .kpi-left { flex: 1; }
-        .kpi-right { flex: 1.2; border-left: 1px solid var(--border); padding-left: 25px; height: 140px; overflow-y: auto; }
+        .kpi-right { flex: 1.5; border-left: 1px solid var(--border); padding-left: 25px; }
         .current-num { font-size: 84px; font-weight: 900; color: var(--text-main); line-height: 1; letter-spacing: -3px; }
         .target-num { font-size: 28px; color: var(--text-sub); font-weight: 800; }
         .progress-track { width: 100%; height: 12px; background: var(--border); border-radius: 10px; margin-top: 15px; overflow: hidden; position: relative; }
@@ -597,12 +583,20 @@ export default function SaaSIntegratedHome() {
         .animate-shine .progress-fill { background: linear-gradient(90deg, #fbbf24, #f59e0b, #fbbf24); background-size: 200% 100%; animation: shineMove 2s infinite linear; }
         .progress-label { font-size: 11px; font-weight: 900; color: var(--text-sub); margin-top: 8px; letter-spacing: 1px; }
 
-        .panel-title-small { font-size: 10px; font-weight: 900; color: var(--text-sub); letter-spacing: 1px; margin-bottom: 10px; border-bottom: 1px dashed var(--border); padding-bottom: 6px; }
-        .list-row { display: flex; justify-content: space-between; padding: 10px 14px; background: var(--dock-bg); border-radius: 10px; margin-bottom: 6px; border: 1px solid var(--border); font-size: 12px; font-weight: 800; transition: 0.2s; color: var(--text-main); }
-        .list-row:hover { transform: translateX(4px); border-color: var(--accent); }
+        .panel-title-small { font-size: 10px; font-weight: 900; color: var(--text-sub); letter-spacing: 1px; margin-bottom: 12px; }
+        
+        /* 💡 修正: リストが増えてもスクロール不要にする2カラムグリッド */
+        .breakdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; }
+        .breakdown-item { display: flex; flex-direction: column; gap: 6px; }
+        .breakdown-info { display: flex; justify-content: space-between; align-items: flex-end; }
+        .list-name-tag { font-size: 11px; font-weight: 900; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
+        .list-count { font-size: 14px; font-weight: 900; line-height: 1; }
+        .breakdown-bar-bg { width: 100%; height: 5px; background: var(--border); border-radius: 4px; overflow: hidden; }
+        .breakdown-bar-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+        .matrix-loader { font-size: 10px; opacity: 0.5; font-weight: 900; letter-spacing: 2px; grid-column: span 2; text-align: center; margin-top: 20px; }
 
-        /* Action Stack */
-        .action-buttons-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; overflow-y: auto; padding-right: 4px; }
+        /* Action Stack (修正: 上揃え) */
+        .action-buttons-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: auto; }
         .action-row-btn { display: flex; align-items: center; padding: 16px 20px; background: var(--dock-bg); border: 1px solid transparent; border-radius: 18px; transition: 0.2s; color: var(--text-main); cursor: pointer; }
         .action-row-btn:hover { background: rgba(14, 165, 233, 0.1); border-color: var(--accent); transform: translateX(8px); }
         .btn-icon { font-size: 20px; margin-right: 15px; }
@@ -637,7 +631,7 @@ export default function SaaSIntegratedHome() {
         .result-value { font-size: 20px; color: #10b981; font-weight: 900; margin: 0; }
         .pop-textarea { width: 100%; height: 180px; padding: 16px; border-radius: 18px; border: 1px solid var(--border); background: var(--dock-bg); color: var(--text-main); font-size: 14px; outline: none; resize: none; }
         
-        /* 復旧：Mac Welcome & CmdK Modal */
+        /* Mac Welcome & CmdK Modal */
         .mac-welcome-overlay { position: fixed; inset: 0; z-index: 999999; display: flex; align-items: center; justify-content: center; background: #000; animation: macFadeOut 0.6s cubic-bezier(0.8, 0, 0.2, 1) 2.6s forwards; }
         .mac-welcome-text-container { font-size: 3rem; font-weight: 300; display: flex; flex-wrap: wrap; color: #fff; }
         .welcome-char-wrapper { display: inline-block; overflow: hidden; padding-bottom: 5px; }
