@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import GlobalAddressSearch from "@/app/components/GlobalAddressSearch";
 import LiveFeedWidget from "@/app/components/LiveFeedWidget"; 
-import NextAuthProvider from "./NextAuthProvider"; // 🌟 後ほど作成するクライアントコンポーネント
+import NextAuthProvider from "@/app/NextAuthProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
