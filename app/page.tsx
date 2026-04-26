@@ -375,10 +375,10 @@ export default function SaaSIntegratedHome() {
             </div>
           </div>
 
-          <BentoCard title="データ一括登録" attraction="BULK SYNC" desc="成約後マスター同期" delay={animDelayOffset + 0.3} onClick={() => router.push("/bulk-register")} />
-          <BentoCard title="アフィリエイト" attraction="OBJ LINKS" desc="媒体別OBJ自動生成" delay={animDelayOffset + 0.4} onClick={() => router.push("/affiliate-links")} />
-          <BentoCard title="メールテンプレ" attraction="MAIL FMT" delay={animDelayOffset + 0.5} onClick={() => router.push("/email-template")} size="small" />
-          <BentoCard title="SMS Kraken" attraction="SMS DISPATCH" delay={animDelayOffset + 0.6} onClick={() => router.push("/sms-kraken")} size="small" />
+          <BentoCard title="データ一括登録" attraction="BULK SYNC" desc="成約後シート同期" delay={animDelayOffset + 0.3} onClick={() => router.push("/bulk-register")} />
+          <BentoCard title="アフィリエイト" attraction="OBJ LINKS" desc="リストごとのリンク" delay={animDelayOffset + 0.4} onClick={() => router.push("/affiliate-links")} />
+          <BentoCard title="メールテンプレ" attraction="MAIL FMT"  desc="重説、料金比較作成"  delay={animDelayOffset + 0.5} onClick={() => router.push("/email-template")} size="small" />
+          <BentoCard title="SMS Kraken" attraction="SMS DISPATCH" desc="SMSテンプレ作成"  delay={animDelayOffset + 0.6} onClick={() => router.push("/sms-kraken")} size="small" />
         </div>
       </main>
 
