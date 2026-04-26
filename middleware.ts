@@ -1,7 +1,8 @@
-// middleware.ts
-export { default } from "next-auth/middleware";
+import { withAuth } from "next-auth/middleware";
+
+// 省略形を使わず、明確に関数としてエクスポート（Turbopackのパニック対策！）
+export default withAuth;
 
 export const config = {
-  // login の除外を消しました！これで全ページに警備員が立ちます！
   matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
 };
